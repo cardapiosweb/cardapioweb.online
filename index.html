@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Loja</title>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,700;1,500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- META TAG -->
+    <meta id="og-title" property="og:title" content="Kelve Store - Eletrônicos e muito mais!"/>
+    <meta id="og-image" property="og:image" content="https://projeto-cardapio-umber.vercel.app/assets/img/logo_kelve.png"/>
+    <meta id="og-description" property="og:description" content="Eletrônicos, acessórios, casa e variedades com os melhores preços!"/>
+    <meta id="og-site-name" property="og:site_name" content="Kelve Store"/>
+
+    <link rel="stylesheet" href="./styles/output.css"/>
+
+    <style>
+        :root {
+            --laranja: #FF6B00;
+            --laranja-escuro: #CC4400;
+            --laranja-claro: #FFF3E8;
+        }
+
+        .bg-laranja { background-color: var(--laranja); }
+        .text-laranja { color: var(--laranja); }
+        .border-laranja { border-color: var(--laranja); }
+
+        /* Botão adicionar ao carrinho */
+        .add-to-cart-btn {
+            background-color: var(--laranja);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: flex-end;
+        }
+        .add-to-cart-btn:hover {
+            background-color: var(--laranja-escuro);
+        }
+
+        /* Card de produto */
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            margin-left: 14px;
+        }
+        .product-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
+        /* Imagem e nome clicáveis */
+        .product-clickable {
+            cursor: pointer;
+        }
+        .product-clickable:hover {
+            opacity: 0.85;
+        }
+        .product-name-clickable {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .product-name-clickable:hover {
+            color: var(--laranja);
+        }
+
+        /* Separador de categoria */
+        .category-title {
+            border-left: 4px solid var(--laranja);
+            padding-left: 12px;
+        }
+
+        .categoria-grid {
+        overflow: hidden;
+        transition: max-height 0.35s ease, opacity 0.3s ease, margin-bottom 0.35s ease;
+        opacity: 1;
+        }
+        .categoria-grid.categoria-fechada {
+        opacity: 0;
+        margin-bottom: 0 !important;
+        }
+
+        .category-chevron {
+        transition: transform 0.3s ease;
+        }
+        .category-chevron.chevron-fechado {
+        transform: rotate(-90deg);
+        }
+
+        /* Badge de oferta */
+        .badge-oferta {
+            background-color: #FF3B30;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* Opções de entrega/retirada no modal */
+        .delivery-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+        .delivery-option.selected {
+            border-color: var(--laranja);
+            background-color: var(--laranja-claro);
+            color: var(--laranja-escuro);
+            font-weight: bold;
+        }
+
+        /* Footer laranja */
+        #cart-footer {
+            background-color: var(--laranja);
+        }
+
+        /* Scroll interno do modal do carrinho */
+        #cart-modal > div {
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        /* ===== MODAL DE PRODUTO ===== */
+        #product-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        #product-modal.open {
+            display: flex;
+        }
+        .product-modal-box {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+        }
+        .product-modal-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 16px;
+            padding: 0;
+        }
+        .product-modal-back:hover {
+            color: var(--laranja);
+        }
+        .product-modal-gallery {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .product-modal-gallery img {
+            width: 50%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #f0f0f0;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .product-modal-gallery img.active,
+        .product-modal-gallery img:hover {
+            border-color: var(--laranja);
+        }
+        .product-modal-main-img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+        .product-modal-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .product-modal-desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+        .product-modal-price {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--laranja);
+            margin-bottom: 16px;
+        }
+        .product-modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-add-modal {
+            flex: 1;
+            background-color: var(--laranja);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+        .btn-add-modal:hover {
+            background-color: var(--laranja-escuro);
+        }
+        .btn-info-whats {
+            flex: 1;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+        .btn-info-whats:hover {
+            background-color: #1ebe5d;
+        }
+
+        /* ===== DARK MODE ===== */
+        body.dark {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+        body.dark .bg-white { background-color: #1f2937 !important; }
+        body.dark .text-gray-600 { color: #9ca3af !important; }
+        body.dark .text-gray-500 { color: #9ca3af !important; }
+        body.dark .border-b { border-color: #374151 !important; }
+        body.dark #cart-modal > div { background-color: #1f2937; }
+        body.dark .delivery-option { border-color: #374151; background-color: #111827; color: #f9fafb; }
+        body.dark .delivery-option.selected { background-color: #431407; border-color: var(--laranja); color: #fed7aa; }
+        body.dark input { background-color: #111827; color: #f9fafb; border-color: #374151; }
+        body.dark .product-modal-box { background-color: #1f2937; color: #f9fafb; }
+        body.dark .product-modal-desc { color: #9ca3af; }
+        body.dark .product-modal-back { color: #9ca3af; }
+        body.dark h2 { color: #f9fafb; }
+
+        /* Toggle dark mode */
+        #dark-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        #dark-toggle:hover { background: rgba(0,0,0,0.7); }
+
+        /* ===== BOTÃO WHATSAPP FLUTUANTE ===== */
+        #whats-flutuante {
+            position: fixed;
+            bottom: 70px;
+            right: 16px;
+            z-index: 50;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 52px;
+            height: 52px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        #whats-flutuante:hover { transform: scale(1.1); }
+
+        @media (max-width: 768px) {
+            #whats-flutuante {
+                top: 16px;
+                bottom: auto;
+                left: 16px;
+                right: auto;
+            }
+        }
+
+        /* ===== ANIMAÇÃO AO ADICIONAR ===== */
+        @keyframes cartPop {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.35); background-color: #CC4400; }
+            100% { transform: scale(1); }
+        }
+        .cart-animate { animation: cartPop 0.6s ease; }
+
+        @keyframes counterPop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+        .counter-animate { animation: counterPop 0.4s ease; }
+
+        /* Botão compartilhar */
+        .btn-share-whats {
+            flex: 1;
+            background-color: #128C7E;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+        .btn-share-whats:hover { background-color: #0e6b5e; }
+
+    </style>
+</head>
+
+<body class="pb-16">
+
+    <!-- TOGGLE DARK MODE -->
+    <button id="dark-toggle" title="Alternar modo escuro">
+        <i class="fa fa-moon" id="dark-icon"></i>
+        <span id="dark-text">Tema</span>
+    </button>
+
+    <!-- WHATSAPP FLUTUANTE -->
+    <a id="whats-flutuante" href="#" target="_blank" title="Fale conosco">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- HEADER -->
+    <header class="w-full h-[420px] bg-cover bg-center" id="header-banner">
+        <div class="w-full h-full flex flex-col justify-center items-center">
+
+            <div class="w-32 h-32 rounded-full shadow-lg bg-white flex items-center justify-center hover:scale-110 duration-200">
+                <img
+                    id="logo-img"
+                    alt="Logo da loja"
+                    class="w-28 h-28 rounded-full object-cover"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                />
+                <div style="display:none" class="w-full h-full rounded-full flex items-center justify-center">
+                    <i class="fa fa-bolt text-5xl" style="color: var(--laranja);"></i>
+                </div>
+            </div>
+
+            <h1 class="text-4xl mt-4 mb-2 font-bold text-white" id="loja-nome">
+            </h1>
+
+            <span class="text-white font-medium" id="loja-endereco">
+            </span>
+
+            <div class="px-4 py-1 rounded-lg mt-5" id="date-span">
+                <span class="text-white font-medium" id="loja-horario">
+                </span>
+            </div>
+
+        </div>
+    </header>
+    <!-- FIM HEADER -->
+
+
+    <!-- INICIO MENU -->
+    <h2 class="text-2xl md:text-3xl font-bold text-center mt-9 mb-6">
+        Conheça nossos produtos
+    </h2>
+
+    <!-- O conteúdo aqui dentro é gerado automaticamente pelo script.js
+         a partir do arquivo dados-produtos.js -->
+    <div id="menu"></div>
+    <!-- FIM DO MENU -->
+
+
+    <!-- ===== MODAL DE PRODUTO ===== -->
+    <div id="product-modal" onclick="fecharModalProdutoSeOverlay(event)">
+        <div class="product-modal-box">
+
+            <button class="product-modal-back" onclick="fecharModalProduto()">
+                <i class="fa fa-arrow-left"></i> Voltar
+            </button>
+
+            <img id="modal-main-img" alt="" class="product-modal-main-img"
+                onerror="this.src='https://placehold.co/480x480/FF6B00/white?text=📦'"
+            />
+
+            <div class="product-modal-gallery">
+                <img id="modal-thumb-1" alt="Foto 1"
+                    class="active"
+                    onclick="trocarFoto(0)"
+                    onerror="this.src='https://placehold.co/200x200/FF6B00/white?text=📦'"
+                />
+                <img id="modal-thumb-2" alt="Foto 2"
+                    onclick="trocarFoto(1)"
+                    onerror="this.src='https://placehold.co/200x200/FF6B00/white?text=📦'"
+                />
+            </div>
+
+            <p class="product-modal-name" id="modal-name"></p>
+            <p class="product-modal-desc" id="modal-desc"></p>
+            <p class="product-modal-price" id="modal-price"></p>
+
+            <div class="product-modal-actions">
+                <button class="btn-add-modal" id="modal-add-btn">
+                    <i class="fa fa-cart-plus"></i> Adicionar
+                </button>
+                <button class="btn-info-whats" id="modal-whats-btn">
+                    <i class="fab fa-whatsapp"></i> Mais info
+                </button>
+                <button class="btn-share-whats" id="modal-share-btn">
+                    <i class="fab fa-whatsapp"></i> Compartilhar
+                </button>
+            </div>
+
+        </div>
+    </div>
+    <!-- FIM MODAL DE PRODUTO -->
+
+
+    <!-- MODAL CART -->
+    <div
+        class="bg-black/50 w-full h-full fixed top-0 left-0 z-[99] items-center justify-center hidden"
+        id="cart-modal"
+    >
+        <div class="bg-white p-5 rounded-md min-w-[90%] md:min-w-[600px] max-h-[90vh] overflow-y-auto">
+            <h2 class="text-center font-bold text-2xl mb-4">Meu carrinho</h2>
+
+            <div id="cart-items" class="flex justify-between mb-2 flex-col"></div>
+
+            <p class="font-bold text-lg mt-2">
+                Total: <span id="cart-total" style="color: var(--laranja);">R$ 0,00</span>
+            </p>
+
+            <p class="font-bold mt-4 mb-2">Como quer receber?</p>
+            <div class="flex gap-3 mb-3">
+                <div class="delivery-option selected" id="opt-entrega" onclick="selecionarEntrega('entrega')">
+                    <i class="fa fa-truck mb-1 block text-xl"></i>
+                    Entrega
+                </div>
+                <div class="delivery-option" id="opt-retirada" onclick="selecionarEntrega('retirada')">
+                    <i class="fa fa-store mb-1 block text-xl"></i>
+                    Retirada na loja
+                </div>
+            </div>
+
+            <div id="address-section">
+                <p class="font-bold mt-2">Endereço de entrega:</p>
+                <input
+                    type="text"
+                    placeholder="Digite seu endereço completo"
+                    id="address"
+                    class="w-full border-2 p-1 rounded my-1"
+                />
+                <p class="text-red-500 hidden" id="address-warn">Digite seu endereço completo!</p>
+            </div>
+
+            <!-- FORMA DE PAGAMENTO -->
+            <p class="font-bold mt-4 mb-2">Forma de pagamento:</p>
+            <div class="flex gap-3 mb-3">
+                <div class="delivery-option selected" id="pag-pix" onclick="selecionarPagamento('Pix')">
+                    <i class="fa fa-qrcode mb-1 block text-xl"></i>
+                    Pix
+                </div>
+                <div class="delivery-option" id="pag-dinheiro" onclick="selecionarPagamento('Dinheiro')">
+                    <i class="fa fa-money-bill mb-1 block text-xl"></i>
+                    Dinheiro
+                </div>
+                <div class="delivery-option" id="pag-cartao" onclick="selecionarPagamento('Cartão na entrega')">
+                    <i class="fa fa-credit-card mb-1 block text-xl"></i>
+                    Cartão
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-5 w-full">
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">Fechar</button>
+                <button id="checkout-btn" class="text-white px-4 py-2 rounded font-bold" style="background-color: var(--laranja);">
+                    Finalizar pedido
+                </button>
+            </div>
+
+        </div>
+    </div>
+    <!-- FIM MODAL CART -->
+
+    
+    <!-- Espaço para o footer não cobrir os produtos -->
+    <div style="height: 80px;"></div>
+    <!-- BUTTON CART FOOTER -->
+    <footer id="cart-footer" class="w-full py-3 fixed bottom-0 z-40 flex items-center justify-center">
+        <button class="flex items-center gap-2 text-white font-bold" id="cart-btn">
+            (<span id="cart-count">0</span>)
+            Ver meu Carrinho
+            <i class="fa fa-cart-plus text-lg text-white"></i>
+        </button>
+    </footer>
+
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- Dados específicos da loja/cliente -->
+    <script src="dados-loja.js"></script>
+    <script src="dados-produtos.js"></script>
+    <!-- Motor do site (não muda entre clientes) -->
+    <script src="script.js"></script>
+
+</body>
+</html>
