@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Aluguéis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+    :root{
+        --tinta:#161B19; --tinta-suave:#5C6863; --papel:#F6F5F1; --cartao:#FFFFFF;
+        --linha:#E4E1D8; --acento:#2F6F5E; --acento-escuro:#234F43;
+        --ok:#2F6F5E; --alerta:#B8862B; --erro:#B23A2E; --neutro:#8A8A82;
+        --ok-bg:#E7F0EA; --alerta-bg:#FBF1DE; --erro-bg:#FBEAE7; --neutro-bg:#EFEEE8;
+    }
+    *{box-sizing:border-box;}
+    body{
+        margin:0;background:var(--papel);color:var(--tinta);
+        font-family:'Inter',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;
+    }
+    h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+    button{font-family:inherit;cursor:pointer;}
+    input,select,textarea{font-family:inherit;}
+
+    /* ---------- LOGIN ---------- */
+    #tela-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .caixa-login{
+        background:var(--cartao);border:1px solid var(--linha);border-radius:14px;
+        padding:38px 32px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(22,27,25,0.06);
+    }
+    .caixa-login .marca{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+    .caixa-login .marca i{color:var(--acento);font-size:20px;}
+    .caixa-login h1{font-size:20px;}
+    .caixa-login p{color:var(--tinta-suave);font-size:13.5px;margin:4px 0 22px;}
+    .campo{margin-bottom:16px;}
+    .campo label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.02em;}
+    .campo input,.campo select,.campo textarea{
+        width:100%;padding:10px 12px;border:1.5px solid var(--linha);border-radius:8px;font-size:14px;background:var(--cartao);color:var(--tinta);
+    }
+    .campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--acento);}
+    .btn-primario{
+        width:100%;background:var(--acento);color:white;border:none;border-radius:8px;
+        padding:12px;font-weight:600;font-size:14.5px;transition:background .15s;
+    }
+    .btn-primario:hover{background:var(--acento-escuro);}
+    .btn-primario:disabled{opacity:.6;cursor:not-allowed;}
+    #erro-login{color:var(--erro);font-size:13px;margin-top:12px;display:none;}
+
+    /* ---------- LAYOUT GERAL ---------- */
+    #tela-painel{display:none;}
+    header.topo{
+        background:var(--tinta);color:white;padding:16px 24px;
+        display:flex;align-items:center;justify-content:space-between;gap:12px;
+        position:sticky;top:0;z-index:20;
+    }
+    header.topo .marca{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;}
+    header.topo .marca i{color:#7FCBB0;}
+    header.topo button.sair{
+        background:none;border:1.5px solid rgba(255,255,255,.22);color:#EAE8E0;
+        border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;
+    }
+    header.topo button.sair:hover{background:rgba(255,255,255,.08);}
+
+    main{max-width:1080px;margin:0 auto;padding:26px 20px 60px;}
+
+    /* ---------- DASHBOARD ---------- */
+    .dash-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+    @media(max-width:800px){.dash-cards{grid-template-columns:1fr 1fr;}}
+    @media(max-width:460px){.dash-cards{grid-template-columns:1fr;}}
+    .dash-card{
+        background:var(--cartao);border:1px solid var(--linha);border-radius:12px;padding:18px;
+        display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:border-color .15s,transform .15s;
+    }
+    .dash-card:hover{border-color:var(--acento);transform:translateY(-1px);}
+    .dash-card.ativo-filtro{border-color:var(--acento);box-shadow:0 0 0 1.5px var(--acento) inset;}
+    .dash-card .rotulo{font-size:12px;color:var(--tinta-suave);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+    .dash-card .valor{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;}
+    .dash-card.cor-ok .valor{color:var(--ok);}
+    .dash-card.cor-alerta .valor{color:var(--alerta);}
+    .dash-card.cor-erro .valor{color:var(--erro);}
+    .dash-card .valor.moeda{font-size:22px;}
+
+    /* ---------- BARRA DE AÇÕES ---------- */
+    .barra-acoes{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+    .barra-busca{display:flex;gap:8px;flex:1;min-width:220px;}
+    .barra-busca input{flex:1;padding:9px 12px;border:1.5px solid var(--linha);border-radius:8px;font-size:13.5px;background:var(--cartao);}
+    .barra-busca input:focus{outline:none;border-color:var(--acento);}
+    .barra-busca select{padding:9px 10px;border:1.5px solid var(--linha);border-radius:8px;font-size:13px;background:var(--cartao);}
+    .btn-novo{
+        background:var(--acento);color:white;border:none;border-radius:8px;padding:10px 16px;
+        font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:7px;white-space:nowrap;
+    }
+    .btn-novo:hover{background:var(--acento-escuro);}
+
+    /* ---------- LISTA DE CLIENTES ---------- */
+    .cliente-linha{
+        background:var(--cartao);border:1px solid var(--linha);border-radius:12px;
+        padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    }
+    .cliente-info{flex:1;min-width:200px;}
+    .cliente-info .nome{font-weight:700;font-size:15px;}
+    .cliente-info .sub{font-size:12.5px;color:var(--tinta-suave);margin-top:2px;}
+    .cliente-plano{font-size:12.5px;color:var(--tinta-suave);min-width:110px;}
+    .cliente-plano strong{display:block;color:var(--tinta);font-size:13.5px;}
+    .cliente-venc{min-width:150px;font-size:12.5px;color:var(--tinta-suave);}
+    .cliente-venc strong{display:block;color:var(--tinta);font-size:13.5px;}
+    .selo{
+        font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.02em;
+        white-space:nowrap;
+    }
+    .selo-ativo{background:var(--ok-bg);color:var(--ok);}
+    .selo-vencendo{background:var(--alerta-bg);color:var(--alerta);}
+    .selo-vencido{background:var(--erro-bg);color:var(--erro);}
+    .selo-cancelado{background:var(--neutro-bg);color:var(--neutro);}
+    .cliente-acoes{display:flex;gap:6px;flex-shrink:0;}
+    .btn-icone{
+        background:none;border:1.5px solid var(--linha);border-radius:8px;width:34px;height:34px;
+        font-size:13px;color:var(--tinta);display:flex;align-items:center;justify-content:center;
+    }
+    .btn-icone:hover{border-color:var(--acento);color:var(--acento);}
+    .btn-icone.apagar:hover{border-color:var(--erro);color:var(--erro);}
+    .btn-icone.whats:hover{border-color:#25D366;color:#1fb956;}
+    .lista-vazia{color:var(--tinta-suave);font-size:14px;text-align:center;padding:40px 16px;}
+
+    /* ---------- MODAL ---------- */
+    #modal-cliente{
+        display:none;position:fixed;inset:0;background:rgba(22,27,25,.55);z-index:200;
+        align-items:center;justify-content:center;padding:16px;
+    }
+    #modal-cliente.aberto{display:flex;}
+    .modal-box{background:var(--cartao);border-radius:14px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+    .modal-box h2{margin-bottom:18px;font-size:18px;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    @media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+    .modal-acoes{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px;}
+    .modal-acoes-direita{display:flex;gap:10px;}
+    .btn-secundario{background:none;border:1.5px solid var(--linha);border-radius:8px;padding:10px 18px;font-weight:600;font-size:13.5px;color:var(--tinta);}
+    .btn-secundario:hover{border-color:var(--tinta);}
+    .btn-apagar-cliente{background:none;border:none;color:var(--erro);font-weight:600;font-size:13px;padding:8px 4px;}
+    .btn-apagar-cliente:hover{text-decoration:underline;}
+    .linha-check{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin-top:4px;}
+
+    .aviso{font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:16px;}
+    .aviso-erro{background:var(--erro-bg);color:var(--erro);}
+    .aviso-ok{background:var(--ok-bg);color:var(--ok);}
+
+    @media(max-width:600px){
+        header.topo{padding:14px 16px;}
+        main{padding:18px 14px 50px;}
+        .cliente-linha{padding:14px;}
+        .cliente-plano,.cliente-venc{min-width:0;}
+        .modal-box{padding:18px;}
+    }
+</style>
+</head>
+<body>
+
+<!-- ==================== TELA DE LOGIN ==================== -->
+<div id="tela-login">
+    <div class="caixa-login">
+        <div class="marca"><i class="fa fa-layer-group"></i><h1>Painel de Aluguéis</h1></div>
+        <p>Entre com seu login para gerenciar os clientes.</p>
+        <div class="campo"><label>E-mail</label><input type="email" id="login-email" placeholder="voce@email.com" /></div>
+        <div class="campo"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••" /></div>
+        <button class="btn-primario" id="btn-entrar">Entrar</button>
+        <p id="erro-login"></p>
+    </div>
+</div>
+
+<!-- ==================== PAINEL ==================== -->
+<div id="tela-painel">
+    <header class="topo">
+        <div class="marca"><i class="fa fa-layer-group"></i> Painel de Aluguéis</div>
+        <button class="sair" id="btn-sair"><i class="fa fa-right-from-bracket"></i> Sair</button>
+    </header>
+
+    <main>
+        <div class="dash-cards">
+            <div class="dash-card" data-filtro="todos">
+                <span class="rotulo">Clientes ativos</span>
+                <span class="valor" id="dash-ativos">0</span>
+            </div>
+            <div class="dash-card cor-alerta" data-filtro="vencendo">
+                <span class="rotulo">Vencendo em 7 dias</span>
+                <span class="valor" id="dash-vencendo">0</span>
+            </div>
+            <div class="dash-card cor-erro" data-filtro="vencido">
+                <span class="rotulo">Vencidos / não renovados</span>
+                <span class="valor" id="dash-vencidos">0</span>
+            </div>
+            <div class="dash-card cor-ok" data-filtro="todos">
+                <span class="rotulo">Receita mensal recorrente</span>
+                <span class="valor moeda" id="dash-receita">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div class="barra-acoes">
+            <div class="barra-busca">
+                <input type="text" id="busca-cliente" placeholder="Buscar por nome, responsável ou WhatsApp..." />
+                <select id="filtro-status">
+                    <option value="todos">Todos os status</option>
+                    <option value="ativo">Ativos</option>
+                    <option value="vencendo">Vencendo em breve</option>
+                    <option value="vencido">Vencidos</option>
+                    <option value="cancelado">Cancelados</option>
+                </select>
+            </div>
+            <button class="btn-novo" id="btn-novo-cliente"><i class="fa fa-plus"></i> Novo cliente</button>
+        </div>
+
+        <div id="msg-lista"></div>
+        <div id="lista-clientes"></div>
+    </main>
+</div>
+
+<!-- ==================== MODAL: CLIENTE ==================== -->
+<div id="modal-cliente">
+    <div class="modal-box">
+        <h2 id="modal-titulo">Novo cliente</h2>
+        <input type="hidden" id="cli-id" />
+        <div id="msg-modal"></div>
+
+        <div class="grid2">
+            <div class="campo"><label>Nome da loja / negócio</label><input id="cli-nome" placeholder="Ex: Mestre do Churrasco" /></div>
+            <div class="campo"><label>Responsável</label><input id="cli-responsavel" placeholder="Nome do contato" /></div>
+        </div>
+        <div class="grid2">
+            <div class="campo"><label>WhatsApp (só números, com DDI e DDD)</label><input id="cli-whatsapp" placeholder="5591991396925" /></div>
+            <div class="campo"><label>Link do site</label><input id="cli-link" placeholder="https://..." /></div>
+        </div>
+        <div class="grid2">
+            <div class="campo">
+                <label>Plano</label>
+                <select id="cli-plano">
+                    <option value="basico">Básico</option>
+                    <option value="premium">Premium</option>
+                </select>
+            </div>
+            <div class="campo"><label>Valor mensal (R$)</label><input type="number" step="0.01" id="cli-valor" /></div>
+        </div>
+        <div class="grid2">
+            <div class="campo"><label>Data de contratação</label><input type="date" id="cli-contratacao" /></div>
+            <div class="campo"><label>Data de vencimento</label><input type="date" id="cli-vencimento" /></div>
+        </div>
+        <div class="campo"><label>Observações</label><textarea id="cli-obs" rows="2" placeholder="Opcional"></textarea></div>
+        <label class="linha-check"><input type="checkbox" id="cli-ativo" style="width:auto;" /> Assinatura ativa (desmarque se o cliente cancelou)</label>
+
+        <div class="modal-acoes">
+            <button class="btn-apagar-cliente" id="btn-apagar-cliente" style="display:none;"><i class="fa fa-trash"></i> Apagar cliente</button>
+            <div class="modal-acoes-direita">
+                <button class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
+                <button class="btn-primario" id="btn-salvar-cliente" style="width:auto;padding:10px 20px;">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — mesmo projeto Supabase já usado nos sites dos clientes
+// ============================================================
+const SUPABASE_URL = "https://bjnnkeutfilbzdhbqqij.supabase.co"
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqbm5rZXV0ZmlsYnpkaGJxcWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTU0MzIsImV4cCI6MjA5OTM3MTQzMn0.kyj-JDRj4YAwlgGze56MGsd9UjezpF1PeG-HpJnm3_I"
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+const VALOR_PADRAO_PLANO = { basico: 49.90, premium: 59.90 }
+const DIAS_ALERTA_VENCIMENTO = 7
+
+let assinaturasAtuais = []
+let filtroStatusAtual = "todos"
+
+function escaparHtml(valor) {
+    return String(valor === null || valor === undefined ? "" : valor)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+}
+
+// ============================================================
+// DATAS
+// ============================================================
+function hojeISO() {
+    return new Date().toISOString().slice(0, 10)
+}
+
+// Soma meses a uma data (YYYY-MM-DD) tratando corretamente meses
+// mais curtos (ex: 31/jan + 1 mês = 28 ou 29/fev, não "3/mar").
+function somarMeses(dataISO, meses) {
+    const [ano, mes, dia] = dataISO.split("-").map(Number)
+    const primeiroDiaDestino = new Date(ano, (mes - 1) + meses, 1)
+    const ultimoDiaMesDestino = new Date(primeiroDiaDestino.getFullYear(), primeiroDiaDestino.getMonth() + 1, 0).getDate()
+    primeiroDiaDestino.setDate(Math.min(dia, ultimoDiaMesDestino))
+    return primeiroDiaDestino.toISOString().slice(0, 10)
+}
+
+function formatarDataBr(dataISO) {
+    if (!dataISO) return "—"
+    return new Date(dataISO + "T00:00:00").toLocaleDateString("pt-BR")
+}
+
+// Status é sempre CALCULADO a partir de data_vencimento + ativo —
+// nunca fica salvo no banco, então nunca fica desatualizado.
+function calcularStatus(cliente) {
+    if (!cliente.ativo) return { codigo: "cancelado", label: "Cancelado" }
+
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+    const venc = new Date(cliente.data_vencimento + "T00:00:00")
+    const diffDias = Math.round((venc - hoje) / 86400000)
+
+    if (diffDias < 0) return { codigo: "vencido", label: `Vencido há ${Math.abs(diffDias)} dia${Math.abs(diffDias) > 1 ? "s" : ""}` }
+    if (diffDias <= DIAS_ALERTA_VENCIMENTO) return { codigo: "vencendo", label: diffDias === 0 ? "Vence hoje" : `Vence em ${diffDias} dia${diffDias > 1 ? "s" : ""}` }
+    return { codigo: "ativo", label: `Vence em ${diffDias} dias` }
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+const telaLogin = document.getElementById("tela-login")
+const telaPainel = document.getElementById("tela-painel")
+const erroLogin = document.getElementById("erro-login")
+
+document.getElementById("btn-entrar").addEventListener("click", fazerLogin)
+document.getElementById("login-senha").addEventListener("keydown", e => { if (e.key === "Enter") fazerLogin() })
+
+async function fazerLogin() {
+    const email = document.getElementById("login-email").value.trim()
+    const senha = document.getElementById("login-senha").value
+    const btn = document.getElementById("btn-entrar")
+    if (!email || !senha) return
+
+    btn.disabled = true
+    btn.textContent = "Entrando..."
+    erroLogin.style.display = "none"
+
+    const { error } = await sb.auth.signInWithPassword({ email, password: senha })
+
+    btn.disabled = false
+    btn.textContent = "Entrar"
+
+    if (error) {
+        erroLogin.textContent = "E-mail ou senha incorretos."
+        erroLogin.style.display = "block"
+        return
+    }
+    iniciarPainel()
+}
+
+document.getElementById("btn-sair").addEventListener("click", async () => {
+    await sb.auth.signOut()
+    location.reload()
+})
+
+sb.auth.getSession().then(({ data }) => {
+    if (data.session) iniciarPainel()
+})
+
+function iniciarPainel() {
+    telaLogin.style.display = "none"
+    telaPainel.style.display = "block"
+    carregarAssinaturas()
+}
+
+// ============================================================
+// CARREGAR / RENDERIZAR
+// ============================================================
+async function carregarAssinaturas() {
+    const msg = document.getElementById("msg-lista")
+    const { data, error } = await sb
+        .from("assinaturas")
+        .select("*")
+        .order("data_vencimento", { ascending: true })
+
+    if (error) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Erro ao carregar clientes: ${escaparHtml(error.message)}</div>`
+        return
+    }
+    msg.innerHTML = ""
+    assinaturasAtuais = data || []
+    renderizarDashboard()
+    renderizarLista()
+}
+
+function renderizarDashboard() {
+    let ativos = 0, vencendo = 0, vencidos = 0, receita = 0
+
+    assinaturasAtuais.forEach(c => {
+        const status = calcularStatus(c).codigo
+        if (status === "cancelado") return
+        if (status === "ativo") ativos++
+        if (status === "vencendo") { ativos++; vencendo++ }
+        if (status === "vencido") vencidos++
+        if (status !== "vencido") receita += Number(c.valor) || 0
+    })
+
+    document.getElementById("dash-ativos").textContent = ativos
+    document.getElementById("dash-vencendo").textContent = vencendo
+    document.getElementById("dash-vencidos").textContent = vencidos
+    document.getElementById("dash-receita").textContent = receita.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+}
+
+document.querySelectorAll(".dash-card[data-filtro]").forEach(card => {
+    card.addEventListener("click", () => {
+        const alvo = card.id === "dash-vencendo" ? "vencendo" : (card.id === "dash-vencidos" ? "vencido" : "todos")
+        document.getElementById("filtro-status").value = alvo
+        filtroStatusAtual = alvo
+        renderizarLista()
+    })
+})
+document.getElementById("dash-vencendo").closest(".dash-card").id = "dash-vencendo"
+document.getElementById("dash-vencidos").closest(".dash-card").id = "dash-vencidos"
+
+document.getElementById("busca-cliente").addEventListener("input", renderizarLista)
+document.getElementById("filtro-status").addEventListener("change", (e) => {
+    filtroStatusAtual = e.target.value
+    renderizarLista()
+})
+
+function renderizarLista() {
+    const lista = document.getElementById("lista-clientes")
+    const termo = document.getElementById("busca-cliente").value.trim().toLowerCase()
+
+    let visiveis = assinaturasAtuais.filter(c => {
+        const status = calcularStatus(c).codigo
+        if (filtroStatusAtual !== "todos" && status !== filtroStatusAtual) return false
+        if (!termo) return true
+        return (c.nome_loja || "").toLowerCase().includes(termo)
+            || (c.responsavel || "").toLowerCase().includes(termo)
+            || (c.whatsapp || "").toLowerCase().includes(termo)
+    })
+
+    lista.innerHTML = ""
+
+    if (!visiveis.length) {
+        lista.innerHTML = `<p class="lista-vazia">${assinaturasAtuais.length ? "Nenhum cliente encontrado com esse filtro." : 'Nenhum cliente cadastrado ainda. Clique em "Novo cliente" pra começar.'}</p>`
+        return
+    }
+
+    visiveis.forEach(c => {
+        const status = calcularStatus(c)
+        const nomePlano = c.plano === "premium" ? "Premium" : "Básico"
+        const valorFormatado = Number(c.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+
+        const linha = document.createElement("div")
+        linha.className = "cliente-linha"
+        linha.innerHTML = `
+            <div class="cliente-info">
+                <div class="nome">${escaparHtml(c.nome_loja)}</div>
+                <div class="sub">${escaparHtml(c.responsavel || "—")}${c.whatsapp ? " · " + escaparHtml(c.whatsapp) : ""}</div>
+            </div>
+            <div class="cliente-plano"><strong>${nomePlano}</strong>${valorFormatado}/mês</div>
+            <div class="cliente-venc"><strong>${formatarDataBr(c.data_vencimento)}</strong>desde ${formatarDataBr(c.data_contratacao)}</div>
+            <span class="selo selo-${status.codigo}">${escaparHtml(status.label)}</span>
+            <div class="cliente-acoes">
+                ${status.codigo !== "cancelado" ? `<button class="btn-icone" title="Renovar +1 mês" data-acao="renovar" data-id="${c.id}"><i class="fa fa-rotate"></i></button>` : ""}
+                ${c.whatsapp ? `<button class="btn-icone whats" title="Chamar no WhatsApp" data-acao="whats" data-id="${c.id}"><i class="fab fa-whatsapp"></i></button>` : ""}
+                <button class="btn-icone" title="Editar" data-acao="editar" data-id="${c.id}"><i class="fa fa-pen"></i></button>
+            </div>
+        `
+        lista.appendChild(linha)
+    })
+}
+
+document.getElementById("lista-clientes").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-acao]")
+    if (!btn) return
+    const id = btn.dataset.id
+    const cliente = assinaturasAtuais.find(c => String(c.id) === id)
+    if (!cliente) return
+
+    if (btn.dataset.acao === "editar") abrirModal(cliente)
+    if (btn.dataset.acao === "renovar") renovarAssinatura(cliente)
+    if (btn.dataset.acao === "whats") chamarNoWhatsapp(cliente)
+})
+
+// ============================================================
+// RENOVAR (+1 mês a partir do vencimento antigo)
+// ============================================================
+async function renovarAssinatura(cliente) {
+    const novoVencimento = somarMeses(cliente.data_vencimento, 1)
+    if (!confirm(`Renovar "${cliente.nome_loja}"? Novo vencimento: ${formatarDataBr(novoVencimento)}.`)) return
+
+    const { error } = await sb.from("assinaturas")
+        .update({ data_vencimento: novoVencimento, ativo: true })
+        .eq("id", cliente.id)
+
+    if (error) { alert("Não foi possível renovar: " + error.message); return }
+    await carregarAssinaturas()
+}
+
+function chamarNoWhatsapp(cliente) {
+    const status = calcularStatus(cliente)
+    const mensagem = status.codigo === "vencido"
+        ? `Olá, ${cliente.responsavel || cliente.nome_loja}! Vi aqui que o aluguel do site da ${cliente.nome_loja} venceu em ${formatarDataBr(cliente.data_vencimento)}. Vamos renovar?`
+        : `Olá, ${cliente.responsavel || cliente.nome_loja}! Passando pra lembrar que o aluguel do site da ${cliente.nome_loja} vence em ${formatarDataBr(cliente.data_vencimento)}.`
+    window.open(`https://wa.me/${cliente.whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank")
+}
+
+// ============================================================
+// MODAL: CRIAR / EDITAR CLIENTE
+// ============================================================
+const modal = document.getElementById("modal-cliente")
+
+document.getElementById("btn-novo-cliente").addEventListener("click", () => abrirModal())
+document.getElementById("btn-cancelar-modal").addEventListener("click", fecharModal)
+
+function abrirModal(cliente) {
+    document.getElementById("modal-titulo").textContent = cliente ? "Editar cliente" : "Novo cliente"
+    document.getElementById("msg-modal").innerHTML = ""
+    document.getElementById("cli-id").value = cliente ? cliente.id : ""
+    document.getElementById("cli-nome").value = cliente ? cliente.nome_loja : ""
+    document.getElementById("cli-responsavel").value = cliente ? (cliente.responsavel || "") : ""
+    document.getElementById("cli-whatsapp").value = cliente ? (cliente.whatsapp || "") : ""
+    document.getElementById("cli-link").value = cliente ? (cliente.link_site || "") : ""
+    document.getElementById("cli-plano").value = cliente ? cliente.plano : "basico"
+    document.getElementById("cli-valor").value = cliente ? cliente.valor : VALOR_PADRAO_PLANO.basico
+    document.getElementById("cli-contratacao").value = cliente ? cliente.data_contratacao : hojeISO()
+    document.getElementById("cli-vencimento").value = cliente ? cliente.data_vencimento : somarMeses(hojeISO(), 1)
+    document.getElementById("cli-obs").value = cliente ? (cliente.observacoes || "") : ""
+    document.getElementById("cli-ativo").checked = cliente ? !!cliente.ativo : true
+    document.getElementById("btn-apagar-cliente").style.display = cliente ? "inline-flex" : "none"
+    modal.classList.add("aberto")
+}
+
+function fecharModal() {
+    modal.classList.remove("aberto")
+}
+
+// Autopreenche o valor sugerido do plano — só reflete a escolha atual,
+// o lojista pode sempre ajustar o número manualmente depois.
+document.getElementById("cli-plano").addEventListener("change", (e) => {
+    document.getElementById("cli-valor").value = VALOR_PADRAO_PLANO[e.target.value]
+})
+
+// Sugere o vencimento (+1 mês) sempre que a contratação mudar, só
+// enquanto o cliente é novo — editar um cliente existente não deve
+// recalcular o vencimento sozinho.
+document.getElementById("cli-contratacao").addEventListener("change", (e) => {
+    if (document.getElementById("cli-id").value) return
+    document.getElementById("cli-vencimento").value = somarMeses(e.target.value, 1)
+})
+
+document.getElementById("btn-salvar-cliente").addEventListener("click", async () => {
+    const msg = document.getElementById("msg-modal")
+    msg.innerHTML = ""
+
+    const id = document.getElementById("cli-id").value
+    const whatsappDigitado = document.getElementById("cli-whatsapp").value.trim()
+    const whatsappNormalizado = whatsappDigitado.replace(/[\s()\-+]/g, "")
+
+    if (whatsappNormalizado && (!/^\d+$/.test(whatsappNormalizado) || whatsappNormalizado.length < 10 || whatsappNormalizado.length > 15)) {
+        msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só números com DDI e DDD (ex: 5591991396925).</div>`
+        return
+    }
+
+    const registro = {
+        nome_loja: document.getElementById("cli-nome").value.trim(),
+        responsavel: document.getElementById("cli-responsavel").value.trim(),
+        whatsapp: whatsappNormalizado,
+        link_site: document.getElementById("cli-link").value.trim(),
+        plano: document.getElementById("cli-plano").value,
+        valor: parseFloat(document.getElementById("cli-valor").value) || 0,
+        data_contratacao: document.getElementById("cli-contratacao").value,
+        data_vencimento: document.getElementById("cli-vencimento").value,
+        observacoes: document.getElementById("cli-obs").value.trim(),
+        ativo: document.getElementById("cli-ativo").checked
+    }
+
+    if (!registro.nome_loja || !registro.data_contratacao || !registro.data_vencimento) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Preencha ao menos o nome, a data de contratação e o vencimento.</div>`
+        return
+    }
+
+    const query = id
+        ? sb.from("assinaturas").update(registro).eq("id", id)
+        : sb.from("assinaturas").insert(registro)
+
+    const { error } = await query
+    if (error) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível salvar: ${escaparHtml(error.message)}</div>`
+        return
+    }
+
+    fecharModal()
+    await carregarAssinaturas()
+})
+
+document.getElementById("btn-apagar-cliente").addEventListener("click", async () => {
+    const id = document.getElementById("cli-id").value
+    if (!id) return
+    if (!confirm("Apagar este cliente do painel? Essa ação não pode ser desfeita.")) return
+
+    const { error } = await sb.from("assinaturas").delete().eq("id", id)
+    if (error) { alert("Não foi possível apagar: " + error.message); return }
+
+    fecharModal()
+    await carregarAssinaturas()
+})
+</script>
+</body>
+</html>
