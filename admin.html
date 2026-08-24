@@ -154,6 +154,22 @@
         .cliente-linha{padding:14px;}
         .cliente-plano,.cliente-venc{min-width:0;}
         .modal-box{padding:18px;}
+
+        /* Busca/filtro/botão empilhados, cada um ocupando a largura
+           toda — no lugar do flex em linha, que espremia o campo de
+           busca e cortava o texto do select "Todos os status". */
+        .barra-acoes{flex-direction:column;align-items:stretch;}
+        .barra-busca{flex-direction:column;min-width:0;}
+        .barra-busca select{width:100%;}
+        .btn-novo{width:100%;justify-content:center;}
+
+        /* Cada cliente vira um bloco empilhado (nome, plano, vencimento,
+           status, ações), em vez de tentar caber tudo numa linha só —
+           evita texto cortado e itens grudados. */
+        .cliente-linha{flex-direction:column;align-items:stretch;gap:8px;}
+        .cliente-plano,.cliente-venc{display:flex;justify-content:space-between;align-items:baseline;}
+        .cliente-plano strong,.cliente-venc strong{display:inline;}
+        .cliente-acoes{justify-content:flex-end;margin-top:4px;}
     }
 </style>
 </head>
