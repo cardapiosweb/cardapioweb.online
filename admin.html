@@ -186,11 +186,11 @@
             </div>
             <div class="dash-card cor-alerta" data-filtro="vencendo">
                 <span class="rotulo">Vencendo em 7 dias</span>
-                <span class="valor" id="dash-vencendo">0</span>
+                <span class="valor" id="dash-valor-vencendo">0</span>
             </div>
             <div class="dash-card cor-erro" data-filtro="vencido">
                 <span class="rotulo">Vencidos / não renovados</span>
-                <span class="valor" id="dash-vencidos">0</span>
+                <span class="valor" id="dash-valor-vencidos">0</span>
             </div>
             <div class="dash-card cor-ok" data-filtro="todos">
                 <span class="rotulo">Receita mensal recorrente</span>
@@ -396,21 +396,19 @@ function renderizarDashboard() {
     })
 
     document.getElementById("dash-ativos").textContent = ativos
-    document.getElementById("dash-vencendo").textContent = vencendo
-    document.getElementById("dash-vencidos").textContent = vencidos
+    document.getElementById("dash-valor-vencendo").textContent = vencendo
+    document.getElementById("dash-valor-vencidos").textContent = vencidos
     document.getElementById("dash-receita").textContent = receita.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 }
 
 document.querySelectorAll(".dash-card[data-filtro]").forEach(card => {
     card.addEventListener("click", () => {
-        const alvo = card.id === "dash-vencendo" ? "vencendo" : (card.id === "dash-vencidos" ? "vencido" : "todos")
+        const alvo = card.dataset.filtro
         document.getElementById("filtro-status").value = alvo
         filtroStatusAtual = alvo
         renderizarLista()
     })
 })
-document.getElementById("dash-vencendo").closest(".dash-card").id = "dash-vencendo"
-document.getElementById("dash-vencidos").closest(".dash-card").id = "dash-vencidos"
 
 document.getElementById("busca-cliente").addEventListener("input", renderizarLista)
 document.getElementById("filtro-status").addEventListener("change", (e) => {
