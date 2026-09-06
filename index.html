@@ -6,7 +6,6 @@
 <title>Aluguel de Sites para Deliverys</title>
 <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=t5k8wbKOBK1J&format=png&color=000000">
 <meta name="description" content="Site completo, cardápio digital e sistema de pedidos prontos pra vender em 24h. Sem custo de criação.">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -17,543 +16,611 @@
 <meta id="og-description" property="og:description" content="Aluguel de Sites - Seu delivery pronto pra vender em 24h! Site, cardápio digital e sistema de pedidos configurados do seu jeito. Pronto pra receber pedido pelo WhatsApp."/>
 <meta id="og-site-name" property="og:site_name" content="cardapios-web"/>
 
+<!-- ============================================================
+     ROTEADOR POR HOSTNAME (parte 1/2)
+     Calculado o quanto antes, em <head>, porque o script da própria
+     plataforma (lá embaixo, CONTATO/MENSAGENS do WhatsApp) também
+     depende dessa variável pra saber se deve rodar ou não nesse
+     carregamento de página. A parte 2 (roteador-loja.js) faz a troca
+     de conteúdo de fato e roda no fim do <body>.
+     ============================================================ -->
+<script>
+window.CARDAPIOS_WEB_EH_LOJA = (function () {
+    var HOSTS_PLATAFORMA = [
+        "cardapiosweb.online",
+        "www.cardapiosweb.online",
+        "cardapiowebonline.vercel.app",
+        "localhost",
+        "127.0.0.1"
+    ]
+    var h = location.hostname
+    if (HOSTS_PLATAFORMA.indexOf(h) !== -1) return false
+    if (h.indexOf(".vercel.app") !== -1) return false
+    return true
+})()
+</script>
 
 <style>
-    /* ============================================================
-       CONFIGURAÇÃO RÁPIDA
-       Troque só estes valores pra personalizar a página.
-       ============================================================ */
-    :root {
-        --papel: #FBF8F3;
-        --kraft: #ECE4D4;
-        --tinta: #201B14;
-        --tinta-suave: #6b6255;
-        --verde: #1FAF56;
-        --verde-escuro: #158041;
-        --carimbo: #B23A1B;
-        --linha: #D8CBB0;
-    }
+/* ============================================================
+CONFIGURAÇÃO RÁPIDA
 
-    * { box-sizing: border-box; }
+Troque só estes valores pra personalizar a página.
+============================================================ */
+:root {
+--papel: #FBF8F3;
+--kraft: #ECE4D4;
+--tinta: #201B14;
+--tinta-suave: #6b6255;
+--verde: #1FAF56;
+--verde-escuro: #158041;
+--carimbo: #B23A1B;
+--linha: #D8CBB0;
+}
 
-    html { scroll-behavior: smooth; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+margin: 0;
+background: var(--kraft);
+color: var(--tinta);
+font-family: 'Work Sans', sans-serif;
+line-height: 1.5;
+}
+h1, h2, h3 {
+font-family: 'Fraunces', serif;
+margin: 0;
+line-height: 1.1;
+}
+.mono {
+font-family: 'JetBrains Mono', monospace;
+}
+a { color: inherit; }
+.wrap {
+max-width: 880px;
+margin: 0 auto;
+padding: 0 20px;
+}
 
-    body {
-        margin: 0;
-        background: var(--kraft);
-        color: var(--tinta);
-        font-family: 'Work Sans', sans-serif;
-        line-height: 1.5;
-    }
+/* ===== TOPO ===== */
+.topo {
+padding: 22px 0;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.topo .marca {
+font-family: 'Fraunces', serif;
+font-weight: 700;
+font-size: 20px;
+letter-spacing: -0.02em;
+}
+.topo .marca span { color: var(--verde-escuro); }
+.topo a.btn-topo {
+text-decoration: none;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+font-weight: 600;
+border: 1.5px solid var(--tinta);
+padding: 8px 14px;
+border-radius: 999px;
+transition: background 0.2s, color 0.2s;
+}
+.topo a.btn-topo:hover { background: var(--tinta); color: var(--papel); }
 
-    h1, h2, h3 {
-        font-family: 'Fraunces', serif;
-        margin: 0;
-        line-height: 1.1;
-    }
+/* ===== COMANDA (cartão estilo cupom/recibo) ===== */
+.comanda {
+background: var(--papel);
+position: relative;
+padding: 40px clamp(20px, 6vw, 56px);
+}
+.serrilha {
+height: 14px;
+background-image:
+linear-gradient(-45deg, var(--kraft) 7px, transparent 0),
+linear-gradient(45deg, var(--kraft) 7px, transparent 0);
+background-size: 14px 14px;
+background-position: left top;
+background-repeat: repeat-x;
+}
+.serrilha.baixo { transform: rotate(180deg); }
 
-    .mono {
-        font-family: 'JetBrains Mono', monospace;
-    }
+/* ===== HERO ===== */
+.hero-eyebrow {
+font-family: 'JetBrains Mono', monospace;
+font-size: 12.5px;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(--verde-escuro);
+border-bottom: 1px dashed var(--linha);
+padding-bottom: 14px;
+margin-bottom: 22px;
+display: flex;
+justify-content: space-between;
+}
+.hero h1 {
+font-size: clamp(30px, 5.2vw, 50px);
+font-weight: 600;
+max-width: 15ch;
+}
+.hero h1 em {
+font-style: normal;
+color: var(--verde-escuro);
+}
+.hero p.sub {
+font-size: clamp(16px, 2.2vw, 19px);
+color: var(--tinta-suave);
+max-width: 46ch;
+margin: 18px 0 30px;
+}
+.btn-whats {
+display: inline-flex;
+align-items: center;
+gap: 10px;
+background: var(--verde);
+color: white;
+text-decoration: none;
+font-weight: 600;
+font-size: 16px;
+padding: 15px 26px;
+border-radius: 10px;
+transition: background 0.2s, transform 0.15s;
+border: none;
+cursor: pointer;
+}
+.btn-whats:hover { background: var(--verde-escuro); transform: translateY(-1px); }
+.btn-whats svg { width: 20px; height: 20px; flex-shrink: 0; }
+.rodape-hero {
+margin-top: 26px;
+padding-top: 18px;
+border-top: 1px dashed var(--linha);
+font-family: 'JetBrains Mono', monospace;
+font-size: 12.5px;
+color: var(--tinta-suave);
+display: flex;
+gap: 22px;
+flex-wrap: wrap;
+}
 
-    a { color: inherit; }
+/* ===== SEÇÃO GERAL ===== */
+section { padding: 64px 0; }
+.titulo-secao {
+font-size: clamp(24px, 3.6vw, 32px);
+font-weight: 600;
+margin-bottom: 8px;
+}
+.titulo-secao .n {
+font-family: 'JetBrains Mono', monospace;
+font-size: 14px;
+color: var(--verde-escuro);
+display: block;
+margin-bottom: 6px;
+}
 
-    .wrap {
-        max-width: 880px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
+/* ===== LISTA "O QUE VEM NO PEDIDO" (estilo item de menu) ===== */
+.lista-itens { margin-top: 28px; }
+.item-menu {
+display: flex;
+align-items: baseline;
+gap: 10px;
+padding: 14px 0;
+border-bottom: 1px dashed var(--linha);
+}
+.item-menu:first-child { border-top: 1px dashed var(--linha); }
+.item-menu .check {
+color: var(--verde-escuro);
+font-weight: 700;
+flex-shrink: 0;
+}
+.item-menu .nome { font-weight: 600; white-space: nowrap; }
+.item-menu .pontos {
+flex: 1;
+border-bottom: 1px dotted var(--tinta-suave);
+transform: translateY(-4px);
+opacity: 0.5;
+}
+.item-menu .desc {
+color: var(--tinta-suave);
+font-size: 14.5px;
+text-align: right;
+white-space: nowrap;
+}
+@media (max-width: 640px) {
+.item-menu { flex-wrap: wrap; }
+.item-menu .pontos { display: none; }
+.item-menu .desc { text-align: left; white-space: normal; width: 100%; padding-left: 24px; }
+}
 
-    /* ===== TOPO ===== */
-    .topo {
-        padding: 22px 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .topo .marca {
-        font-family: 'Fraunces', serif;
-        font-weight: 700;
-        font-size: 20px;
-        letter-spacing: -0.02em;
-    }
-    .topo .marca span { color: var(--verde-escuro); }
-    .topo a.btn-topo {
-        text-decoration: none;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1.5px solid var(--tinta);
-        padding: 8px 14px;
-        border-radius: 999px;
-        transition: background 0.2s, color 0.2s;
-    }
-    .topo a.btn-topo:hover { background: var(--tinta); color: var(--papel); }
+/* ===== PLANOS (comandas lado a lado) ===== */
+.planos {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 26px;
+margin-top: 30px;
+}
+@media (max-width: 720px) {
+.planos { grid-template-columns: 1fr; }
+}
+.ticket {
+background: var(--papel);
+position: relative;
+}
+.ticket-corpo { padding: 30px 26px 26px; }
+.ticket-badge {
+position: absolute;
+top: 22px;
+right: -6px;
+background: var(--carimbo);
+color: white;
+font-family: 'JetBrains Mono', monospace;
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 0.05em;
+padding: 5px 12px 5px 14px;
+transform: rotate(3deg);
+box-shadow: 2px 2px 0 rgba(0,0,0,0.12);
+}
+.ticket h3 {
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(--tinta-suave);
+font-weight: 700;
+}
+.ticket .preco {
+font-family: 'JetBrains Mono', monospace;
+font-size: 44px;
+font-weight: 700;
+margin: 10px 0 4px;
+line-height: 1;
+}
+.ticket .preco span { font-size: 17px; font-weight: 600; color: var(--tinta-suave); }
+.ticket .itens {
+margin: 22px 0 26px;
+padding: 18px 0 0;
+border-top: 1px dashed var(--linha);
+list-style: none;
+}
+.ticket .itens li {
+display: flex;
+gap: 8px;
+font-size: 14.5px;
+padding: 6px 0;
+}
+.ticket .itens li::before {
+content: "✓";
+color: var(--verde-escuro);
+font-weight: 700;
+flex-shrink: 0;
+}
+.ticket .btn-whats { width: 100%; justify-content: center; font-size: 14.5px; padding: 13px; }
+.ticket.premium { outline: 2px solid var(--carimbo); outline-offset: -2px; }
 
-    /* ===== COMANDA (cartão estilo cupom/recibo) ===== */
-    .comanda {
-        background: var(--papel);
-        position: relative;
-        padding: 40px clamp(20px, 6vw, 56px);
-    }
-    .serrilha {
-        height: 14px;
-        background-image:
-            linear-gradient(-45deg, var(--kraft) 7px, transparent 0),
-            linear-gradient(45deg, var(--kraft) 7px, transparent 0);
-        background-size: 14px 14px;
-        background-position: left top;
-        background-repeat: repeat-x;
-    }
-    .serrilha.baixo { transform: rotate(180deg); }
+/* ===== COMO FUNCIONA ===== */
+.passos {
+margin-top: 30px;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 22px;
+}
+@media (max-width: 720px) { .passos { grid-template-columns: 1fr; } }
+.passo .num {
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+color: var(--verde-escuro);
+border: 1.5px solid var(--verde-escuro);
+border-radius: 999px;
+width: 30px; height: 30px;
+display: flex; align-items: center; justify-content: center;
+margin-bottom: 14px;
+font-weight: 700;
+}
+.passo h4 { font-family: 'Work Sans', sans-serif; font-size: 16.5px; font-weight: 700; margin-bottom: 6px; }
+.passo p { color: var(--tinta-suave); font-size: 14.5px; margin: 0; }
 
-    /* ===== HERO ===== */
-    .hero-eyebrow {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12.5px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--verde-escuro);
-        border-bottom: 1px dashed var(--linha);
-        padding-bottom: 14px;
-        margin-bottom: 22px;
-        display: flex;
-        justify-content: space-between;
-    }
-    .hero h1 {
-        font-size: clamp(30px, 5.2vw, 50px);
-        font-weight: 600;
-        max-width: 15ch;
-    }
-    .hero h1 em {
-        font-style: normal;
-        color: var(--verde-escuro);
-    }
-    .hero p.sub {
-        font-size: clamp(16px, 2.2vw, 19px);
-        color: var(--tinta-suave);
-        max-width: 46ch;
-        margin: 18px 0 30px;
-    }
+/* ===== FAQ ===== */
+.faq-item {
+border-bottom: 1px dashed var(--linha);
+padding: 18px 0;
+}
+.faq-item:first-child { border-top: 1px dashed var(--linha); }
+.faq-item summary {
+cursor: pointer;
+font-weight: 600;
+list-style: none;
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 12px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+content: "+";
+font-family: 'JetBrains Mono', monospace;
+font-size: 20px;
+color: var(--verde-escuro);
+transition: transform 0.2s;
+flex-shrink: 0;
+}
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p {
+color: var(--tinta-suave);
+margin: 12px 0 0;
+font-size: 14.5px;
+max-width: 62ch;
+}
 
-    .btn-whats {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--verde);
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 16px;
-        padding: 15px 26px;
-        border-radius: 10px;
-        transition: background 0.2s, transform 0.15s;
-        border: none;
-        cursor: pointer;
-    }
-    .btn-whats:hover { background: var(--verde-escuro); transform: translateY(-1px); }
-    .btn-whats svg { width: 20px; height: 20px; flex-shrink: 0; }
+/* ===== CTA FINAL ===== */
+.cta-final {
+text-align: center;
+padding: 56px clamp(20px, 6vw, 56px);
+}
+.cta-final h2 { font-size: clamp(24px, 4vw, 34px); margin-bottom: 14px; }
+.cta-final p { color: var(--tinta-suave); margin-bottom: 26px; }
+.cta-botoes { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
-    .rodape-hero {
-        margin-top: 26px;
-        padding-top: 18px;
-        border-top: 1px dashed var(--linha);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12.5px;
-        color: var(--tinta-suave);
-        display: flex;
-        gap: 22px;
-        flex-wrap: wrap;
-    }
+/* ===== RODAPÉ ===== */
+footer {
+padding: 30px 0 50px;
+text-align: center;
+font-family: 'JetBrains Mono', monospace;
+font-size: 12.5px;
+color: var(--tinta-suave);
+}
+.selo-confianca {
+margin-top: 8px;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+color: var(--tinta-suave);
+}
 
-    /* ===== SEÇÃO GERAL ===== */
-    section { padding: 64px 0; }
-    .titulo-secao {
-        font-size: clamp(24px, 3.6vw, 32px);
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-    .titulo-secao .n {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 14px;
-        color: var(--verde-escuro);
-        display: block;
-        margin-bottom: 6px;
-    }
-
-    /* ===== LISTA "O QUE VEM NO PEDIDO" (estilo item de menu) ===== */
-    .lista-itens { margin-top: 28px; }
-    .item-menu {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        padding: 14px 0;
-        border-bottom: 1px dashed var(--linha);
-    }
-    .item-menu:first-child { border-top: 1px dashed var(--linha); }
-    .item-menu .check {
-        color: var(--verde-escuro);
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-    .item-menu .nome { font-weight: 600; white-space: nowrap; }
-    .item-menu .pontos {
-        flex: 1;
-        border-bottom: 1px dotted var(--tinta-suave);
-        transform: translateY(-4px);
-        opacity: 0.5;
-    }
-    .item-menu .desc {
-        color: var(--tinta-suave);
-        font-size: 14.5px;
-        text-align: right;
-        white-space: nowrap;
-    }
-    @media (max-width: 640px) {
-        .item-menu { flex-wrap: wrap; }
-        .item-menu .pontos { display: none; }
-        .item-menu .desc { text-align: left; white-space: normal; width: 100%; padding-left: 24px; }
-    }
-
-    /* ===== PLANOS (comandas lado a lado) ===== */
-    .planos {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 26px;
-        margin-top: 30px;
-    }
-    @media (max-width: 720px) {
-        .planos { grid-template-columns: 1fr; }
-    }
-    .ticket {
-        background: var(--papel);
-        position: relative;
-    }
-    .ticket-corpo { padding: 30px 26px 26px; }
-    .ticket-badge {
-        position: absolute;
-        top: 22px;
-        right: -6px;
-        background: var(--carimbo);
-        color: white;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        padding: 5px 12px 5px 14px;
-        transform: rotate(3deg);
-        box-shadow: 2px 2px 0 rgba(0,0,0,0.12);
-    }
-    .ticket h3 {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 13px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--tinta-suave);
-        font-weight: 700;
-    }
-    .ticket .preco {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 44px;
-        font-weight: 700;
-        margin: 10px 0 4px;
-        line-height: 1;
-    }
-    .ticket .preco span { font-size: 17px; font-weight: 600; color: var(--tinta-suave); }
-    .ticket .itens {
-        margin: 22px 0 26px;
-        padding: 18px 0 0;
-        border-top: 1px dashed var(--linha);
-        list-style: none;
-    }
-    .ticket .itens li {
-        display: flex;
-        gap: 8px;
-        font-size: 14.5px;
-        padding: 6px 0;
-    }
-    .ticket .itens li::before {
-        content: "✓";
-        color: var(--verde-escuro);
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-    .ticket .btn-whats { width: 100%; justify-content: center; font-size: 14.5px; padding: 13px; }
-    .ticket.premium { outline: 2px solid var(--carimbo); outline-offset: -2px; }
-
-    /* ===== COMO FUNCIONA ===== */
-    .passos {
-        margin-top: 30px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 22px;
-    }
-    @media (max-width: 720px) { .passos { grid-template-columns: 1fr; } }
-    .passo .num {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 13px;
-        color: var(--verde-escuro);
-        border: 1.5px solid var(--verde-escuro);
-        border-radius: 999px;
-        width: 30px; height: 30px;
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 14px;
-        font-weight: 700;
-    }
-    .passo h4 { font-family: 'Work Sans', sans-serif; font-size: 16.5px; font-weight: 700; margin-bottom: 6px; }
-    .passo p { color: var(--tinta-suave); font-size: 14.5px; margin: 0; }
-
-    /* ===== FAQ ===== */
-    .faq-item {
-        border-bottom: 1px dashed var(--linha);
-        padding: 18px 0;
-    }
-    .faq-item:first-child { border-top: 1px dashed var(--linha); }
-    .faq-item summary {
-        cursor: pointer;
-        font-weight: 600;
-        list-style: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-    }
-    .faq-item summary::-webkit-details-marker { display: none; }
-    .faq-item summary::after {
-        content: "+";
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 20px;
-        color: var(--verde-escuro);
-        transition: transform 0.2s;
-        flex-shrink: 0;
-    }
-    .faq-item[open] summary::after { transform: rotate(45deg); }
-    .faq-item p {
-        color: var(--tinta-suave);
-        margin: 12px 0 0;
-        font-size: 14.5px;
-        max-width: 62ch;
-    }
-
-    /* ===== CTA FINAL ===== */
-    .cta-final {
-        text-align: center;
-        padding: 56px clamp(20px, 6vw, 56px);
-    }
-    .cta-final h2 { font-size: clamp(24px, 4vw, 34px); margin-bottom: 14px; }
-    .cta-final p { color: var(--tinta-suave); margin-bottom: 26px; }
-    .cta-botoes { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-
-    /* ===== RODAPÉ ===== */
-    footer {
-        padding: 30px 0 50px;
-        text-align: center;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12.5px;
-        color: var(--tinta-suave);
-    }
-
-    .selo-confianca {
-        margin-top: 8px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 13px;
-        color: var(--tinta-suave);
-    }
+/* ============================================================
+   TELA DE CARREGAMENTO DA LOJA (só aparece em hostname de cliente)
+   ============================================================ */
+#tela-carregamento-loja {
+display: none;
+position: fixed;
+inset: 0;
+z-index: 9999;
+background: #FBF3E4;
+align-items: center;
+justify-content: center;
+flex-direction: column;
+gap: 14px;
+font-family: 'Work Sans', sans-serif;
+color: #6b6255;
+}
+#tela-carregamento-loja .girando {
+width: 36px; height: 36px;
+border: 3px solid #D8CBB0;
+border-top-color: #A9321E;
+border-radius: 50%;
+animation: girar-carregamento-loja 0.8s linear infinite;
+}
+@keyframes girar-carregamento-loja { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
+<!-- ============================================================
+     CONTEÚDO INSTITUCIONAL DA PLATAFORMA (Cardápios Web)
+     Só é removido do DOM (pelo roteador-loja.js) quando o hostname
+     acessado é de uma loja cliente — nesse caso o conteúdo abaixo
+     nem chega a ser mostrado.
+     ============================================================ -->
+<div id="conteudo-plataforma">
+
 <div class="wrap">
-    <div class="topo">
-        <div class="marca">Cardápios Web<span>.Online</span></div>
-        <a class="btn-topo" href="#planos">Ver planos</a>
-    </div>
+<div class="topo">
+<div class="marca">Cardápios Web<span>.Online</span></div>
+<a class="btn-topo" href="#planos">Ver planos</a>
+</div>
 </div>
 
 <div class="wrap">
 <div class="comanda">
-    <div class="hero">
-        <div class="hero-eyebrow">
-            <span>Comanda nº 0001 — aluguel de site</span>
-            <span id="data-emissao"></span>
-        </div>
-        <h1>Seu delivery pronto pra <em>vender em 24h.</em></h1>
-        <p class="sub">Site, cardápio digital e sistema de pedidos configurados do seu jeito. Você manda os produtos, eu deixo tudo no ar — pronto pra receber pedido pelo WhatsApp, na mesa ou no delivery.</p>
-        <a class="btn-whats" id="btn-hero-whats" href="#" target="_blank">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.13-2.9-7C17.16 3.03 14.68 2 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.26-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.55-3.7 8.24-8.25 8.24Zm4.52-6.17c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.24-.64.8-.78.97-.14.16-.29.18-.53.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.45-1.37-1.7-.14-.24-.02-.37.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.24-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.42h-.48c-.16 0-.43.06-.65.31-.23.24-.85.83-.85 2.03s.87 2.36 1 2.52c.12.16 1.7 2.6 4.13 3.65.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.28Z"/></svg>
-            Pedir meu site pelo WhatsApp
-        </a>
-        <div class="rodape-hero">
-            <span>📍 Atendimento pra deliverys e pequenos negócios</span>
-            <span>💳 Pix, sem contrato de fidelidade</span>
-        </div>
-    </div>
+<div class="hero">
+<div class="hero-eyebrow">
+<span>Comanda nº 0001 — aluguel de site</span>
+<span id="data-emissao"></span>
+</div>
+<h1>Seu delivery pronto pra <em>vender em 24h.</em></h1>
+<p class="sub">Site, cardápio digital e sistema de pedidos configurados do seu jeito. Você manda os produtos, eu deixo tudo no ar — pronto pra receber pedido pelo WhatsApp, na mesa ou no delivery.</p>
+<a class="btn-whats" id="btn-hero-whats" href="#" target="_blank">
+<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.13-2.9-7C17.16 3.03 14.68 2 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.26-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.55-3.7 8.24-8.25 8.24Zm4.52-6.17c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.24-.64.8-.78.97-.14.16-.29.18-.53.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.45-1.37-1.7-.14-.24-.02-.37.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.24-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.42h-.48c-.16 0-.43.06-.65.31-.23.24-.85.83-.85 2.03s.87 2.36 1 2.52c.12.16 1.7 2.6 4.13 3.65.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.28Z"/></svg>
+Pedir meu site pelo WhatsApp
+</a>
+<div class="rodape-hero">
+<span>📍 Atendimento pra deliverys e pequenos negócios</span>
+<span>💳 Pix, sem contrato de fidelidade</span>
+</div>
+</div>
 </div>
 <div class="serrilha"></div>
 </div>
 
 <div class="wrap">
-    <section id="o-que-vem">
-        <div class="titulo-secao"><span class="n">// inclui</span>O que vem no pedido</div>
-        <div class="lista-itens">
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Site completo e funcional</span><span class="pontos"></span><span class="desc">no ar em poucos dias</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Cardápio ou catálogo organizado</span><span class="pontos"></span><span class="desc">por categoria, com fotos</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Sistema de pedidos ativo</span><span class="pontos"></span><span class="desc">carrinho + finalização no WhatsApp</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Modo Mesa com QR Code</span><span class="pontos"></span><span class="desc">comanda por mesa, tudo somado automaticamente</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Controle de estoque automático</span><span class="pontos"></span><span class="desc">esgota sozinho quando acabar</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Painel com dashboard e histórico</span><span class="pontos"></span><span class="desc">vendas do dia e últimas comandas salvas</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Entrega e retirada configurável</span><span class="pontos"></span><span class="desc">do jeito que sua loja trabalha</span></div>
-            <div class="item-menu"><span class="check">✓</span><span class="nome">Suporte técnico mensal</span><span class="pontos"></span><span class="desc">sem letra miúda</span></div>
-        </div>
-    </section>
+<section id="o-que-vem">
+<div class="titulo-secao"><span class="n">// inclui</span>O que vem no pedido</div>
+<div class="lista-itens">
+<div class="item-menu"><span class="check">✓</span><span class="nome">Site completo e funcional</span><span class="pontos"></span><span class="desc">no ar em poucos dias</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Cardápio ou catálogo organizado</span><span class="pontos"></span><span class="desc">por categoria, com fotos</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Sistema de pedidos ativo</span><span class="pontos"></span><span class="desc">carrinho + finalização no WhatsApp</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Modo Mesa com QR Code</span><span class="pontos"></span><span class="desc">comanda por mesa, tudo somado automaticamente</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Controle de estoque automático</span><span class="pontos"></span><span class="desc">esgota sozinho quando acabar</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Painel com dashboard e histórico</span><span class="pontos"></span><span class="desc">vendas do dia e últimas comandas salvas</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Entrega e retirada configurável</span><span class="pontos"></span><span class="desc">do jeito que sua loja trabalha</span></div>
+<div class="item-menu"><span class="check">✓</span><span class="nome">Suporte técnico mensal</span><span class="pontos"></span><span class="desc">sem letra miúda</span></div>
+</div>
+</section>
 
-    <section id="planos">
-        <div class="titulo-secao"><span class="n">// planos</span>Escolha o seu</div>
-        <p style="color:var(--tinta-suave); max-width:52ch; margin-top:4px;">Sem custo de criação, sem burocracia. Você só assina o plano e já pode começar a receber pedidos.</p>
+<section id="planos">
+<div class="titulo-secao"><span class="n">// planos</span>Escolha o seu</div>
+<p style="color:var(--tinta-suave); max-width:52ch; margin-top:4px;">Sem custo de criação, sem burocracia. Você só assina o plano e já pode começar a receber pedidos.</p>
+<div class="planos">
+<!-- BÁSICO -->
+<div class="ticket">
+<div class="serrilha"></div>
+<div class="ticket-corpo">
+<h3>Plano Básico</h3>
+<div class="preco">R$ 39<span>,90/mês</span></div>
+<ul class="itens">
+<li>Site completo e funcional</li>
+<li>Cardápio/produtos organizado</li>
+<li>Sistema de pedidos ativo</li>
+<li>Modo Mesa com QR Code</li>
+<li>Controle de estoque automático</li>
+<li>Domínio simples incluso</li>
+<li>Entrega + retirada configurável</li>
+<li>Suporte técnico mensal</li>
+</ul>
+<a class="btn-whats" href="#" target="_blank" data-plano="basico">
+<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.13-2.9-7C17.16 3.03 14.68 2 12.04 2Z"/></svg>
+Quero o Básico
+</a>
+</div>
+<div class="serrilha baixo"></div>
+</div>
+<!-- PREMIUM -->
+<div class="ticket premium">
+<div class="ticket-badge">mais completo</div>
+<div class="serrilha"></div>
+<div class="ticket-corpo">
+<h3>Plano Premium</h3>
+<div class="preco">R$ 49<span>,90/mês</span></div>
+<ul class="itens">
+<li>Tudo do plano Básico</li>
+<li>Domínio próprio .com.br</li>
+<li>Mais profissionalismo pra marca</li>
+<li>Mais visibilidade nas buscas</li>
+</ul>
+<a class="btn-whats" href="#" target="_blank" data-plano="premium">
+<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.13-2.9-7C17.16 3.03 14.68 2 12.04 2Z"/></svg>
+Quero o Premium
+</a>
+</div>
+</div>
+</div>
+</section>
 
-        <div class="planos">
-            <!-- BÁSICO -->
-            <div class="ticket">
-                <div class="serrilha"></div>
-                <div class="ticket-corpo">
-                    <h3>Plano Básico</h3>
-                    <div class="preco">R$ 39<span>,90/mês</span></div>
-                    <ul class="itens">
-                        <li>Site completo e funcional</li>
-                        <li>Cardápio/produtos organizado</li>
-                        <li>Sistema de pedidos ativo</li>
-                        <li>Modo Mesa com QR Code</li>
-                        <li>Controle de estoque automático</li>
-                        <li>Domínio simples incluso</li>
-                        <li>Entrega + retirada configurável</li>
-                        <li>Suporte técnico mensal</li>
-                    </ul>
-                    <a class="btn-whats" href="#" target="_blank" data-plano="basico">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.13-2.9-7C17.16 3.03 14.68 2 12.04 2Z"/></svg>
-                        Quero o Básico
-                    </a>
-                </div>
-                <div class="serrilha baixo"></div>
-            </div>
+<section id="como-funciona">
+<div class="titulo-secao"><span class="n">// processo</span>Como funciona</div>
+<div class="passos">
+<div class="passo">
+<div class="num">1</div>
+<h4>Chama no WhatsApp</h4>
+<p>Escolhe o plano e me manda o nome da loja, produtos e fotos.</p>
+</div>
+<div class="passo">
+<div class="num">2</div>
+<h4>Eu monto o site</h4>
+<p>Cardápio, cores, mesas e contato configurados do jeito da sua loja.</p>
+</div>
+<div class="passo">
+<div class="num">3</div>
+<h4>Seu site no ar</h4>
+<p>Você recebe o link (e o QR Code das mesas, se usar) e já começa a receber pedidos.</p>
+</div>
+</div>
+</section>
 
-            <!-- PREMIUM -->
-            <div class="ticket premium">
-                <div class="ticket-badge">mais completo</div>
-                <div class="serrilha"></div>
-                <div class="ticket-corpo">
-                    <h3>Plano Premium</h3>
-                    <div class="preco">R$ 49<span>,90/mês</span></div>
-                    <ul class="itens">
-                        <li>Tudo do plano Básico</li>
-                        <li>Domínio próprio .com.br</li>
-                        <li>Mais profissionalismo pra marca</li>
-                        <li>Mais visibilidade nas buscas</li>
-                    </ul>
-                    <a class="btn-whats" href="#" target="_blank" data-plano="premium">
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.13-2.9-7C17.16 3.03 14.68 2 12.04 2Z"/></svg>
-                        Quero o Premium
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="como-funciona">
-        <div class="titulo-secao"><span class="n">// processo</span>Como funciona</div>
-        <div class="passos">
-            <div class="passo">
-                <div class="num">1</div>
-                <h4>Chama no WhatsApp</h4>
-                <p>Escolhe o plano e me manda o nome da loja, produtos e fotos.</p>
-            </div>
-            <div class="passo">
-                <div class="num">2</div>
-                <h4>Eu monto o site</h4>
-                <p>Cardápio, cores, mesas e contato configurados do jeito da sua loja.</p>
-            </div>
-            <div class="passo">
-                <div class="num">3</div>
-                <h4>Seu site no ar</h4>
-                <p>Você recebe o link (e o QR Code das mesas, se usar) e já começa a receber pedidos.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="faq">
-        <div class="titulo-secao"><span class="n">// perguntas</span>Antes de chamar</div>
-        <details class="faq-item">
-            <summary>Preciso entender de site ou tecnologia?</summary>
-            <p>Não. Você só me manda os produtos, fotos e informações da loja — eu cuido de toda a parte técnica.</p>
-        </details>
-        <details class="faq-item">
-            <summary>O que eu preciso ter em mãos pra começar?</summary>
-            <p>Nome da loja, uma logo (se tiver), fotos dos produtos com preço, endereço/horário e o WhatsApp que vai receber os pedidos.</p>
-        </details>
-        <details class="faq-item">
-            <summary>Serve pra atendimento na mesa também, não só delivery?</summary>
-            <p>Sim. O cliente escaneia o QR Code da mesa, faz os pedidos e tudo é somado automaticamente na mesma comanda — o WhatsApp só recebe o resumo quando você finaliza.</p>
-        </details>
-        <details class="faq-item">
-            <summary>Dá pra controlar o estoque dos produtos?</summary>
-            <p>Sim, é opcional. Se você definir uma quantidade, ela desconta sozinha a cada venda e o produto vira "Esgotado" automaticamente quando chegar a zero.</p>
-        </details>
-        <details class="faq-item">
-            <summary>Posso trocar de plano depois?</summary>
-            <p>Sim. Dá pra migrar do Básico pro Premium quando quiser, sem perder nada do que já está configurado.</p>
-        </details>
-        <details class="faq-item">
-            <summary>Tem contrato de fidelidade?</summary>
-            <p>Não. É uma assinatura mensal simples — sem multa nem burocracia pra cancelar.</p>
-        </details>
-    </section>
+<section id="faq">
+<div class="titulo-secao"><span class="n">// perguntas</span>Antes de chamar</div>
+<details class="faq-item">
+<summary>Preciso entender de site ou tecnologia?</summary>
+<p>Não. Você só me manda os produtos, fotos e informações da loja — eu cuido de toda a parte técnica.</p>
+</details>
+<details class="faq-item">
+<summary>O que eu preciso ter em mãos pra começar?</summary>
+<p>Nome da loja, uma logo (se tiver), fotos dos produtos com preço, endereço/horário e o WhatsApp que vai receber os pedidos.</p>
+</details>
+<details class="faq-item">
+<summary>Serve pra atendimento na mesa também, não só delivery?</summary>
+<p>Sim. O cliente escaneia o QR Code da mesa, faz os pedidos e tudo é somado automaticamente na mesma comanda — o WhatsApp só recebe o resumo quando você finaliza.</p>
+</details>
+<details class="faq-item">
+<summary>Dá pra controlar o estoque dos produtos?</summary>
+<p>Sim, é opcional. Se você definir uma quantidade, ela desconta sozinha a cada venda e o produto vira "Esgotado" automaticamente quando chegar a zero.</p>
+</details>
+<details class="faq-item">
+<summary>Posso trocar de plano depois?</summary>
+<p>Sim. Dá pra migrar do Básico pro Premium quando quiser, sem perder nada do que já está configurado.</p>
+</details>
+<details class="faq-item">
+<summary>Tem contrato de fidelidade?</summary>
+<p>Não. É uma assinatura mensal simples — sem multa nem burocracia pra cancelar.</p>
+</details>
+</section>
 </div>
 
 <div class="wrap">
 <div class="comanda cta-final">
-    <h2>Pronto pra receber pedidos?</h2>
-    <p>Me chama agora e já deixamos seu site encaminhado.</p>
-    <div class="cta-botoes">
-        <a class="btn-whats" href="#" target="_blank" data-plano="basico">Chamar no WhatsApp</a>
-    </div>
+<h2>Pronto pra receber pedidos?</h2>
+<p>Me chama agora e já deixamos seu site encaminhado.</p>
+<div class="cta-botoes">
+<a class="btn-whats" href="#" target="_blank" data-plano="basico">Chamar no WhatsApp</a>
+</div>
 </div>
 </div>
 
 <footer>
-    <div>Aluguel de sites para deliverys e pequenos negócios</div>
-    <div class="selo-confianca">Sem custo de criação · Sem burocracia · Suporte incluso</div>
+<div>Aluguel de sites para deliverys e pequenos negócios</div>
+<div class="selo-confianca">Sem custo de criação · Sem burocracia · Suporte incluso</div>
 </footer>
 
+</div>
+<!-- FIM #conteudo-plataforma -->
+
+<!-- ============================================================
+     TELA DE CARREGAMENTO + RAIZ DA LOJA
+     Ficam escondidas em hostname da plataforma; o roteador-loja.js
+     mostra a primeira e preenche a segunda quando é hostname de loja.
+     ============================================================ -->
+<div id="tela-carregamento-loja">
+    <div class="girando"></div>
+    <span>Carregando cardápio...</span>
+</div>
+<div id="app-loja-root" style="display:none;"></div>
+
 <script>
-    // ============================================================
-    // CONFIGURAÇÃO — troque aqui o WhatsApp e as mensagens prontas
-    // ============================================================
-    const CONTATO = {
-        whatsapp: "91991396925", // troque pelo seu número (só dígitos, com DDD)
-    }
+// Roda SÓ em hostname da plataforma — em hostname de loja, esse bloco
+// inteiro é ignorado, e é o conteúdo institucional acima (removido do
+// DOM pelo roteador) que levaria esses elementos junto de qualquer forma.
+if (!window.CARDAPIOS_WEB_EH_LOJA) {
 
-    const MENSAGENS = {
-        basico: "Olá! Vi o site de vocês e quero contratar o *Plano Básico* (R$ 39,90/mês) — site funcional, cardápio digital, modo mesa com QR Code e sistema de pedidos.",
-        premium: "Olá! Vi o site de vocês e quero contratar o *Plano Premium* (R$ 49,90/mês) — com domínio próprio .com.br.",
-        geral: "Olá! Vi o site de vocês e quero saber mais sobre o aluguel de site pro meu delivery."
-    }
+// ============================================================
+// CONFIGURAÇÃO — troque aqui o WhatsApp e as mensagens prontas
+// ============================================================
+const CONTATO = {
+whatsapp: "91991396925", // troque pelo seu número (só dígitos, com DDD)
+}
 
-    function linkWhats(mensagem) {
-        return `https://wa.me/${CONTATO.whatsapp}?text=${encodeURIComponent(mensagem)}`
-    }
+const MENSAGENS = {
+basico: "Olá! Vi o site de vocês e quero contratar o *Plano Básico* (R$ 39,90/mês) — site funcional, cardápio digital, modo mesa com QR Code e sistema de pedidos.",
+premium: "Olá! Vi o site de vocês e quero contratar o *Plano Premium* (R$ 49,90/mês) — com domínio próprio .com.br.",
+geral: "Olá! Vi o site de vocês e quero saber mais sobre o aluguel de site pro meu delivery."
+}
 
-    // Botão do topo do hero (mensagem geral)
-    document.getElementById("btn-hero-whats").href = linkWhats(MENSAGENS.geral)
+function linkWhats(mensagem) {
+return `https://wa.me/${CONTATO.whatsapp}?text=${encodeURIComponent(mensagem)}`
+}
 
-    // Botões dos planos (cada um com a mensagem certa)
-    document.querySelectorAll("[data-plano]").forEach(botao => {
-        const plano = botao.getAttribute("data-plano")
-        botao.href = linkWhats(MENSAGENS[plano] || MENSAGENS.geral)
-    })
+// Botão do topo do hero (mensagem geral)
+document.getElementById("btn-hero-whats").href = linkWhats(MENSAGENS.geral)
 
-    // Data de "emissão" da comanda (hoje)
-    document.getElementById("data-emissao").textContent =
-        new Date().toLocaleDateString("pt-BR")
+// Botões dos planos (cada um com a mensagem certa)
+document.querySelectorAll("[data-plano]").forEach(botao => {
+const plano = botao.getAttribute("data-plano")
+botao.href = linkWhats(MENSAGENS[plano] || MENSAGENS.geral)
+})
+
+// Data de "emissão" da comanda (hoje)
+document.getElementById("data-emissao").textContent =
+new Date().toLocaleDateString("pt-BR")
+
+}
 </script>
 
+<script src="./roteador-loja.js" data-pagina-loja="index-loja.html"></script>
 </body>
 </html>
