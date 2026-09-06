@@ -33,7 +33,20 @@ export default async function middleware(request) {
   if (ehHostnamePlataforma(hostname)) {
     return next()
   }
-  const response = await next()
+
+  // Remove o Range ANTES de repassar pra origem — sem isso, crawlers
+  // (Facebook/WhatsApp) recebem só um pedaço do HTML (206), e o
+  // replace() abaixo pode não encontrar as tags se elas caírem fora
+  // do pedaço devolvido.
+  const headersSemRange = new Headers(request.headers)
+  headersSemRange.delete('range')
+  headersSemRange.delete('if-range')
+
+  const response = await next({
+    request: {
+      headers: headersSemRange
+    }
+  })
 
   try {
     const anonKey = process.env.SUPABASE_ANON_KEY
