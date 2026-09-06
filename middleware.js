@@ -16,14 +16,16 @@ function ehHostnamePlataforma(hostname) {
   return false
 }
 
+import { next } from '@vercel/edge'
+
 export default async function middleware(request) {
   const hostname = request.headers.get('host')?.split(':')[0] || ''
 
   if (ehHostnamePlataforma(hostname)) {
-    return fetch(request)
+    return next()
   }
 
-  const response = await fetch(request)
+  const response = await next()
 
   const supabaseUrl = 'https://bjnnkeutfilbzdhbqqij.supabase.co'
   const anonKey = process.env.SUPABASE_ANON_KEY
