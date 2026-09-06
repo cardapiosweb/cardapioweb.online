@@ -1,54 +1,98 @@
 // ============================================================
-// SUPABASE LOADER
-// Substitui dados-loja.js e dados-produtos.js.
-// Busca os dados da loja (pelo slug configurado abaixo) e monta
-// as MESMAS variáveis globais que script.js já espera: `loja`,
-// `produtos` e `categorias`. Assim o script.js não precisa mudar
-// quase nada — só o final, que espera este loader terminar.
+// SUPABASE LOADER — versão multi-tenant (piloto)
+// ------------------------------------------------------------
+// Antes: a loja era fixada por uma constante (LOJA_SLUG) — um
+// repositório por cliente.
+// Agora: a loja é descoberta pelo hostname da própria página
+// (window.location.hostname), tanto pra subdomínio da plataforma
+// (plano básico) quanto pra domínio próprio (plano premium) — a
+// busca é IDÊNTICA nos dois casos: um match exato contra a tabela
+// "dominios_loja". Não existe lógica de wildcard/subdomínio aqui
+// de propósito: cada domínio novo (básico ou premium) precisa de
+// uma linha cadastrada nessa tabela, o mesmo passo manual de
+// adicionar o domínio na Vercel. Se um dia fizer sentido usar
+// wildcard, dá pra somar uma regra de fallback aqui sem quebrar
+// nada do que já existe.
+//
+// Dev/local: localhost não bate com nenhum domínio real, então
+// aceita um override só pra desenvolvimento: abra a página com
+// ?loja=slug-da-loja pra forçar qual loja carregar.
 // ============================================================
 
-// >>> ÚNICA COISA QUE MUDA DE UM CLIENTE PRO OUTRO NESTE ARQUIVO <<<
-const LOJA_SLUG = "pizzaria-natureza"
-
-// Config do projeto Supabase (igual pra todos os clientes,
-// é o mesmo projeto/banco compartilhado)
 const SUPABASE_URL = "https://bjnnkeutfilbzdhbqqij.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqbm5rZXV0ZmlsYnpkaGJxcWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTU0MzIsImV4cCI6MjA5OTM3MTQzMn0.kyj-JDRj4YAwlgGze56MGsd9UjezpF1PeG-HpJnm3_I"
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// Variáveis globais que script.js consome (mesmos nomes de antes)
+// Variáveis globais que script.js consome (mesmos nomes de antes —
+// nada muda pro resto do código que já existe).
 let loja = {}
 let produtos = []
 let categorias = {}
 
+function slugForcadoPorQueryString() {
+    // Só pra desenvolvimento local — nunca deveria ter efeito em
+    // produção, já que lá o hostname é sempre um domínio real e
+    // cadastrado.
+    const params = new URLSearchParams(window.location.search)
+    return params.get("loja") || null
+}
+
+async function resolverLojaIdPeloHostname() {
+    const slugForcado = slugForcadoPorQueryString()
+
+    if (slugForcado) {
+        const { data, error } = await supabaseClient
+            .from("lojas")
+            .select("id")
+            .eq("slug", slugForcado)
+            .single()
+        if (error || !data) return null
+        return data.id
+    }
+
+    const hostname = window.location.hostname
+    const { data, error } = await supabaseClient
+        .from("dominios_loja")
+        .select("loja_id")
+        .eq("dominio", hostname)
+        .single()
+
+    if (error || !data) return null
+    return data.loja_id
+}
+
 async function carregarDadosDaLoja() {
-    // 1) Busca a loja pelo slug
+    const lojaId = await resolverLojaIdPeloHostname()
+
+    if (!lojaId) {
+        document.body.innerHTML =
+            "<p style='padding:40px;font-family:sans-serif'>Este domínio ainda não está associado a nenhuma loja. Verifique o cadastro em \"dominios_loja\".</p>"
+        return
+    }
+
     const { data: lojaDb, error: erroLoja } = await supabaseClient
         .from("lojas")
         .select("*")
-        .eq("slug", LOJA_SLUG)
+        .eq("id", lojaId)
         .single()
 
     if (erroLoja || !lojaDb) {
         document.body.innerHTML =
-            "<p style='padding:40px;font-family:sans-serif'>Não foi possível carregar esta loja. Verifique o slug configurado.</p>"
+            "<p style='padding:40px;font-family:sans-serif'>Não foi possível carregar esta loja.</p>"
         console.error(erroLoja)
         return
     }
 
-    // Loja desativada no painel admin ("Loja ativa" = Não): não renderiza
-    // o cardápio, mostra um aviso simples em vez disso.
+    // Loja desativada no painel admin ("Loja ativa" = Não)
     if (lojaDb.ativa === false) {
         document.body.innerHTML =
             "<p style='padding:40px;font-family:sans-serif;text-align:center'>Loja fechada no momento. Volte mais tarde!</p>"
         return
     }
 
-    // 2) Traduz os nomes de coluna do banco pros nomes que
-    // script.js já espera (mesma "forma" do antigo dados-loja.js)
     loja = {
-        id: lojaDb.id, // usado para gravar pedidos do modo mesa (pedidos_mesa)
+        id: lojaDb.id,
         nome: lojaDb.nome,
         tagline: lojaDb.tagline,
         endereco: lojaDb.endereco,
@@ -65,29 +109,37 @@ async function carregarDadosDaLoja() {
         seloConfiancaSub: lojaDb.selo_confianca_sub,
         horario: lojaDb.horario || {},
         numeroMesas: lojaDb.numero_mesas,
-        bairrosTaxa: lojaDb.bairros_taxa || [], // bairros atendidos + taxa de cada um (aba Dados da loja, admin)
-        esconderEsgotados: lojaDb.esconder_esgotados !== false
+        bairrosTaxa: lojaDb.bairros_taxa || [],
+        esconderEsgotados: lojaDb.esconder_esgotados !== false,
+
+        // Campos novos do multi-tenant — antes viviam hardcoded em
+        // config-loja.js, um arquivo por repositório/cliente. Com
+        // fallback pra não quebrar uma loja que ainda não tenha
+        // esses campos preenchidos no banco.
+        tema: lojaDb.tema || "generico",
+        modoLoja: lojaDb.modo_loja || {
+            permiteDelivery: true,
+            permiteRetirada: true,
+            usaMesa: false,
+            usaDelivery: true,
+            usaEncomenda: false
+        },
+        textos: lojaDb.textos || null,
+        abasAdmin: lojaDb.abas_admin || null
     }
 
-    // 3) Monta `categorias` no mesmo formato de objeto que script.js
-    // espera, respeitando a ordem (campo "ordem")
     categorias = {}
     ;(lojaDb.categorias || [])
         .sort((a, b) => a.ordem - b.ordem)
-        .forEach(c => {
-            categorias[c.nome] = { icone: c.icone }
-        })
+        .forEach(c => { categorias[c.nome] = { icone: c.icone } })
 
-    // 4) Busca os produtos dessa loja
     const { data: produtosDb, error: erroProdutos } = await supabaseClient
         .from("produtos")
         .select("*")
         .eq("loja_id", lojaDb.id)
         .order("ordem", { ascending: true })
 
-    if (erroProdutos) {
-        console.error(erroProdutos)
-    }
+    if (erroProdutos) console.error(erroProdutos)
 
     produtos = (produtosDb || []).map(p => ({
         id: p.id,
@@ -109,7 +161,12 @@ async function carregarDadosDaLoja() {
         mostrar_botao_duvida: p.mostrar_botao_duvida
     }))
 
-    // 5) Avisa o script.js que os dados chegaram
+    // Só agora, com "loja" completo (incluindo tema/modoLoja/textos
+    // vindos do banco), aplica o tema e monta MODO_LOJA/TEXTOS/
+    // ABAS_ADMIN globais que script.js e o admin já esperam.
+    // Ver config-loja.js.
+    if (window.aplicarConfiguracaoDaLoja) window.aplicarConfiguracaoDaLoja(loja)
+
     document.dispatchEvent(new Event("dadosDaLojaProntos"))
 }
 
