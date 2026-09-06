@@ -1,3 +1,5 @@
+import { next } from '@vercel/edge'
+
 export const config = {
   matcher: ['/', '/admin.html']
 }
@@ -15,8 +17,6 @@ function ehHostnamePlataforma(hostname) {
   if (hostname.indexOf('.vercel.app') !== -1) return true
   return false
 }
-
-import { next } from '@vercel/edge'
 
 export default async function middleware(request) {
   const hostname = request.headers.get('host')?.split(':')[0] || ''
