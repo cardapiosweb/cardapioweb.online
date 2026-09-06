@@ -37,6 +37,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=kLBoypExtqUZ&format=png&color=000000">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./temas.js"></script>
 
 <!-- ============================================================
      ROTEADOR POR HOSTNAME (parte 1/2) — ver index.html pra explicação
@@ -175,11 +176,11 @@ font-size:13px;color:var(--tinta);display:flex;align-items:center;justify-conten
 .lista-vazia{color:var(--tinta-suave);font-size:14px;text-align:center;padding:40px 16px;}
 
 /* ---------- MODAL ---------- */
-#modal-cliente{
+#modal-cliente,#modal-nova-loja,#modal-loja-criada,#modal-vincular-loja{
 display:none;position:fixed;inset:0;background:rgba(22,27,25,.55);z-index:200;
 align-items:center;justify-content:center;padding:16px;
 }
-#modal-cliente.aberto{display:flex;}
+#modal-cliente.aberto,#modal-nova-loja.aberto,#modal-loja-criada.aberto,#modal-vincular-loja.aberto{display:flex;}
 .modal-box{background:var(--cartao);border-radius:14px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
 .modal-box h2{margin-bottom:18px;font-size:18px;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -194,6 +195,19 @@ align-items:center;justify-content:center;padding:16px;
 .aviso{font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:16px;}
 .aviso-erro{background:var(--erro-bg);color:var(--erro);}
 .aviso-ok{background:var(--ok-bg);color:var(--ok);}
+.aviso-info{background:var(--neutro-bg);color:var(--tinta-suave);border-left:3px solid var(--tinta-suave);}
+.modal-box-largo{max-width:620px;}
+.grupo-checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;}
+.grupo-checks label{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;}
+.grupo-checks input{width:auto;}
+.link-copiavel{display:flex;gap:8px;margin-bottom:14px;}
+.link-copiavel input{flex:1;padding:9px 12px;border:1.5px solid var(--linha);border-radius:8px;font-size:13px;background:var(--papel);color:var(--tinta-suave);}
+.link-copiavel button{background:var(--acento);color:white;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:600;white-space:nowrap;}
+.link-copiavel button:hover{background:var(--acento-escuro);}
+.link-vincular{background:none;border:none;color:var(--acento);font-size:13px;font-weight:600;padding:0;margin-top:-8px;margin-bottom:16px;display:inline-block;}
+.link-vincular:hover{text-decoration:underline;}
+.domino-preview{font-size:12.5px;color:var(--tinta-suave);margin-top:5px;}
+.domino-preview strong{color:var(--tinta);}
 @media(max-width:600px){
 header.topo{padding:14px 16px;}
 main{padding:18px 14px 50px;}
@@ -297,6 +311,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </select>
 </div>
 <button class="btn-novo" id="btn-novo-cliente"><i class="fa fa-plus"></i> Novo cliente</button>
+<button class="btn-novo" id="btn-nova-loja" style="background:var(--tinta);"><i class="fa fa-store"></i> Nova loja</button>
 </div>
 
 <div id="msg-lista"></div>
@@ -339,6 +354,127 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div class="modal-acoes-direita">
 <button class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
 <button class="btn-primario" id="btn-salvar-cliente" style="width:auto;padding:10px 20px;">Salvar</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODAL: NOVA LOJA (provisionamento completo) ==================== -->
+<div id="modal-nova-loja">
+<div class="modal-box modal-box-largo">
+<h2>Nova loja</h2>
+<button type="button" class="link-vincular" id="btn-ir-para-vincular">Já tem uma loja cadastrada no banco? Vincular loja existente</button>
+<div id="msg-nova-loja"></div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Dados da loja</h3>
+<div class="grid2">
+<div class="campo"><label>Nome da loja</label><input id="nl-nome" placeholder="Ex: Mestre do Churrasco" /></div>
+<div class="campo"><label>Subdomínio (slug)</label><input id="nl-slug" placeholder="gerado automaticamente" /></div>
+</div>
+<p class="domino-preview">Site ficará em: <strong id="nl-preview-dominio">slug.cardapiosweb.online</strong></p>
+<div class="grid2">
+<div class="campo"><label>WhatsApp (só números, com DDI e DDD)</label><input id="nl-whatsapp" placeholder="5591991396925" /></div>
+<div class="campo"><label>Chave Pix</label><input id="nl-chave-pix" placeholder="Opcional" /></div>
+</div>
+<div class="grid2">
+<div class="campo">
+<label>Tema visual</label>
+<select id="nl-tema"></select>
+</div>
+<div class="campo">
+<label><input type="checkbox" id="nl-usar-cor-personalizada" style="width:auto;margin-right:6px;" /> Usar cor personalizada</label>
+<input type="color" id="nl-cor" style="margin-top:8px;" disabled />
+</div>
+</div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
+<div class="grupo-checks">
+<label><input type="checkbox" id="nl-modo-delivery" checked /> Delivery</label>
+<label><input type="checkbox" id="nl-modo-retirada" checked /> Retirada</label>
+<label><input type="checkbox" id="nl-modo-mesa" /> Mesa</label>
+<label><input type="checkbox" id="nl-modo-encomenda" /> Encomenda</label>
+</div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Dados do lojista</h3>
+<div class="grid2">
+<div class="campo"><label>Nome do lojista</label><input id="nl-lojista-nome" placeholder="Opcional" /></div>
+<div class="campo"><label>E-mail do lojista</label><input type="email" id="nl-lojista-email" placeholder="lojista@email.com" /></div>
+</div>
+<div class="aviso aviso-info"><i class="fa fa-circle-info"></i> O login do lojista não é criado automaticamente. Depois de salvar, crie o usuário manualmente em Supabase → Authentication → Users, e vincule o <code>owner_user_id</code> dessa loja a ele (aba "Dados da loja" no <code>admin-loja.html</code>, ou direto no banco).</div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Assinatura / aluguel</h3>
+<div class="grid2">
+<div class="campo">
+<label>Plano</label>
+<select id="nl-plano">
+<option value="basico">Básico</option>
+<option value="premium">Premium</option>
+</select>
+</div>
+<div class="campo"><label>Valor mensal (R$)</label><input type="number" step="0.01" id="nl-valor" /></div>
+</div>
+<div class="grid2">
+<div class="campo"><label>Data de contratação</label><input type="date" id="nl-contratacao" /></div>
+<div class="campo"><label>Data de vencimento</label><input type="date" id="nl-vencimento" /></div>
+</div>
+
+<div class="modal-acoes">
+<div></div>
+<div class="modal-acoes-direita">
+<button class="btn-secundario" id="btn-cancelar-nova-loja">Cancelar</button>
+<button class="btn-primario" id="btn-salvar-nova-loja" style="width:auto;padding:10px 20px;">Criar loja</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODAL: LOJA CRIADA COM SUCESSO ==================== -->
+<div id="modal-loja-criada">
+<div class="modal-box">
+<h2>Loja criada com sucesso</h2>
+<p style="font-size:13.5px;color:var(--tinta-suave);margin:0 0 16px;">Copie os links abaixo para enviar ao lojista.</p>
+<label style="font-size:12.5px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.02em;">Site (cardápio)</label>
+<div class="link-copiavel">
+<input type="text" id="link-site-criado" readonly />
+<button type="button" id="btn-copiar-link-site"><i class="fa fa-copy"></i></button>
+</div>
+<label style="font-size:12.5px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.02em;">Painel da loja (admin)</label>
+<div class="link-copiavel">
+<input type="text" id="link-admin-criado" readonly />
+<button type="button" id="btn-copiar-link-admin"><i class="fa fa-copy"></i></button>
+</div>
+<div class="modal-acoes" style="justify-content:flex-end;">
+<button class="btn-primario" id="btn-fechar-loja-criada" style="width:auto;padding:10px 20px;">Concluir</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODAL: VINCULAR LOJA EXISTENTE ==================== -->
+<div id="modal-vincular-loja">
+<div class="modal-box">
+<h2>Vincular loja existente</h2>
+<p style="font-size:13.5px;color:var(--tinta-suave);margin:0 0 16px;">Escolha uma loja já cadastrada no banco (sem assinatura vinculada ainda) para gerenciar o aluguel dela aqui, sem duplicar cadastro.</p>
+<div id="msg-vincular-loja"></div>
+<div class="campo"><label>Loja</label><select id="vl-loja-select"></select></div>
+<div class="grid2">
+<div class="campo">
+<label>Plano</label>
+<select id="vl-plano">
+<option value="basico">Básico</option>
+<option value="premium">Premium</option>
+</select>
+</div>
+<div class="campo"><label>Valor mensal (R$)</label><input type="number" step="0.01" id="vl-valor" /></div>
+</div>
+<div class="grid2">
+<div class="campo"><label>Data de contratação</label><input type="date" id="vl-contratacao" /></div>
+<div class="campo"><label>Data de vencimento</label><input type="date" id="vl-vencimento" /></div>
+</div>
+<div class="modal-acoes">
+<div></div>
+<div class="modal-acoes-direita">
+<button class="btn-secundario" id="btn-cancelar-vincular">Cancelar</button>
+<button class="btn-primario" id="btn-salvar-vincular" style="width:auto;padding:10px 20px;">Vincular</button>
 </div>
 </div>
 </div>
@@ -692,6 +828,323 @@ if (!confirm("Apagar este cliente do painel? Essa ação não pode ser desfeita.
 const { error } = await sb.from("assinaturas").delete().eq("id", id)
 if (error) { alert("Não foi possível apagar: " + error.message); return }
 fecharModal()
+await carregarAssinaturas()
+})
+
+// ============================================================
+// NOVA LOJA — provisionamento completo (lojas + dominios_loja + assinaturas)
+// ============================================================
+const DOMINIO_PLATAFORMA = "cardapiosweb.online"
+
+function gerarSlug(nome) {
+return nome
+.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+.toLowerCase().trim()
+.replace(/[^a-z0-9\s-]/g, "")
+.replace(/\s+/g, "-")
+.replace(/-+/g, "-")
+.replace(/^-|-$/g, "")
+}
+
+async function gerarSlugUnico(nomeBase) {
+const base = gerarSlug(nomeBase) || "loja"
+let candidato = base
+let contador = 2
+while (true) {
+const { data } = await sb.from("lojas").select("id").eq("slug", candidato).maybeSingle()
+if (!data) return candidato
+candidato = `${base}-${contador}`
+contador++
+}
+}
+
+let slugEditadoManualmente = false
+
+function popularSelectTemas(selectEl) {
+selectEl.innerHTML = ""
+const temas = window.TEMAS || {}
+Object.keys(temas).forEach(chave => {
+const opt = document.createElement("option")
+opt.value = chave
+opt.textContent = temas[chave].nomeExibicao || chave
+selectEl.appendChild(opt)
+})
+}
+
+const modalNovaLoja = document.getElementById("modal-nova-loja")
+
+function atualizarPreviewDominio() {
+const slug = document.getElementById("nl-slug").value.trim() || "slug"
+document.getElementById("nl-preview-dominio").textContent = `${slug}.${DOMINIO_PLATAFORMA}`
+}
+
+document.getElementById("nl-nome").addEventListener("input", async (e) => {
+if (slugEditadoManualmente) return
+document.getElementById("nl-slug").value = gerarSlug(e.target.value)
+atualizarPreviewDominio()
+})
+
+document.getElementById("nl-slug").addEventListener("input", () => {
+slugEditadoManualmente = true
+document.getElementById("nl-slug").value = gerarSlug(document.getElementById("nl-slug").value)
+atualizarPreviewDominio()
+})
+
+document.getElementById("nl-usar-cor-personalizada").addEventListener("change", (e) => {
+document.getElementById("nl-cor").disabled = !e.target.checked
+})
+
+document.getElementById("nl-plano").addEventListener("change", (e) => {
+document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
+})
+
+document.getElementById("nl-contratacao").addEventListener("change", (e) => {
+document.getElementById("nl-vencimento").value = somarMeses(e.target.value, 1)
+})
+
+function abrirModalNovaLoja() {
+document.getElementById("msg-nova-loja").innerHTML = ""
+document.getElementById("nl-nome").value = ""
+document.getElementById("nl-slug").value = ""
+slugEditadoManualmente = false
+atualizarPreviewDominio()
+document.getElementById("nl-whatsapp").value = ""
+document.getElementById("nl-chave-pix").value = ""
+popularSelectTemas(document.getElementById("nl-tema"))
+document.getElementById("nl-usar-cor-personalizada").checked = false
+document.getElementById("nl-cor").value = "#A9321E"
+document.getElementById("nl-cor").disabled = true
+document.getElementById("nl-modo-delivery").checked = true
+document.getElementById("nl-modo-retirada").checked = true
+document.getElementById("nl-modo-mesa").checked = false
+document.getElementById("nl-modo-encomenda").checked = false
+document.getElementById("nl-lojista-nome").value = ""
+document.getElementById("nl-lojista-email").value = ""
+document.getElementById("nl-plano").value = "basico"
+document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO.basico
+document.getElementById("nl-contratacao").value = hojeISO()
+document.getElementById("nl-vencimento").value = somarMeses(hojeISO(), 1)
+modalNovaLoja.classList.add("aberto")
+}
+
+document.getElementById("btn-nova-loja").addEventListener("click", abrirModalNovaLoja)
+document.getElementById("btn-cancelar-nova-loja").addEventListener("click", () => modalNovaLoja.classList.remove("aberto"))
+
+document.getElementById("btn-salvar-nova-loja").addEventListener("click", async () => {
+const msg = document.getElementById("msg-nova-loja")
+msg.innerHTML = ""
+
+const nome = document.getElementById("nl-nome").value.trim()
+let slug = document.getElementById("nl-slug").value.trim()
+const whatsappDigitado = document.getElementById("nl-whatsapp").value.trim()
+const whatsappNormalizado = whatsappDigitado.replace(/[\s()\-+]/g, "")
+
+if (!nome) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o nome da loja.</div>`; return }
+if (!slug) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o subdomínio (slug).</div>`; return }
+if (whatsappNormalizado && (!/^\d+$/.test(whatsappNormalizado) || whatsappNormalizado.length < 10 || whatsappNormalizado.length > 15)) {
+msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só números com DDI e DDD (ex: 5591991396925).</div>`
+return
+}
+
+const btn = document.getElementById("btn-salvar-nova-loja")
+btn.disabled = true
+btn.textContent = "Criando..."
+
+const { data: slugExistente } = await sb.from("lojas").select("id").eq("slug", slug).maybeSingle()
+if (slugExistente) {
+slug = await gerarSlugUnico(nome)
+document.getElementById("nl-slug").value = slug
+atualizarPreviewDominio()
+msg.innerHTML = `<div class="aviso aviso-erro">Esse slug já existia — ajustei para "${escaparHtml(slug)}". Confira e clique em Criar loja de novo.</div>`
+btn.disabled = false
+btn.textContent = "Criar loja"
+return
+}
+
+const modoLoja = {
+permiteDelivery: document.getElementById("nl-modo-delivery").checked,
+usaDelivery: document.getElementById("nl-modo-delivery").checked,
+permiteRetirada: document.getElementById("nl-modo-retirada").checked,
+usaMesa: document.getElementById("nl-modo-mesa").checked,
+usaEncomenda: document.getElementById("nl-modo-encomenda").checked
+}
+
+const registroLoja = {
+nome: nome,
+slug: slug,
+whatsapp: whatsappNormalizado,
+chave_pix: document.getElementById("nl-chave-pix").value.trim(),
+tema: document.getElementById("nl-tema").value,
+cor_principal: document.getElementById("nl-usar-cor-personalizada").checked ? document.getElementById("nl-cor").value : null,
+modo_loja: modoLoja,
+ativa: true
+}
+
+const { data: lojaCriada, error: erroLoja } = await sb.from("lojas").insert(registroLoja).select("id").single()
+
+if (erroLoja) {
+msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível criar a loja: ${escaparHtml(erroLoja.message)}</div>`
+btn.disabled = false
+btn.textContent = "Criar loja"
+return
+}
+
+const dominioCompleto = `${slug}.${DOMINIO_PLATAFORMA}`
+const { error: erroDominio } = await sb.from("dominios_loja").insert({ dominio: dominioCompleto, loja_id: lojaCriada.id })
+
+if (erroDominio) {
+msg.innerHTML = `<div class="aviso aviso-erro">Loja criada, mas houve um erro ao vincular o domínio: ${escaparHtml(erroDominio.message)}. Insira manualmente em "dominios_loja".</div>`
+btn.disabled = false
+btn.textContent = "Criar loja"
+return
+}
+
+const registroAssinatura = {
+nome_loja: nome,
+responsavel: document.getElementById("nl-lojista-nome").value.trim(),
+whatsapp: whatsappNormalizado,
+link_site: `https://${dominioCompleto}`,
+plano: document.getElementById("nl-plano").value,
+valor: parseFloat(document.getElementById("nl-valor").value) || 0,
+data_contratacao: document.getElementById("nl-contratacao").value,
+data_vencimento: document.getElementById("nl-vencimento").value,
+observacoes: document.getElementById("nl-lojista-email").value.trim() ? `E-mail do lojista: ${document.getElementById("nl-lojista-email").value.trim()}` : "",
+ativo: true,
+loja_id: lojaCriada.id
+}
+
+const { error: erroAssinatura } = await sb.from("assinaturas").insert(registroAssinatura)
+
+btn.disabled = false
+btn.textContent = "Criar loja"
+
+if (erroAssinatura) {
+msg.innerHTML = `<div class="aviso aviso-erro">Loja e domínio criados, mas houve um erro ao registrar a assinatura: ${escaparHtml(erroAssinatura.message)}</div>`
+return
+}
+
+modalNovaLoja.classList.remove("aberto")
+document.getElementById("link-site-criado").value = `https://${dominioCompleto}`
+document.getElementById("link-admin-criado").value = `https://${dominioCompleto}/admin-loja.html`
+document.getElementById("modal-loja-criada").classList.add("aberto")
+await carregarAssinaturas()
+})
+
+async function copiarParaClipboard(texto, btn) {
+const original = btn.innerHTML
+try {
+await navigator.clipboard.writeText(texto)
+} catch (err) {
+const textarea = document.createElement("textarea")
+textarea.value = texto
+textarea.style.position = "fixed"
+textarea.style.opacity = "0"
+document.body.appendChild(textarea)
+textarea.select()
+try { document.execCommand("copy") } catch (err2) { console.error("Falha ao copiar", err2) }
+document.body.removeChild(textarea)
+}
+btn.innerHTML = `<i class="fa fa-check"></i>`
+setTimeout(() => { btn.innerHTML = original }, 1500)
+}
+
+document.getElementById("btn-copiar-link-site").addEventListener("click", (e) => {
+copiarParaClipboard(document.getElementById("link-site-criado").value, e.currentTarget)
+})
+document.getElementById("btn-copiar-link-admin").addEventListener("click", (e) => {
+copiarParaClipboard(document.getElementById("link-admin-criado").value, e.currentTarget)
+})
+document.getElementById("btn-fechar-loja-criada").addEventListener("click", () => {
+document.getElementById("modal-loja-criada").classList.remove("aberto")
+})
+
+// ============================================================
+// VINCULAR LOJA EXISTENTE (sem duplicar cadastro)
+// ============================================================
+const modalVincularLoja = document.getElementById("modal-vincular-loja")
+
+async function abrirModalVincularLoja() {
+modalNovaLoja.classList.remove("aberto")
+document.getElementById("msg-vincular-loja").innerHTML = ""
+
+const { data: todasLojas, error } = await sb.from("lojas").select("id, nome, slug, whatsapp")
+
+if (error) {
+document.getElementById("msg-vincular-loja").innerHTML = `<div class="aviso aviso-erro">Erro ao buscar lojas: ${escaparHtml(error.message)}</div>`
+modalVincularLoja.classList.add("aberto")
+return
+}
+
+const idsJaVinculados = new Set(assinaturasAtuais.filter(a => a.loja_id).map(a => a.loja_id))
+const lojasDisponiveis = (todasLojas || []).filter(l => !idsJaVinculados.has(l.id))
+
+const select = document.getElementById("vl-loja-select")
+select.innerHTML = ""
+
+if (!lojasDisponiveis.length) {
+select.innerHTML = `<option value="">Nenhuma loja sem assinatura vinculada encontrada</option>`
+} else {
+lojasDisponiveis.forEach(l => {
+const opt = document.createElement("option")
+opt.value = l.id
+opt.textContent = `${l.nome} (${l.slug})`
+opt.dataset.nome = l.nome
+opt.dataset.whatsapp = l.whatsapp || ""
+opt.dataset.slug = l.slug
+select.appendChild(opt)
+})
+}
+
+document.getElementById("vl-plano").value = "basico"
+document.getElementById("vl-valor").value = VALOR_PADRAO_PLANO.basico
+document.getElementById("vl-contratacao").value = hojeISO()
+document.getElementById("vl-vencimento").value = somarMeses(hojeISO(), 1)
+
+modalVincularLoja.classList.add("aberto")
+}
+
+document.getElementById("btn-ir-para-vincular").addEventListener("click", abrirModalVincularLoja)
+document.getElementById("btn-cancelar-vincular").addEventListener("click", () => modalVincularLoja.classList.remove("aberto"))
+
+document.getElementById("vl-plano").addEventListener("change", (e) => {
+document.getElementById("vl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
+})
+document.getElementById("vl-contratacao").addEventListener("change", (e) => {
+document.getElementById("vl-vencimento").value = somarMeses(e.target.value, 1)
+})
+
+document.getElementById("btn-salvar-vincular").addEventListener("click", async () => {
+const msg = document.getElementById("msg-vincular-loja")
+msg.innerHTML = ""
+
+const select = document.getElementById("vl-loja-select")
+const opcaoSelecionada = select.options[select.selectedIndex]
+
+if (!opcaoSelecionada || !opcaoSelecionada.value) {
+msg.innerHTML = `<div class="aviso aviso-erro">Selecione uma loja.</div>`
+return
+}
+
+const registro = {
+nome_loja: opcaoSelecionada.dataset.nome,
+whatsapp: opcaoSelecionada.dataset.whatsapp,
+link_site: `https://${opcaoSelecionada.dataset.slug}.${DOMINIO_PLATAFORMA}`,
+plano: document.getElementById("vl-plano").value,
+valor: parseFloat(document.getElementById("vl-valor").value) || 0,
+data_contratacao: document.getElementById("vl-contratacao").value,
+data_vencimento: document.getElementById("vl-vencimento").value,
+ativo: true,
+loja_id: opcaoSelecionada.value
+}
+
+const { error } = await sb.from("assinaturas").insert(registro)
+
+if (error) {
+msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível vincular: ${escaparHtml(error.message)}</div>`
+return
+}
+
+modalVincularLoja.classList.remove("aberto")
 await carregarAssinaturas()
 })
 
