@@ -30,11 +30,16 @@ export default async function middleware(request) {
   const supabaseUrl = 'https://bjnnkeutfilbzdhbqqij.supabase.co'
   const anonKey = process.env.SUPABASE_ANON_KEY
 
+  console.log('DEBUG hostname:', hostname)
+  console.log('DEBUG anonKey existe?', !!anonKey)
+
   const dominioResp = await fetch(
     `${supabaseUrl}/rest/v1/dominios_loja?dominio=eq.${hostname}&select=loja_id`,
     { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
   )
   const dominioData = await dominioResp.json()
+  console.log('DEBUG dominioData:', JSON.stringify(dominioData))
+
   if (!dominioData.length) return response
 
   const lojaId = dominioData[0].loja_id
@@ -44,6 +49,8 @@ export default async function middleware(request) {
     { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
   )
   const lojaData = await lojaResp.json()
+  console.log('DEBUG lojaData:', JSON.stringify(lojaData))
+
   if (!lojaData.length) return response
 
   const loja = lojaData[0]
