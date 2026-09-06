@@ -76,9 +76,12 @@ export default async function middleware(request) {
 
   const headers = new Headers(response.headers)
   headers.delete('content-length')
+  headers.delete('etag')
+  headers.delete('last-modified')
+  headers.set('cache-control', 'no-store, must-revalidate')
 
   return new Response(html, {
-    status: response.status,
+    status: 200,
     headers
   })
 }
