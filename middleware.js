@@ -1,6 +1,7 @@
 import { next } from '@vercel/edge'
 
 export const config = {
+  runtime: 'edge',
   matcher: ['/', '/admin.html']
 }
 
