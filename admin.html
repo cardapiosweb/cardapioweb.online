@@ -400,7 +400,8 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div class="campo"><label>Nome do lojista</label><input id="nl-lojista-nome" placeholder="Opcional" /></div>
 <div class="campo"><label>E-mail do lojista</label><input type="email" id="nl-lojista-email" placeholder="lojista@email.com" /></div>
 </div>
-<div class="aviso aviso-info"><i class="fa fa-circle-info"></i> O login do lojista não é criado automaticamente. Depois de salvar, crie o usuário manualmente em Supabase → Authentication → Users, e vincule o <code>owner_user_id</code> dessa loja a ele (aba "Dados da loja" no <code>admin-loja.html</code>, ou direto no banco).</div>
+<div class="campo"><label>User-ID do Supabase Auth (UUID)</label><input id="nl-lojista-user-id" placeholder="Cole aqui o UUID do usuário já criado" /></div>
+<div class="aviso aviso-info"><i class="fa fa-circle-info"></i> Crie o usuário manualmente em Supabase → Authentication → Users, copie o <code>User UID</code> dele e cole no campo acima. Deixe em branco pra vincular depois — nesse caso, edite direto no banco ou na aba "Dados da loja" do <code>admin-loja.html</code>.</div>
 
 <h3 style="font-size:14px;margin:18px 0 10px;">Assinatura / aluguel</h3>
 <div class="grid2">
@@ -920,6 +921,7 @@ document.getElementById("nl-modo-mesa").checked = false
 document.getElementById("nl-modo-encomenda").checked = false
 document.getElementById("nl-lojista-nome").value = ""
 document.getElementById("nl-lojista-email").value = ""
+document.getElementById("nl-lojista-user-id").value = ""
 document.getElementById("nl-plano").value = "basico"
 document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO.basico
 document.getElementById("nl-contratacao").value = hojeISO()
@@ -938,11 +940,16 @@ const nome = document.getElementById("nl-nome").value.trim()
 let slug = document.getElementById("nl-slug").value.trim()
 const whatsappDigitado = document.getElementById("nl-whatsapp").value.trim()
 const whatsappNormalizado = whatsappDigitado.replace(/[\s()\-+]/g, "")
+const ownerUserId = document.getElementById("nl-lojista-user-id").value.trim()
 
 if (!nome) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o nome da loja.</div>`; return }
 if (!slug) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o subdomínio (slug).</div>`; return }
 if (whatsappNormalizado && (!/^\d+$/.test(whatsappNormalizado) || whatsappNormalizado.length < 10 || whatsappNormalizado.length > 15)) {
 msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só números com DDI e DDD (ex: 5591991396925).</div>`
+return
+}
+if (ownerUserId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerUserId)) {
+msg.innerHTML = `<div class="aviso aviso-erro">User-ID inválido — não parece um UUID. Copie exatamente o "User UID" de Supabase → Authentication → Users.</div>`
 return
 }
 
@@ -977,6 +984,7 @@ chave_pix: document.getElementById("nl-chave-pix").value.trim(),
 tema: document.getElementById("nl-tema").value,
 cor_principal: document.getElementById("nl-usar-cor-personalizada").checked ? document.getElementById("nl-cor").value : null,
 modo_loja: modoLoja,
+owner_user_id: ownerUserId || null,
 ativa: true
 }
 
