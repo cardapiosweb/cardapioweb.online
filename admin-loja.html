@@ -2075,6 +2075,10 @@ async function iniciarPainel(user) {
 
     lojaAtual = lojaDb
 
+    // Aplica tema/MODO_LOJA/TEXTOS/ABAS_ADMIN vindos do banco (config-loja.js) —
+    // sem isso, o painel fica com as cores de reserva e a nav some (só "Início").
+    if (window.aplicarConfiguracaoDaLoja) window.aplicarConfiguracaoDaLoja(lojaAtual)
+
     telaLogin.style.display = "none"
     telaPainel.style.display = "block"
     document.getElementById("painel-nome-loja").textContent = lojaAtual.nome
