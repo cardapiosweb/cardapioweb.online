@@ -32,10 +32,21 @@
 const TEXTOS_PADRAO = {
     diferenciais: [],
     comoFunciona: null,
-    ctaFinal: null,
+    ctaFinal: {
+        titulo: "Bateu aquela fome?",
+        desc: "Seu pedido está a poucos toques de distância. Monte seu carrinho agora.",
+        botao: "Ver meu pedido"
+    },
     heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
     seloCarimbo: null,
-    apresentacao: { botaoPrincipal: "Ver cardápio completo", passos: [] },
+    apresentacao: {
+        botaoPrincipal: "Ver cardápio completo",
+        passos: [
+            { icone: "fa fa-utensils", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
+            { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+            { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." }
+        ]
+    },
 }
 
 const ABAS_ADMIN_PADRAO = [
