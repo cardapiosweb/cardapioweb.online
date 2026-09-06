@@ -23,7 +23,7 @@ function headersLimpos(originais) {
   h.delete('content-length')
   h.delete('etag')
   h.delete('last-modified')
-  h.delete('accept-ranges')
+  h.set('accept-ranges', 'none')
   h.set('cache-control', 'no-store, must-revalidate')
   return h
 }
@@ -77,9 +77,6 @@ export default async function middleware(request) {
     html = html.replace(/(<meta id="og-title"[^>]*content=")[^"]*(")/, `$1${loja.nome}$2`)
     html = html.replace(/(<meta id="og-description"[^>]*content=")[^"]*(")/, `$1${loja.tagline || `Peça já no ${loja.nome}!`}$2`)
 
-    // og:image precisa ser URL absoluta (o valor no banco já costuma vir
-    // completo, tipo o da Pizzaria Natureza — mas blindando pro caso de
-    // vir relativo ou vazio)
     const imagemAbsoluta = loja.logo_url && loja.logo_url.startsWith('http')
       ? loja.logo_url
       : `https://${hostname}/assets/img/logo.png`
