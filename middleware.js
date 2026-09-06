@@ -30,23 +30,35 @@ function headersLimpos(originais) {
 
 export default async function middleware(request) {
   const hostname = request.headers.get('host')?.split(':')[0] || ''
+
+  // Trava anti-loop: essa já é a nossa sub-requisição interna (sem Range).
+  // Deixa seguir o fluxo normal da Vercel sem reprocessar nada.
+  if (request.headers.get('x-mw-internal') === '1') {
+    return next()
+  }
+
   if (ehHostnamePlataforma(hostname)) {
     return next()
   }
 
-  // Remove o Range ANTES de repassar pra origem — sem isso, crawlers
-  // (Facebook/WhatsApp) recebem só um pedaço do HTML (206), e o
-  // replace() abaixo pode não encontrar as tags se elas caírem fora
-  // do pedaço devolvido.
-  const headersSemRange = new Headers(request.headers)
-  headersSemRange.delete('range')
-  headersSemRange.delete('if-range')
+  // Buscamos a origem NÓS MESMOS, controlando os headers com certeza —
+  // sem depender do next() repassar (ou não) a remoção do Range.
+  const headersOrigem = new Headers(request.headers)
+  headersOrigem.delete('range')
+  headersOrigem.delete('if-range')
+  headersOrigem.set('x-mw-internal', '1')
 
-  const response = await next({
-    request: {
-      headers: headersSemRange
-    }
-  })
+  let response
+  try {
+    response = await fetch(new Request(request.url, {
+      method: request.method,
+      headers: headersOrigem
+    }))
+  } catch (erroOrigem) {
+    // Se essa sub-requisição falhar por qualquer razão, não trava a página:
+    // deixa a Vercel servir o comportamento padrão.
+    return next()
+  }
 
   try {
     const anonKey = process.env.SUPABASE_ANON_KEY
