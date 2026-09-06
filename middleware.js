@@ -1,7 +1,6 @@
 import { next } from '@vercel/edge'
 
 export const config = {
-  runtime: 'edge',
   matcher: ['/', '/admin.html']
 }
 
@@ -49,10 +48,30 @@ export default async function middleware(request) {
 
   const loja = lojaData[0]
 
-  return new HTMLRewriter()
-    .on('title', { element(el) { el.setInnerContent(loja.nome) } })
-    .on('meta[property="og:title"]', { element(el) { el.setAttribute('content', loja.nome) } })
-    .on('meta[property="og:description"]', { element(el) { el.setAttribute('content', loja.tagline || `Peça já no ${loja.nome}!`) } })
-    .on('meta[property="og:image"]', { element(el) { el.setAttribute('content', loja.logo_url) } })
-    .transform(response)
+  let html = await response.text()
+
+  html = html.replace(
+    /<title id="page-title">.*?<\/title>|<title>.*?<\/title>/,
+    `<title>${loja.nome}</title>`
+  )
+  html = html.replace(
+    /(<meta id="og-title"[^>]*content=")[^"]*(")/,
+    `$1${loja.nome}$2`
+  )
+  html = html.replace(
+    /(<meta id="og-description"[^>]*content=")[^"]*(")/,
+    `$1${loja.tagline || `Peça já no ${loja.nome}!`}$2`
+  )
+  html = html.replace(
+    /(<meta id="og-image"[^>]*content=")[^"]*(")/,
+    `$1${loja.logo_url}$2`
+  )
+
+  const headers = new Headers(response.headers)
+  headers.delete('content-length')
+
+  return new Response(html, {
+    status: response.status,
+    headers
+  })
 }
