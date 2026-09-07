@@ -205,6 +205,10 @@ align-items:center;justify-content:center;padding:16px;
 .aba-linha select.aba-posicao{padding:7px 6px;border:1.5px solid var(--linha);border-radius:7px;font-size:12px;flex-shrink:0;}
 .aba-sugestao-item{display:block;width:100%;text-align:left;background:none;border:none;padding:9px 12px;font-size:13px;cursor:pointer;}
 .aba-sugestao-item:hover{background:var(--papel);}
+.loja-selo-plano{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;}
+.loja-selo-premium{background:var(--ok-bg);color:var(--ok);}
+.loja-selo-basico{background:var(--alerta-bg);color:var(--alerta);}
+.loja-selo-sem-plano{background:var(--neutro-bg);color:var(--neutro);}
 .grupo-checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;}
 .grupo-checks label{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;}
 .grupo-checks input{width:auto;}
@@ -736,6 +740,9 @@ document.getElementById("el-abas-editor").style.display = e.target.checked ? "no
 document.getElementById("btn-gerenciar-lojas").addEventListener("click", abrirModalGerenciarLojas)
 document.getElementById("btn-fechar-gerenciar-lojas").addEventListener("click", () => modalGerenciarLojas.classList.remove("aberto"))
 
+let assinaturasPorLojaId = {}
+let dominiosPorLojaId = {}
+
 async function abrirModalGerenciarLojas() {
 const msg = document.getElementById("msg-gerenciar-lojas")
 msg.innerHTML = "Carregando..."
@@ -748,8 +755,23 @@ msg.innerHTML = `<div class="aviso aviso-erro">Erro ao carregar lojas: ${escapar
 return
 }
 
-msg.innerHTML = ""
 lojasCadastradas = data || []
+
+// Duas buscas só (não uma por loja) — pega plano e domínios de todas
+// as lojas de uma vez e organiza por loja_id pra consulta rápida na
+// hora de montar cada linha.
+const [{ data: todasAssinaturas }, { data: todosDominios }] = await Promise.all([
+sb.from("assinaturas").select("id, loja_id, plano, valor").not("loja_id", "is", null),
+sb.from("dominios_loja").select("loja_id, dominio")
+])
+
+assinaturasPorLojaId = {}
+;(todasAssinaturas || []).forEach(a => { assinaturasPorLojaId[a.loja_id] = a })
+
+dominiosPorLojaId = {}
+;(todosDominios || []).forEach(d => { (dominiosPorLojaId[d.loja_id] ||= []).push(d) })
+
+msg.innerHTML = ""
 renderizarListaLojas()
 }
 
@@ -771,6 +793,18 @@ return
 }
 
 visiveis.forEach(l => {
+const assinatura = assinaturasPorLojaId[l.id]
+const dominios = dominiosPorLojaId[l.id] || []
+const dominioProprio = dominios.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+const linkSite = dominioProprio ? `https://${dominioProprio.dominio}` : `https://${l.slug}.${DOMINIO_PLATAFORMA}`
+const linkAdmin = `${linkSite}/admin-loja.html`
+
+const seloPlanoHtml = !assinatura
+? `<span class="loja-selo-plano loja-selo-sem-plano">Sem assinatura</span>`
+: assinatura.plano === "premium"
+? `<span class="loja-selo-plano loja-selo-premium">Premium</span>`
+: `<span class="loja-selo-plano loja-selo-basico">Básico</span>`
+
 const linha = document.createElement("div")
 linha.className = "cliente-linha"
 linha.innerHTML = `
@@ -778,8 +812,11 @@ linha.innerHTML = `
 <div class="nome">${escaparHtml(l.nome)}</div>
 <div class="sub">${escaparHtml(l.slug)}.cardapiosweb.online${l.whatsapp ? " · " + escaparHtml(l.whatsapp) : ""}</div>
 </div>
+${seloPlanoHtml}
 <span class="selo ${l.ativa ? "selo-ativo" : "selo-cancelado"}">${l.ativa ? "Ativa" : "Inativa"}</span>
 <div class="cliente-acoes">
+<a href="${linkSite}" target="_blank" class="btn-icone" title="Abrir loja"><i class="fa fa-arrow-up-right-from-square"></i></a>
+<a href="${linkAdmin}" target="_blank" class="btn-icone" title="Abrir admin"><i class="fa fa-gauge"></i></a>
 <button class="btn-icone" title="Editar loja" data-id="${l.id}"><i class="fa fa-pen"></i></button>
 </div>
 `
@@ -794,8 +831,20 @@ async function abrirModalEditarLoja(loja) {
 document.getElementById("msg-editar-loja").innerHTML = ""
 document.getElementById("el-id").value = loja.id
 
-const { data: assinaturaDaLoja } = await sb.from("assinaturas").select("id, plano, valor").eq("loja_id", loja.id).maybeSingle()
-const { data: dominiosDaLoja } = await sb.from("dominios_loja").select("dominio").eq("loja_id", loja.id)
+// Reaproveita o que a lista já buscou (evita duas queries repetidas
+// toda vez que o lojista abre "Editar" a partir da lista); só busca de
+// novo se por algum motivo o cache ainda não tiver essa loja (ex: modal
+// aberto direto, sem passar pela lista antes).
+let assinaturaDaLoja = assinaturasPorLojaId[loja.id]
+let dominiosDaLoja = dominiosPorLojaId[loja.id]
+if (assinaturaDaLoja === undefined) {
+const resultado = await sb.from("assinaturas").select("id, plano, valor").eq("loja_id", loja.id).maybeSingle()
+assinaturaDaLoja = resultado.data
+}
+if (dominiosDaLoja === undefined) {
+const resultado = await sb.from("dominios_loja").select("dominio").eq("loja_id", loja.id)
+dominiosDaLoja = resultado.data
+}
 
 elAssinaturaAtualId = assinaturaDaLoja ? assinaturaDaLoja.id : null
 renderizarPlanoLoja(assinaturaDaLoja, dominiosDaLoja)
@@ -877,6 +926,9 @@ document.getElementById("btn-el-confirmar-evoluir").addEventListener("click", as
 const msg = document.getElementById("msg-evoluir-premium")
 msg.innerHTML = ""
 
+const dominioParaConfirmar = document.getElementById("el-evoluir-dominio").value.trim()
+if (!confirm(`Confirmar upgrade para Premium?${dominioParaConfirmar ? `\n\nDomínio a cadastrar: ${dominioParaConfirmar}` : "\n\nNenhum domínio informado — pode cadastrar depois."}`)) return
+
 if (!elAssinaturaAtualId) {
 msg.innerHTML = `<div class="aviso aviso-erro">Essa loja não tem assinatura vinculada. Vincule uma assinatura (aba "Novo cliente"/"Vincular loja") antes de evoluir o plano.</div>`
 return
@@ -908,6 +960,11 @@ document.getElementById("el-evoluir-form").style.display = "none"
 const { data: assinaturaAtualizada } = await sb.from("assinaturas").select("id, plano, valor").eq("id", elAssinaturaAtualId).maybeSingle()
 const { data: dominiosAtualizados } = await sb.from("dominios_loja").select("dominio").eq("loja_id", lojaId)
 renderizarPlanoLoja(assinaturaAtualizada, dominiosAtualizados)
+
+// Mantém a lista de fundo sincronizada, pra não mostrar "Básico" de
+// novo se o lojista fechar o editor e olhar a lista sem recarregar.
+if (assinaturaAtualizada) assinaturasPorLojaId[lojaId] = assinaturaAtualizada
+dominiosPorLojaId[lojaId] = dominiosAtualizados || []
 
 if (dominioDigitado) {
 document.getElementById("el-link-site").href = `https://${dominioDigitado}`
