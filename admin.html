@@ -528,12 +528,20 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <span style="font-size:11px;font-weight:700;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.03em;">Plano atual</span>
 <div id="el-plano-selo" style="font-size:16px;font-weight:700;margin-top:2px;">—</div>
 </div>
+<div style="display:flex;gap:8px;">
 <button type="button" class="btn-primario" id="btn-el-evoluir-premium" style="display:none;width:auto;padding:9px 16px;font-size:13px;">Evoluir para Premium</button>
+<button type="button" class="btn-secundario" id="btn-el-voltar-basico" style="display:none;width:auto;padding:9px 16px;font-size:13px;">Voltar para Básico</button>
+</div>
 </div>
 <div id="el-recursos-lista" style="font-size:12.5px;line-height:1.8;"></div>
 
 <div id="el-evoluir-form" style="display:none;margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--linha);">
-<p style="font-size:12.5px;color:var(--tinta-suave);margin:0 0 8px;">O Premium libera domínio próprio. Se já tiver o domínio do cliente, informe abaixo — a configuração de DNS/Vercel desse domínio continua manual, fora deste painel. Pode deixar em branco e cadastrar depois.</p>
+<p style="font-size:12.5px;color:var(--tinta-suave);margin:0 0 10px;font-weight:600;">Como funciona o upgrade:</p>
+<ol style="font-size:12.5px;color:var(--tinta-suave);margin:0 0 12px;padding-left:18px;line-height:1.9;">
+<li>Confirmar o upgrade — o valor da assinatura passa a ser o do plano Premium.</li>
+<li>Informar o domínio próprio agora (opcional) ou cadastrar depois na seção "Domínio próprio".</li>
+<li>Configurar o DNS/Vercel desse domínio — etapa manual, fora deste painel.</li>
+</ol>
 <div class="campo" style="margin-bottom:8px;"><label>Domínio próprio (opcional)</label><input type="text" id="el-evoluir-dominio" placeholder="ex: pizzarianatureza.com.br" /></div>
 <div id="msg-evoluir-premium"></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -541,6 +549,45 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <button type="button" class="btn-primario" id="btn-el-confirmar-evoluir" style="width:auto;font-size:12.5px;padding:8px 14px;">Confirmar upgrade</button>
 </div>
 </div>
+
+<div id="el-voltar-basico-form" style="display:none;margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--linha);">
+<p style="font-size:12.5px;color:var(--tinta-suave);margin:0 0 8px;">O plano volta a ser Básico e o valor da assinatura é ajustado. O domínio próprio cadastrado <strong>não é apagado</strong> — ele continua na seção "Domínio próprio" abaixo, caso queira evoluir de novo depois.</p>
+<div id="msg-voltar-basico"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;">
+<button type="button" class="btn-secundario" id="btn-el-cancelar-voltar-basico" style="font-size:12.5px;padding:8px 14px;">Cancelar</button>
+<button type="button" class="btn-primario" id="btn-el-confirmar-voltar-basico" style="width:auto;font-size:12.5px;padding:8px 14px;">Confirmar volta para Básico</button>
+</div>
+</div>
+</div>
+
+<div id="el-dominio-secao" style="border:1.5px solid var(--linha);border-radius:10px;padding:14px;margin-bottom:16px;background:var(--papel);">
+<span style="font-size:11px;font-weight:700;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.03em;">Domínio próprio</span>
+
+<div id="el-dominio-bloqueado" style="display:none;margin-top:8px;font-size:12.5px;color:var(--tinta-suave);">
+Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir-evoluir" style="background:none;border:none;color:var(--acento);font-weight:600;padding:0;cursor:pointer;">Evoluir para Premium</button> para liberar.
+</div>
+
+<div id="el-dominio-atual-view" style="display:none;margin-top:8px;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+<div style="font-size:13.5px;"><i class="fa fa-globe" style="color:var(--acento);margin-right:6px;"></i><strong id="el-dominio-atual-texto">—</strong></div>
+<div style="display:flex;gap:8px;">
+<button type="button" class="btn-secundario" id="btn-el-dominio-alterar" style="font-size:12.5px;padding:7px 12px;">Alterar</button>
+<button type="button" class="btn-secundario" id="btn-el-dominio-remover" style="font-size:12.5px;padding:7px 12px;color:var(--erro);border-color:var(--erro);">Remover</button>
+</div>
+</div>
+
+<div id="el-dominio-sem-cadastro" style="display:none;margin-top:8px;font-size:12.5px;color:var(--tinta-suave);">Nenhum domínio próprio cadastrado ainda.</div>
+
+<div id="el-dominio-form" style="display:none;margin-top:10px;">
+<div class="campo" style="margin-bottom:8px;"><label>Domínio</label><input type="text" id="el-dominio-input" placeholder="ex: pizzarianatureza.com.br" /></div>
+<p style="font-size:12px;color:var(--tinta-suave);margin:0 0 8px;">Depois de salvar, ainda é preciso adicionar o domínio no projeto Vercel e criar o registro DNS no provedor do cliente (etapa manual).</p>
+<div id="msg-dominio"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;">
+<button type="button" class="btn-secundario" id="btn-el-dominio-cancelar" style="font-size:12.5px;padding:8px 14px;">Cancelar</button>
+<button type="button" class="btn-primario" id="btn-el-dominio-salvar" style="width:auto;font-size:12.5px;padding:8px 14px;">Salvar domínio</button>
+</div>
+</div>
+
+<button type="button" class="btn-secundario" id="btn-el-dominio-cadastrar" style="display:none;margin-top:10px;font-size:12.5px;padding:8px 14px;"><i class="fa fa-plus"></i> Cadastrar domínio</button>
 </div>
 
 <div id="msg-editar-loja"></div>
@@ -762,7 +809,7 @@ lojasCadastradas = data || []
 // hora de montar cada linha.
 const [{ data: todasAssinaturas }, { data: todosDominios }] = await Promise.all([
 sb.from("assinaturas").select("id, loja_id, plano, valor").not("loja_id", "is", null),
-sb.from("dominios_loja").select("loja_id, dominio")
+sb.from("dominios_loja").select("id, loja_id, dominio")
 ])
 
 assinaturasPorLojaId = {}
@@ -826,6 +873,7 @@ lista.appendChild(linha)
 }
 
 let elAssinaturaAtualId = null
+let elDominioEditandoId = null
 
 async function abrirModalEditarLoja(loja) {
 document.getElementById("msg-editar-loja").innerHTML = ""
@@ -842,7 +890,7 @@ const resultado = await sb.from("assinaturas").select("id, plano, valor").eq("lo
 assinaturaDaLoja = resultado.data
 }
 if (dominiosDaLoja === undefined) {
-const resultado = await sb.from("dominios_loja").select("dominio").eq("loja_id", loja.id)
+const resultado = await sb.from("dominios_loja").select("id, dominio").eq("loja_id", loja.id)
 dominiosDaLoja = resultado.data
 }
 
@@ -857,6 +905,11 @@ document.getElementById("el-link-admin").href = `${linkBase}/admin-loja.html`
 document.getElementById("el-evoluir-form").style.display = "none"
 document.getElementById("el-evoluir-dominio").value = ""
 document.getElementById("msg-evoluir-premium").innerHTML = ""
+document.getElementById("el-voltar-basico-form").style.display = "none"
+document.getElementById("msg-voltar-basico").innerHTML = ""
+document.getElementById("el-dominio-form").style.display = "none"
+document.getElementById("msg-dominio").innerHTML = ""
+elDominioEditandoId = null
 document.getElementById("el-nome").value = loja.nome || ""
 document.getElementById("el-whatsapp").value = loja.whatsapp || ""
 document.getElementById("el-chave-pix").value = loja.chave_pix || ""
@@ -887,23 +940,32 @@ modalEditarLoja.classList.add("aberto")
 const RECURSOS_BASICO = ["Site e cardápio digital", "Modo mesa com QR Code", "Sistema de pedidos", "Controle de estoque"]
 const RECURSOS_SO_PREMIUM = ["Domínio próprio (.com.br)"]
 
+let elPlanoAtual = null
+let elDominiosAtual = []
+
 function renderizarPlanoLoja(assinatura, dominios) {
 const selo = document.getElementById("el-plano-selo")
 const btnEvoluir = document.getElementById("btn-el-evoluir-premium")
+const btnVoltarBasico = document.getElementById("btn-el-voltar-basico")
 const plano = assinatura ? assinatura.plano : null
+elPlanoAtual = plano
+elDominiosAtual = dominios || []
 
 if (plano === "premium") {
 selo.innerHTML = `<span style="color:var(--ok);">Premium</span>`
 btnEvoluir.style.display = "none"
+btnVoltarBasico.style.display = "inline-flex"
 } else if (plano === "basico") {
 selo.innerHTML = `<span style="color:var(--alerta);">Básico</span>`
 btnEvoluir.style.display = "inline-flex"
+btnVoltarBasico.style.display = "none"
 } else {
 selo.innerHTML = `<span style="color:var(--neutro);">Sem assinatura vinculada</span>`
 btnEvoluir.style.display = "none"
+btnVoltarBasico.style.display = "none"
 }
 
-const dominioProprio = (dominios || []).find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+const dominioProprio = elDominiosAtual.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
 
 document.getElementById("el-recursos-lista").innerHTML =
 RECURSOS_BASICO.map(r => `<div><i class="fa fa-check" style="color:var(--ok);width:16px;"></i> ${escaparHtml(r)}</div>`).join("") +
@@ -912,6 +974,42 @@ const ativo = plano === "premium"
 return `<div><i class="fa ${ativo ? "fa-check" : "fa-lock"}" style="color:${ativo ? "var(--ok)" : "var(--tinta-suave)"};width:16px;"></i> ${escaparHtml(r)}${!ativo ? ' <span style="color:var(--tinta-suave);">(Premium)</span>' : ""}</div>`
 }).join("") +
 (dominioProprio ? `<div style="margin-top:6px;color:var(--tinta-suave);">Domínio próprio cadastrado: <strong style="color:var(--tinta);">${escaparHtml(dominioProprio.dominio)}</strong></div>` : "")
+
+renderizarSecaoDominio(plano, elDominiosAtual)
+}
+
+function renderizarSecaoDominio(plano, dominios) {
+const bloqueado = document.getElementById("el-dominio-bloqueado")
+const atualView = document.getElementById("el-dominio-atual-view")
+const semCadastro = document.getElementById("el-dominio-sem-cadastro")
+const form = document.getElementById("el-dominio-form")
+const btnCadastrar = document.getElementById("btn-el-dominio-cadastrar")
+
+form.style.display = "none"
+document.getElementById("msg-dominio").innerHTML = ""
+
+if (plano !== "premium") {
+bloqueado.style.display = "block"
+atualView.style.display = "none"
+semCadastro.style.display = "none"
+btnCadastrar.style.display = "none"
+return
+}
+
+bloqueado.style.display = "none"
+
+const dominioProprio = (dominios || []).find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+
+if (dominioProprio) {
+document.getElementById("el-dominio-atual-texto").textContent = dominioProprio.dominio
+atualView.style.display = "flex"
+semCadastro.style.display = "none"
+btnCadastrar.style.display = "none"
+} else {
+atualView.style.display = "none"
+semCadastro.style.display = "block"
+btnCadastrar.style.display = "inline-flex"
+}
 }
 
 document.getElementById("btn-el-evoluir-premium").addEventListener("click", () => {
@@ -958,7 +1056,7 @@ msg.innerHTML = `<div class="aviso aviso-ok">Plano atualizado para Premium ✓${
 document.getElementById("el-evoluir-form").style.display = "none"
 
 const { data: assinaturaAtualizada } = await sb.from("assinaturas").select("id, plano, valor").eq("id", elAssinaturaAtualId).maybeSingle()
-const { data: dominiosAtualizados } = await sb.from("dominios_loja").select("dominio").eq("loja_id", lojaId)
+const { data: dominiosAtualizados } = await sb.from("dominios_loja").select("id, dominio").eq("loja_id", lojaId)
 renderizarPlanoLoja(assinaturaAtualizada, dominiosAtualizados)
 
 // Mantém a lista de fundo sincronizada, pra não mostrar "Básico" de
@@ -970,6 +1068,127 @@ if (dominioDigitado) {
 document.getElementById("el-link-site").href = `https://${dominioDigitado}`
 document.getElementById("el-link-admin").href = `https://${dominioDigitado}/admin-loja.html`
 }
+})
+
+document.getElementById("btn-el-voltar-basico").addEventListener("click", () => {
+document.getElementById("el-evoluir-form").style.display = "none"
+document.getElementById("el-voltar-basico-form").style.display = "block"
+})
+
+document.getElementById("btn-el-cancelar-voltar-basico").addEventListener("click", () => {
+document.getElementById("el-voltar-basico-form").style.display = "none"
+})
+
+document.getElementById("btn-el-confirmar-voltar-basico").addEventListener("click", async () => {
+const msg = document.getElementById("msg-voltar-basico")
+msg.innerHTML = ""
+
+if (!confirm("Confirmar volta para o plano Básico? O valor da assinatura será ajustado e o domínio próprio, se existir, é mantido cadastrado (só deixa de responder até um novo upgrade).")) return
+
+if (!elAssinaturaAtualId) {
+msg.innerHTML = `<div class="aviso aviso-erro">Essa loja não tem assinatura vinculada.</div>`
+return
+}
+
+const { error: erroAssinatura } = await sb.from("assinaturas")
+.update({ plano: "basico", valor: VALOR_PADRAO_PLANO.basico })
+.eq("id", elAssinaturaAtualId)
+
+if (erroAssinatura) {
+msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível atualizar o plano: ${escaparHtml(erroAssinatura.message)}</div>`
+return
+}
+
+document.getElementById("el-voltar-basico-form").style.display = "none"
+
+const { data: assinaturaAtualizada } = await sb.from("assinaturas").select("id, plano, valor").eq("id", elAssinaturaAtualId).maybeSingle()
+renderizarPlanoLoja(assinaturaAtualizada, elDominiosAtual)
+
+if (assinaturaAtualizada) assinaturasPorLojaId[document.getElementById("el-id").value] = assinaturaAtualizada
+})
+
+document.getElementById("btn-el-dominio-ir-evoluir").addEventListener("click", () => {
+document.getElementById("el-voltar-basico-form").style.display = "none"
+document.getElementById("btn-el-evoluir-premium").click()
+document.getElementById("el-evoluir-form").scrollIntoView({ behavior: "smooth", block: "center" })
+})
+
+document.getElementById("btn-el-dominio-cadastrar").addEventListener("click", () => {
+elDominioEditandoId = null
+document.getElementById("el-dominio-input").value = ""
+document.getElementById("msg-dominio").innerHTML = ""
+document.getElementById("el-dominio-form").style.display = "block"
+})
+
+document.getElementById("btn-el-dominio-alterar").addEventListener("click", () => {
+const dominioProprio = elDominiosAtual.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+elDominioEditandoId = dominioProprio ? dominioProprio.id : null
+document.getElementById("el-dominio-input").value = dominioProprio ? dominioProprio.dominio : ""
+document.getElementById("msg-dominio").innerHTML = ""
+document.getElementById("el-dominio-form").style.display = "block"
+})
+
+document.getElementById("btn-el-dominio-cancelar").addEventListener("click", () => {
+document.getElementById("el-dominio-form").style.display = "none"
+})
+
+document.getElementById("btn-el-dominio-salvar").addEventListener("click", async () => {
+const msg = document.getElementById("msg-dominio")
+msg.innerHTML = ""
+
+const lojaId = document.getElementById("el-id").value
+const dominioDigitado = document.getElementById("el-dominio-input").value.trim().toLowerCase()
+
+if (!dominioDigitado) {
+msg.innerHTML = `<div class="aviso aviso-erro">Informe o domínio.</div>`
+return
+}
+
+const query = elDominioEditandoId
+? sb.from("dominios_loja").update({ dominio: dominioDigitado }).eq("id", elDominioEditandoId)
+: sb.from("dominios_loja").insert({ dominio: dominioDigitado, loja_id: lojaId })
+
+const { error } = await query
+
+if (error) {
+msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível salvar o domínio: ${escaparHtml(error.message)}</div>`
+return
+}
+
+document.getElementById("el-dominio-form").style.display = "none"
+
+const { data: dominiosAtualizados } = await sb.from("dominios_loja").select("id, dominio").eq("loja_id", lojaId)
+elDominiosAtual = dominiosAtualizados || []
+dominiosPorLojaId[lojaId] = elDominiosAtual
+renderizarSecaoDominio(elPlanoAtual, elDominiosAtual)
+
+const dominioProprio = elDominiosAtual.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+const loja = lojasCadastradas.find(l => String(l.id) === String(lojaId))
+const linkBase = dominioProprio ? `https://${dominioProprio.dominio}` : `https://${loja.slug}.${DOMINIO_PLATAFORMA}`
+document.getElementById("el-link-site").href = linkBase
+document.getElementById("el-link-admin").href = `${linkBase}/admin-loja.html`
+
+msg.innerHTML = `<div class="aviso aviso-ok">Domínio salvo ✓ Falta configurar o DNS/Vercel manualmente.</div>`
+})
+
+document.getElementById("btn-el-dominio-remover").addEventListener("click", async () => {
+const dominioProprio = elDominiosAtual.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+if (!dominioProprio) return
+if (!confirm(`Remover o domínio "${dominioProprio.dominio}"? A loja volta a responder pelo subdomínio da plataforma.`)) return
+
+const { error } = await sb.from("dominios_loja").delete().eq("id", dominioProprio.id)
+if (error) { alert("Não foi possível remover: " + error.message); return }
+
+const lojaId = document.getElementById("el-id").value
+const { data: dominiosAtualizados } = await sb.from("dominios_loja").select("id, dominio").eq("loja_id", lojaId)
+elDominiosAtual = dominiosAtualizados || []
+dominiosPorLojaId[lojaId] = elDominiosAtual
+renderizarSecaoDominio(elPlanoAtual, elDominiosAtual)
+
+const loja = lojasCadastradas.find(l => String(l.id) === String(lojaId))
+const linkBase = `https://${loja.slug}.${DOMINIO_PLATAFORMA}`
+document.getElementById("el-link-site").href = linkBase
+document.getElementById("el-link-admin").href = `${linkBase}/admin-loja.html`
 })
 
 document.getElementById("el-usar-cor-personalizada").addEventListener("change", (e) => {
