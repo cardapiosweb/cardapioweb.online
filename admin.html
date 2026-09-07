@@ -551,6 +551,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
 <a href="#" target="_blank" id="el-link-site" class="btn-secundario" style="font-size:12.5px;padding:8px 12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="fa fa-arrow-up-right-from-square"></i> Abrir site</a>
 <a href="#" target="_blank" id="el-link-admin" class="btn-secundario" style="font-size:12.5px;padding:8px 12px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><i class="fa fa-gauge"></i> Abrir admin</a>
+<button type="button" id="btn-el-apagar-loja" class="btn-secundario" style="display:none;margin-left:auto;font-size:12.5px;padding:8px 12px;color:var(--erro);border-color:var(--erro);"><i class="fa fa-trash"></i> Apagar loja</button>
 </div>
 
 <div style="border:1.5px solid var(--linha);border-radius:10px;padding:14px;margin-bottom:16px;background:var(--papel);">
@@ -1334,6 +1335,46 @@ document.getElementById("el-usar-cor-personalizada").addEventListener("change", 
 document.getElementById("el-cor").disabled = !e.target.checked
 })
 
+document.getElementById("btn-el-apagar-loja").addEventListener("click", async () => {
+const loja = lojasCadastradas.find(l => String(l.id) === document.getElementById("el-id").value)
+if (!loja) return
+
+const ok1 = confirm(
+`Apagar "${loja.nome}" definitivamente?\n\nIsso remove produtos, fotos, pedidos, histórico de mesa/delivery, encomendas e o domínio cadastrado. NÃO PODE SER DESFEITO.`
+)
+if (!ok1) return
+
+const digitado = prompt(`Pra confirmar, digite o nome exato da loja:\n\n"${loja.nome}"`)
+if (digitado === null) return
+if (digitado.trim() !== loja.nome) { alert("Nome não confere. Nada foi apagado."); return }
+
+const btn = document.getElementById("btn-el-apagar-loja")
+btn.disabled = true
+btn.textContent = "Apagando..."
+
+const { data: { session } } = await sb.auth.getSession()
+const resposta = await fetch("/api/apagar-loja", {
+method: "POST",
+headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+body: JSON.stringify({ lojaId: loja.id, nomeConfirmado: digitado.trim() })
+})
+const resultado = await resposta.json()
+
+btn.disabled = false
+btn.innerHTML = '<i class="fa fa-trash"></i> Apagar loja'
+
+if (!resposta.ok || !resultado.ok) {
+alert("Erro ao apagar: " + (resultado.erro || (resultado.erros || []).join(", ")))
+return
+}
+
+lojasCadastradas = lojasCadastradas.filter(l => l.id !== loja.id)
+delete assinaturasPorLojaId[loja.id]
+delete dominiosPorLojaId[loja.id]
+alert("Loja apagada com sucesso.")
+fecharModalComHistorico(modalEditarLoja, abrirModalGerenciarLojas)
+})
+
 document.getElementById("btn-cancelar-editar-loja").addEventListener("click", () => {
 fecharModalComHistorico(modalEditarLoja, () => {
 abrirModalComHistorico(modalGerenciarLojas, null)
@@ -1487,6 +1528,7 @@ function iniciarPainel() {
 telaLogin.style.display = "none"
 telaPainel.style.display = "block"
 document.getElementById("btn-administradores").style.display = (meuAdminInfo && meuAdminInfo.role === "fundador") ? "inline-flex" : "none"
+document.getElementById("btn-el-apagar-loja").style.display = (meuAdminInfo && meuAdminInfo.role === "fundador") ? "inline-flex" : "none"
 carregarAssinaturas()
 }
 
