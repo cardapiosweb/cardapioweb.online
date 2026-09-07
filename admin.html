@@ -291,6 +291,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <header class="topo">
 <div class="marca"><i class="fa fa-layer-group"></i> Painel de Aluguéis</div>
 <div style="display:flex;gap:8px;">
+<button class="sair" id="btn-administradores" style="display:none;"><i class="fa fa-user-shield"></i> Administradores</button>
 <button class="sair" id="btn-gerenciar-lojas"><i class="fa fa-store"></i> Lojas</button>
 <button class="sair" id="btn-sair"><i class="fa fa-right-from-bracket"></i> Sair</button>
 </div>
@@ -672,6 +673,54 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 </div>
 </div>
 
+<!-- ==================== MODAL: ADMINISTRADORES (lista) ==================== -->
+<div id="modal-administradores">
+<div class="modal-box">
+<div class="modal-topo">
+<button type="button" class="btn-icone" id="btn-topo-voltar-administradores" title="Voltar"><i class="fa fa-arrow-left"></i></button>
+<h2>Administradores</h2>
+</div>
+<div id="msg-administradores"></div>
+<div id="lista-administradores"></div>
+<div class="modal-acoes">
+<button class="btn-novo" id="btn-novo-administrador" style="width:auto;"><i class="fa fa-plus"></i> Novo administrador</button>
+<button class="btn-secundario" id="btn-fechar-administradores">Fechar</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODAL: NOVO/EDITAR ADMINISTRADOR ==================== -->
+<div id="modal-form-administrador">
+<div class="modal-box">
+<div class="modal-topo">
+<button type="button" class="btn-icone" id="btn-topo-voltar-form-administrador" title="Voltar"><i class="fa fa-arrow-left"></i></button>
+<h2 id="fa-titulo">Novo administrador</h2>
+</div>
+<input type="hidden" id="fa-id" />
+<div id="msg-form-administrador"></div>
+<div class="campo"><label>Nome</label><input id="fa-nome" placeholder="Nome do administrador" /></div>
+<div class="campo"><label>E-mail</label><input type="email" id="fa-email" placeholder="admin@email.com" /></div>
+<div id="fa-bloco-criacao">
+<div class="grupo-checks" style="margin-bottom:10px;">
+<label><input type="radio" name="fa-metodo" id="fa-metodo-senha" checked /> Definir senha agora</label>
+<label><input type="radio" name="fa-metodo" id="fa-metodo-convite" /> Enviar convite por e-mail</label>
+</div>
+<div class="campo" id="fa-campo-senha"><label>Senha</label><input type="text" id="fa-senha" placeholder="Mínimo 6 caracteres" /></div>
+</div>
+<div id="fa-bloco-edicao" style="display:none;">
+<label class="linha-check"><input type="checkbox" id="fa-ativo" style="width:auto;" /> Administrador ativo</label>
+<div class="campo" style="margin-top:12px;"><label>Nova senha (opcional)</label><input type="text" id="fa-nova-senha" placeholder="Deixe em branco para não alterar" /></div>
+</div>
+<div class="modal-acoes">
+<div></div>
+<div class="modal-acoes-direita">
+<button class="btn-secundario" id="btn-cancelar-form-administrador">Cancelar</button>
+<button class="btn-primario" id="btn-salvar-form-administrador" style="width:auto;padding:10px 20px;">Salvar</button>
+</div>
+</div>
+</div>
+</div>
+
 </div>
 <!-- FIM #conteudo-plataforma -->
 
@@ -707,6 +756,22 @@ const DIAS_ALERTA_VENCIMENTO = 7
 
 let assinaturasAtuais = []
 let filtroStatusAtual = "todos"
+let meuAdminInfo = null
+
+async function verificarAdminLogado() {
+const { data: { session } } = await sb.auth.getSession()
+if (!session) return null
+try {
+const resposta = await fetch("/api/meu-admin", {
+headers: { Authorization: `Bearer ${session.access_token}` }
+})
+const resultado = await resposta.json()
+if (!resposta.ok || !resultado.ok) return null
+return resultado
+} catch (e) {
+return null
+}
+}
 
 function escaparHtml(valor) {
 return String(valor === null || valor === undefined ? "" : valor)
@@ -1375,15 +1440,27 @@ erroLogin.style.display = "none"
 
 const { error } = await sb.auth.signInWithPassword({ email, password: senha })
 
+if (error) {
 btn.disabled = false
 btn.textContent = "Entrar"
-
-if (error) {
 erroLogin.textContent = "E-mail ou senha incorretos."
 erroLogin.style.display = "block"
 return
 }
 
+const infoAdmin = await verificarAdminLogado()
+
+btn.disabled = false
+btn.textContent = "Entrar"
+
+if (!infoAdmin) {
+await sb.auth.signOut()
+erroLogin.textContent = "Esta conta não tem acesso ao Painel de Aluguéis."
+erroLogin.style.display = "block"
+return
+}
+
+meuAdminInfo = infoAdmin
 iniciarPainel()
 }
 
@@ -1392,13 +1469,21 @@ await sb.auth.signOut()
 location.reload()
 })
 
-sb.auth.getSession().then(({ data }) => {
-if (data.session) iniciarPainel()
+sb.auth.getSession().then(async ({ data }) => {
+if (!data.session) return
+const infoAdmin = await verificarAdminLogado()
+if (!infoAdmin) {
+await sb.auth.signOut()
+return
+}
+meuAdminInfo = infoAdmin
+iniciarPainel()
 })
 
 function iniciarPainel() {
 telaLogin.style.display = "none"
 telaPainel.style.display = "block"
+document.getElementById("btn-administradores").style.display = (meuAdminInfo && meuAdminInfo.role === "fundador") ? "inline-flex" : "none"
 carregarAssinaturas()
 }
 
@@ -1942,6 +2027,194 @@ return
 fecharModalComHistorico(modalVincularLoja, null)
 await carregarAssinaturas()
 })
+
+// ============================================================
+// ADMINISTRADORES DA PLATAFORMA (só o fundador acessa)
+// ============================================================
+const modalAdministradores = document.getElementById("modal-administradores")
+const modalFormAdministrador = document.getElementById("modal-form-administrador")
+let administradoresAtuais = []
+
+document.getElementById("btn-administradores").addEventListener("click", abrirModalAdministradores)
+document.getElementById("btn-fechar-administradores").addEventListener("click", () => fecharModalComHistorico(modalAdministradores, null))
+document.getElementById("btn-topo-voltar-administradores").addEventListener("click", () => {
+document.getElementById("btn-fechar-administradores").click()
+})
+
+async function chamarApiAdmins(metodo, corpo) {
+const { data: { session } } = await sb.auth.getSession()
+const opcoes = {
+method: metodo,
+headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }
+}
+if (corpo) opcoes.body = JSON.stringify(corpo)
+const resposta = await fetch("/api/admins", opcoes)
+const resultado = await resposta.json()
+return { ok: resposta.ok && resultado.ok, resultado }
+}
+
+async function abrirModalAdministradores() {
+const msg = document.getElementById("msg-administradores")
+msg.innerHTML = "Carregando..."
+abrirModalComHistorico(modalAdministradores, null)
+
+const { ok, resultado } = await chamarApiAdmins("GET")
+
+if (!ok) {
+msg.innerHTML = `<div class="aviso aviso-erro">${escaparHtml(resultado.erro || "Erro ao carregar administradores.")}</div>`
+return
+}
+
+administradoresAtuais = resultado.admins || []
+msg.innerHTML = ""
+renderizarListaAdministradores()
+}
+
+function renderizarListaAdministradores() {
+const lista = document.getElementById("lista-administradores")
+lista.innerHTML = ""
+
+if (!administradoresAtuais.length) {
+lista.innerHTML = `<p class="lista-vazia">Nenhum administrador cadastrado ainda.</p>`
+return
+}
+
+administradoresAtuais.forEach(a => {
+const linha = document.createElement("div")
+linha.className = "cliente-linha"
+linha.innerHTML = `
+<div class="cliente-info">
+<div class="nome">${escaparHtml(a.nome || "—")}</div>
+<div class="sub">${escaparHtml(a.email || "—")}</div>
+</div>
+<span class="selo ${a.role === "fundador" ? "selo-ativo" : "selo-cancelado"}">${a.role === "fundador" ? "Fundador" : "Operacional"}</span>
+<span class="selo ${a.ativo ? "selo-ativo" : "selo-vencido"}">${a.ativo ? "Ativo" : "Desativado"}</span>
+<div class="cliente-acoes">
+${a.role !== "fundador" ? `<button class="btn-icone" title="Editar" data-acao="editar" data-id="${a.id}"><i class="fa fa-pen"></i></button>` : ""}
+${a.role !== "fundador" ? `<button class="btn-icone apagar" title="Remover" data-acao="remover" data-id="${a.id}"><i class="fa fa-trash"></i></button>` : ""}
+</div>
+`
+lista.appendChild(linha)
+})
+}
+
+document.getElementById("lista-administradores").addEventListener("click", (e) => {
+const btn = e.target.closest("[data-acao]")
+if (!btn) return
+const admin = administradoresAtuais.find(a => String(a.id) === btn.dataset.id)
+if (!admin) return
+if (btn.dataset.acao === "editar") abrirFormAdministrador(admin)
+if (btn.dataset.acao === "remover") removerAdministrador(admin)
+})
+
+document.getElementById("btn-novo-administrador").addEventListener("click", () => abrirFormAdministrador())
+
+function abrirFormAdministrador(admin) {
+document.getElementById("fa-titulo").textContent = admin ? "Editar administrador" : "Novo administrador"
+document.getElementById("msg-form-administrador").innerHTML = ""
+document.getElementById("fa-id").value = admin ? admin.id : ""
+document.getElementById("fa-nome").value = admin ? (admin.nome || "") : ""
+document.getElementById("fa-email").value = admin ? (admin.email || "") : ""
+document.getElementById("fa-email").disabled = !!admin
+document.getElementById("fa-bloco-criacao").style.display = admin ? "none" : "block"
+document.getElementById("fa-bloco-edicao").style.display = admin ? "block" : "none"
+document.getElementById("fa-metodo-senha").checked = true
+document.getElementById("fa-senha").value = ""
+document.getElementById("fa-campo-senha").style.display = "block"
+if (admin) document.getElementById("fa-ativo").checked = !!admin.ativo
+document.getElementById("fa-nova-senha").value = ""
+
+fecharModalComHistorico(modalAdministradores, () => {
+abrirModalComHistorico(modalFormAdministrador, null)
+})
+}
+
+document.getElementById("fa-metodo-senha").addEventListener("change", () => {
+document.getElementById("fa-campo-senha").style.display = "block"
+})
+document.getElementById("fa-metodo-convite").addEventListener("change", () => {
+document.getElementById("fa-campo-senha").style.display = "none"
+})
+
+document.getElementById("btn-cancelar-form-administrador").addEventListener("click", () => {
+fecharModalComHistorico(modalFormAdministrador, () => {
+abrirModalComHistorico(modalAdministradores, null)
+abrirModalAdministradores()
+})
+})
+document.getElementById("btn-topo-voltar-form-administrador").addEventListener("click", () => {
+document.getElementById("btn-cancelar-form-administrador").click()
+})
+
+document.getElementById("btn-salvar-form-administrador").addEventListener("click", async () => {
+const msg = document.getElementById("msg-form-administrador")
+msg.innerHTML = ""
+
+const id = document.getElementById("fa-id").value
+const nome = document.getElementById("fa-nome").value.trim()
+const email = document.getElementById("fa-email").value.trim()
+
+if (!nome) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o nome.</div>`; return }
+
+const btn = document.getElementById("btn-salvar-form-administrador")
+btn.disabled = true
+btn.textContent = "Salvando..."
+
+let respostaApi
+
+if (id) {
+respostaApi = await chamarApiAdmins("PATCH", {
+id,
+nome,
+ativo: document.getElementById("fa-ativo").checked,
+novaSenha: document.getElementById("fa-nova-senha").value.trim() || undefined
+})
+} else {
+if (!email) {
+msg.innerHTML = `<div class="aviso aviso-erro">Preencha o e-mail.</div>`
+btn.disabled = false
+btn.textContent = "Salvar"
+return
+}
+const enviarConvite = document.getElementById("fa-metodo-convite").checked
+const senha = document.getElementById("fa-senha").value.trim()
+if (!enviarConvite && senha.length < 6) {
+msg.innerHTML = `<div class="aviso aviso-erro">A senha precisa ter pelo menos 6 caracteres.</div>`
+btn.disabled = false
+btn.textContent = "Salvar"
+return
+}
+respostaApi = await chamarApiAdmins("POST", { nome, email, enviarConvite, senha })
+}
+
+btn.disabled = false
+btn.textContent = "Salvar"
+
+if (!respostaApi.ok) {
+msg.innerHTML = `<div class="aviso aviso-erro">${escaparHtml(respostaApi.resultado.erro || "Não foi possível salvar.")}</div>`
+return
+}
+
+if (!id && respostaApi.resultado.senhaTemporaria) {
+alert(`Administrador criado! Senha temporária: ${respostaApi.resultado.senhaTemporaria}\n\nRepasse por um canal seguro.`)
+} else if (!id && respostaApi.resultado.conviteEnviado) {
+alert("Convite enviado por e-mail!")
+}
+
+fecharModalComHistorico(modalFormAdministrador, () => {
+abrirModalComHistorico(modalAdministradores, null)
+abrirModalAdministradores()
+})
+})
+
+async function removerAdministrador(admin) {
+if (!confirm(`Remover o acesso de administrador de "${admin.nome}"? A conta de login não é apagada, só o acesso ao painel.`)) return
+
+const { ok, resultado } = await chamarApiAdmins("DELETE", { id: admin.id })
+
+if (!ok) { alert(resultado.erro || "Não foi possível remover."); return }
+await abrirModalAdministradores()
+}
 
 }
 </script>
