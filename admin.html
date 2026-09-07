@@ -514,7 +514,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <!-- ==================== MODAL: EDITAR LOJA ==================== -->
 <div id="modal-editar-loja">
 <div class="modal-box modal-box-largo">
+<div style="display:flex;align-items:center;gap:10px;">
+<button type="button" class="btn-icone" id="btn-topo-voltar-editar-loja" title="Voltar"><i class="fa fa-arrow-left"></i></button>
 <h2>Editar loja</h2>
+</div>
 <input type="hidden" id="el-id" />
 
 <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
@@ -691,6 +694,33 @@ let lojasCadastradas = []
 
 const modalGerenciarLojas = document.getElementById("modal-gerenciar-lojas")
 const modalEditarLoja = document.getElementById("modal-editar-loja")
+
+// Fecha o "Editar loja" e, se ele tiver sido aberto empurrando um estado
+// no histórico do navegador, consome esse estado com history.back() —
+// assim o botão/gesto de voltar do próprio celular também fecha o modal
+// em vez de sair da página.
+function fecharModalEditarLoja(atualizarLista) {
+if (voltarEditarLojaEhHistorico) {
+voltarEditarLojaEhHistorico = false
+pendenteAtualizarListaAoVoltar = !!atualizarLista
+history.back()
+return
+}
+modalEditarLoja.classList.remove("aberto")
+if (atualizarLista) { abrirModalGerenciarLojas() } else { modalGerenciarLojas.classList.add("aberto") }
+}
+
+window.addEventListener("popstate", () => {
+if (modalEditarLoja.classList.contains("aberto")) {
+modalEditarLoja.classList.remove("aberto")
+if (pendenteAtualizarListaAoVoltar) {
+pendenteAtualizarListaAoVoltar = false
+abrirModalGerenciarLojas()
+} else {
+modalGerenciarLojas.classList.add("aberto")
+}
+}
+})
 
 // Mesma lista de config-loja.js — cópia só pro admin.html saber quais
 // abas existem de verdade no admin-loja.html (cada uma tem uma
@@ -874,6 +904,8 @@ lista.appendChild(linha)
 
 let elAssinaturaAtualId = null
 let elDominioEditandoId = null
+let voltarEditarLojaEhHistorico = false
+let pendenteAtualizarListaAoVoltar = false
 
 async function abrirModalEditarLoja(loja) {
 document.getElementById("msg-editar-loja").innerHTML = ""
@@ -935,6 +967,8 @@ renderizarAbasEditor()
 
 modalGerenciarLojas.classList.remove("aberto")
 modalEditarLoja.classList.add("aberto")
+history.pushState({ modalEditarLoja: true }, "")
+voltarEditarLojaEhHistorico = true
 }
 
 const RECURSOS_BASICO = ["Site e cardápio digital", "Modo mesa com QR Code", "Sistema de pedidos", "Controle de estoque"]
@@ -1196,8 +1230,11 @@ document.getElementById("el-cor").disabled = !e.target.checked
 })
 
 document.getElementById("btn-cancelar-editar-loja").addEventListener("click", () => {
-modalEditarLoja.classList.remove("aberto")
-modalGerenciarLojas.classList.add("aberto")
+fecharModalEditarLoja(false)
+})
+
+document.getElementById("btn-topo-voltar-editar-loja").addEventListener("click", () => {
+document.getElementById("btn-cancelar-editar-loja").click()
 })
 
 document.getElementById("btn-salvar-editar-loja").addEventListener("click", async () => {
@@ -1243,8 +1280,7 @@ msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível salvar: ${esca
 return
 }
 
-modalEditarLoja.classList.remove("aberto")
-await abrirModalGerenciarLojas()
+fecharModalEditarLoja(true)
 })
 
 // ============================================================
