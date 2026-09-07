@@ -1341,6 +1341,11 @@ document.getElementById("el-usar-cor-personalizada").addEventListener("change", 
 document.getElementById("el-cor").disabled = !e.target.checked
 })
 
+document.getElementById("el-tema").addEventListener("change", () => {
+document.getElementById("el-usar-cor-personalizada").checked = false
+document.getElementById("el-cor").disabled = true
+})
+
 document.getElementById("btn-el-apagar-loja").addEventListener("click", async () => {
 const loja = lojasCadastradas.find(l => String(l.id) === document.getElementById("el-id").value)
 if (!loja) return
