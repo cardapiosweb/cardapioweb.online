@@ -423,8 +423,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div class="campo"><label>Nome do lojista</label><input id="nl-lojista-nome" placeholder="Opcional" /></div>
 <div class="campo"><label>E-mail do lojista</label><input type="email" id="nl-lojista-email" placeholder="lojista@email.com" /></div>
 </div>
-<div class="campo"><label>User-ID do Supabase Auth (UUID)</label><input id="nl-lojista-user-id" placeholder="Cole aqui o UUID do usuário já criado" /></div>
-<div class="aviso aviso-info"><i class="fa fa-circle-info"></i> Crie o usuário manualmente em Supabase → Authentication → Users, copie o <code>User UID</code> dele e cole no campo acima. Deixe em branco pra vincular depois — nesse caso, edite direto no banco ou na aba "Dados da loja" do <code>admin-loja.html</code>.</div>
+<div class="aviso aviso-info"><i class="fa fa-circle-info"></i> A conta do lojista é criada automaticamente com esse e-mail. Depois de criar a loja, você recebe aqui uma senha temporária pra repassar a ele.</div>
 
 <h3 style="font-size:14px;margin:18px 0 10px;">Assinatura / aluguel</h3>
 <div class="grid2">
@@ -467,6 +466,17 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <input type="text" id="link-admin-criado" readonly />
 <button type="button" id="btn-copiar-link-admin"><i class="fa fa-copy"></i></button>
 </div>
+<label style="font-size:12.5px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.02em;">Login do lojista (e-mail)</label>
+<div class="link-copiavel">
+<input type="text" id="email-lojista-criado" readonly />
+<button type="button" id="btn-copiar-email-lojista"><i class="fa fa-copy"></i></button>
+</div>
+<label style="font-size:12.5px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.02em;">Senha temporária</label>
+<div class="link-copiavel">
+<input type="text" id="senha-lojista-criada" readonly />
+<button type="button" id="btn-copiar-senha-lojista"><i class="fa fa-copy"></i></button>
+</div>
+<div class="aviso aviso-info" style="margin-top:-4px;"><i class="fa fa-circle-info"></i> Repasse essa senha ao lojista por um canal seguro (ex: WhatsApp). Ela não fica salva em nenhum lugar depois que essa tela for fechada.</div>
 <div class="modal-acoes" style="justify-content:flex-end;">
 <button class="btn-primario" id="btn-fechar-loja-criada" style="width:auto;padding:10px 20px;">Concluir</button>
 </div>
@@ -1734,36 +1744,21 @@ const msg = document.getElementById("msg-nova-loja")
 msg.innerHTML = ""
 
 const nome = document.getElementById("nl-nome").value.trim()
-let slug = document.getElementById("nl-slug").value.trim()
+const slug = document.getElementById("nl-slug").value.trim()
 const whatsappDigitado = document.getElementById("nl-whatsapp").value.trim()
 const whatsappNormalizado = whatsappDigitado.replace(/[\s()\-+]/g, "")
-const ownerUserId = document.getElementById("nl-lojista-user-id").value.trim()
+const emailLojista = document.getElementById("nl-lojista-email").value.trim()
 
 if (!nome) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o nome da loja.</div>`; return }
-if (!slug) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o subdomínio (slug).</div>`; return }
+if (!emailLojista) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o e-mail do lojista — é com ele que a conta de acesso é criada.</div>`; return }
 if (whatsappNormalizado && (!/^\d+$/.test(whatsappNormalizado) || whatsappNormalizado.length < 10 || whatsappNormalizado.length > 15)) {
 msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só números com DDI e DDD (ex: 5591991396925).</div>`
-return
-}
-if (ownerUserId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerUserId)) {
-msg.innerHTML = `<div class="aviso aviso-erro">User-ID inválido — não parece um UUID. Copie exatamente o "User UID" de Supabase → Authentication → Users.</div>`
 return
 }
 
 const btn = document.getElementById("btn-salvar-nova-loja")
 btn.disabled = true
 btn.textContent = "Criando..."
-
-const { data: slugExistente } = await sb.from("lojas").select("id").eq("slug", slug).maybeSingle()
-if (slugExistente) {
-slug = await gerarSlugUnico(nome)
-document.getElementById("nl-slug").value = slug
-atualizarPreviewDominio()
-msg.innerHTML = `<div class="aviso aviso-erro">Esse slug já existia — ajustei para "${escaparHtml(slug)}". Confira e clique em Criar loja de novo.</div>`
-btn.disabled = false
-btn.textContent = "Criar loja"
-return
-}
 
 const modoLoja = {
 permiteDelivery: document.getElementById("nl-modo-delivery").checked,
@@ -1773,64 +1768,48 @@ usaMesa: document.getElementById("nl-modo-mesa").checked,
 usaEncomenda: document.getElementById("nl-modo-encomenda").checked
 }
 
-const registroLoja = {
-nome: nome,
-slug: slug,
-whatsapp: whatsappNormalizado,
-chave_pix: document.getElementById("nl-chave-pix").value.trim(),
+const { data: { session } } = await sb.auth.getSession()
+
+let resposta
+try {
+resposta = await fetch("/api/criar-loja", {
+method: "POST",
+headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+body: JSON.stringify({
+nome, slug, whatsapp: whatsappNormalizado,
+chavePix: document.getElementById("nl-chave-pix").value.trim(),
 tema: document.getElementById("nl-tema").value,
-cor_principal: document.getElementById("nl-usar-cor-personalizada").checked ? document.getElementById("nl-cor").value : null,
-modo_loja: modoLoja,
-owner_user_id: ownerUserId || null,
-ativa: true
-}
-
-const { data: lojaCriada, error: erroLoja } = await sb.from("lojas").insert(registroLoja).select("id").single()
-
-if (erroLoja) {
-msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível criar a loja: ${escaparHtml(erroLoja.message)}</div>`
-btn.disabled = false
-btn.textContent = "Criar loja"
-return
-}
-
-const dominioCompleto = `${slug}.${DOMINIO_PLATAFORMA}`
-const { error: erroDominio } = await sb.from("dominios_loja").insert({ dominio: dominioCompleto, loja_id: lojaCriada.id })
-
-if (erroDominio) {
-msg.innerHTML = `<div class="aviso aviso-erro">Loja criada, mas houve um erro ao vincular o domínio: ${escaparHtml(erroDominio.message)}. Insira manualmente em "dominios_loja".</div>`
-btn.disabled = false
-btn.textContent = "Criar loja"
-return
-}
-
-const registroAssinatura = {
-nome_loja: nome,
-responsavel: document.getElementById("nl-lojista-nome").value.trim(),
-whatsapp: whatsappNormalizado,
-link_site: `https://${dominioCompleto}`,
+corPrincipal: document.getElementById("nl-usar-cor-personalizada").checked ? document.getElementById("nl-cor").value : null,
+modoLoja,
 plano: document.getElementById("nl-plano").value,
 valor: parseFloat(document.getElementById("nl-valor").value) || 0,
-data_contratacao: document.getElementById("nl-contratacao").value,
-data_vencimento: document.getElementById("nl-vencimento").value,
-observacoes: document.getElementById("nl-lojista-email").value.trim() ? `E-mail do lojista: ${document.getElementById("nl-lojista-email").value.trim()}` : "",
-ativo: true,
-loja_id: lojaCriada.id
+dataContratacao: document.getElementById("nl-contratacao").value,
+dataVencimento: document.getElementById("nl-vencimento").value,
+nomeLojista: document.getElementById("nl-lojista-nome").value.trim(),
+emailLojista
+})
+})
+} catch (erroRede) {
+msg.innerHTML = `<div class="aviso aviso-erro">Falha de conexão ao criar a loja. Tente de novo.</div>`
+btn.disabled = false
+btn.textContent = "Criar loja"
+return
 }
 
-const { error: erroAssinatura } = await sb.from("assinaturas").insert(registroAssinatura)
-
+const resultado = await resposta.json()
 btn.disabled = false
 btn.textContent = "Criar loja"
 
-if (erroAssinatura) {
-msg.innerHTML = `<div class="aviso aviso-erro">Loja e domínio criados, mas houve um erro ao registrar a assinatura: ${escaparHtml(erroAssinatura.message)}</div>`
+if (!resposta.ok || !resultado.ok) {
+msg.innerHTML = `<div class="aviso aviso-erro">${escaparHtml(resultado.erro || "Não foi possível criar a loja.")}</div>`
 return
 }
 
 fecharModalComHistorico(modalNovaLoja, () => {
-document.getElementById("link-site-criado").value = `https://${dominioCompleto}`
-document.getElementById("link-admin-criado").value = `https://${dominioCompleto}/admin-loja.html`
+document.getElementById("link-site-criado").value = resultado.linkSite
+document.getElementById("link-admin-criado").value = resultado.linkAdmin
+document.getElementById("email-lojista-criado").value = resultado.emailLojista
+document.getElementById("senha-lojista-criada").value = resultado.senhaTemporaria
 abrirModalComHistorico(document.getElementById("modal-loja-criada"), null)
 })
 await carregarAssinaturas()
@@ -1859,6 +1838,12 @@ copiarParaClipboard(document.getElementById("link-site-criado").value, e.current
 })
 document.getElementById("btn-copiar-link-admin").addEventListener("click", (e) => {
 copiarParaClipboard(document.getElementById("link-admin-criado").value, e.currentTarget)
+})
+document.getElementById("btn-copiar-email-lojista").addEventListener("click", (e) => {
+copiarParaClipboard(document.getElementById("email-lojista-criado").value, e.currentTarget)
+})
+document.getElementById("btn-copiar-senha-lojista").addEventListener("click", (e) => {
+copiarParaClipboard(document.getElementById("senha-lojista-criada").value, e.currentTarget)
 })
 document.getElementById("btn-fechar-loja-criada").addEventListener("click", () => {
 fecharModalComHistorico(document.getElementById("modal-loja-criada"), null)
