@@ -68,18 +68,22 @@ export default async function handler(req, res) {
   const { error: erroAssinatura } = await supabaseAdmin.from('assinaturas').update({ loja_id: null }).eq('loja_id', lojaId)
   if (erroAssinatura) erros.push(`assinaturas: ${erroAssinatura.message}`)
 
-  // 5) Conta de login do lojista (se existir e não for compartilhada com outra loja)
-  if (loja.owner_user_id) {
+  // 5) A loja em si — precisa vir ANTES de apagar o login do lojista,
+  //    já que owner_user_id é FK para auth.users: apagar o usuário
+  //    primeiro, com a loja ainda referenciando ele, é rejeitado pelo
+  //    Postgres (erro genérico "Database error deleting user" do GoTrue).
+  const { error: erroDelete } = await supabaseAdmin.from('lojas').delete().eq('id', lojaId)
+  if (erroDelete) erros.push(`lojas: ${erroDelete.message}`)
+
+  // 6) Só agora, com a loja já removida, apaga a conta de login do
+  //    lojista (se existir e não for compartilhada com outra loja)
+  if (!erroDelete && loja.owner_user_id) {
     const { data: outrasLojas } = await supabaseAdmin.from('lojas').select('id').eq('owner_user_id', loja.owner_user_id).neq('id', lojaId)
     if (!outrasLojas || outrasLojas.length === 0) {
       const { error } = await supabaseAdmin.auth.admin.deleteUser(loja.owner_user_id)
       if (error) erros.push(`login do lojista: ${error.message}`)
     }
   }
-
-  // 6) Por último, a loja em si
-  const { error: erroDelete } = await supabaseAdmin.from('lojas').delete().eq('id', lojaId)
-  if (erroDelete) erros.push(`lojas: ${erroDelete.message}`)
 
   return res.status(200).json({ ok: erros.length === 0, erros })
 }
