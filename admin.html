@@ -183,6 +183,8 @@ align-items:center;justify-content:center;padding:16px;
 #modal-cliente.aberto,#modal-nova-loja.aberto,#modal-loja-criada.aberto,#modal-vincular-loja.aberto,#modal-gerenciar-lojas.aberto,#modal-editar-loja.aberto{display:flex;}
 .modal-box{background:var(--cartao);border-radius:14px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
 .modal-box h2{margin-bottom:18px;font-size:18px;}
+.modal-topo{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.modal-topo h2{margin:0;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:520px){.grid2{grid-template-columns:1fr;}}
 .modal-acoes{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px;}
@@ -337,7 +339,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <!-- ==================== MODAL: CLIENTE ==================== -->
 <div id="modal-cliente">
 <div class="modal-box">
+<div class="modal-topo">
+<button type="button" class="btn-icone" id="btn-topo-voltar-cliente" title="Voltar"><i class="fa fa-arrow-left"></i></button>
 <h2 id="modal-titulo">Novo cliente</h2>
+</div>
 <input type="hidden" id="cli-id" />
 <div id="msg-modal"></div>
 <div class="grid2">
@@ -377,7 +382,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <!-- ==================== MODAL: NOVA LOJA (provisionamento completo) ==================== -->
 <div id="modal-nova-loja">
 <div class="modal-box modal-box-largo">
+<div class="modal-topo">
+<button type="button" class="btn-icone" id="btn-topo-voltar-nova-loja" title="Voltar"><i class="fa fa-arrow-left"></i></button>
 <h2>Nova loja</h2>
+</div>
 <button type="button" class="link-vincular" id="btn-ir-para-vincular">Já tem uma loja cadastrada no banco? Vincular loja existente</button>
 <div id="msg-nova-loja"></div>
 
@@ -468,7 +476,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <!-- ==================== MODAL: VINCULAR LOJA EXISTENTE ==================== -->
 <div id="modal-vincular-loja">
 <div class="modal-box">
+<div class="modal-topo">
+<button type="button" class="btn-icone" id="btn-topo-voltar-vincular" title="Voltar"><i class="fa fa-arrow-left"></i></button>
 <h2>Vincular loja existente</h2>
+</div>
 <p style="font-size:13.5px;color:var(--tinta-suave);margin:0 0 16px;">Escolha uma loja já cadastrada no banco (sem assinatura vinculada ainda) para gerenciar o aluguel dela aqui, sem duplicar cadastro.</p>
 <div id="msg-vincular-loja"></div>
 <div class="campo"><label>Loja</label><select id="vl-loja-select"></select></div>
@@ -499,7 +510,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <!-- ==================== MODAL: GERENCIAR LOJAS (lista) ==================== -->
 <div id="modal-gerenciar-lojas">
 <div class="modal-box">
+<div class="modal-topo">
+<button type="button" class="btn-icone" id="btn-topo-voltar-gerenciar-lojas" title="Voltar"><i class="fa fa-arrow-left"></i></button>
 <h2>Lojas cadastradas</h2>
+</div>
 <div class="barra-busca" style="margin-bottom:14px;">
 <input type="text" id="busca-loja" placeholder="Buscar por nome ou slug..." />
 </div>
@@ -514,7 +528,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <!-- ==================== MODAL: EDITAR LOJA ==================== -->
 <div id="modal-editar-loja">
 <div class="modal-box modal-box-largo">
-<div style="display:flex;align-items:center;gap:10px;">
+<div class="modal-topo">
 <button type="button" class="btn-icone" id="btn-topo-voltar-editar-loja" title="Voltar"><i class="fa fa-arrow-left"></i></button>
 <h2>Editar loja</h2>
 </div>
@@ -828,6 +842,10 @@ document.getElementById("el-abas-editor").style.display = e.target.checked ? "no
 
 document.getElementById("btn-gerenciar-lojas").addEventListener("click", abrirModalGerenciarLojas)
 document.getElementById("btn-fechar-gerenciar-lojas").addEventListener("click", () => fecharModalComHistorico(modalGerenciarLojas, null))
+
+document.getElementById("btn-topo-voltar-gerenciar-lojas").addEventListener("click", () => {
+document.getElementById("btn-fechar-gerenciar-lojas").click()
+})
 
 let assinaturasPorLojaId = {}
 let dominiosPorLojaId = {}
@@ -1515,6 +1533,10 @@ const modal = document.getElementById("modal-cliente")
 document.getElementById("btn-novo-cliente").addEventListener("click", () => abrirModal())
 document.getElementById("btn-cancelar-modal").addEventListener("click", fecharModal)
 
+document.getElementById("btn-topo-voltar-cliente").addEventListener("click", () => {
+document.getElementById("btn-cancelar-modal").click()
+})
+
 function abrirModal(cliente) {
 document.getElementById("modal-titulo").textContent = cliente ? "Editar cliente" : "Novo cliente"
 document.getElementById("msg-modal").innerHTML = ""
@@ -1703,6 +1725,10 @@ abrirModalComHistorico(modalNovaLoja, null)
 document.getElementById("btn-nova-loja").addEventListener("click", abrirModalNovaLoja)
 document.getElementById("btn-cancelar-nova-loja").addEventListener("click", () => fecharModalComHistorico(modalNovaLoja, null))
 
+document.getElementById("btn-topo-voltar-nova-loja").addEventListener("click", () => {
+document.getElementById("btn-cancelar-nova-loja").click()
+})
+
 document.getElementById("btn-salvar-nova-loja").addEventListener("click", async () => {
 const msg = document.getElementById("msg-nova-loja")
 msg.innerHTML = ""
@@ -1886,6 +1912,10 @@ document.getElementById("btn-ir-para-vincular").addEventListener("click", () => 
 fecharModalComHistorico(modalNovaLoja, abrirModalVincularLoja)
 })
 document.getElementById("btn-cancelar-vincular").addEventListener("click", () => fecharModalComHistorico(modalVincularLoja, null))
+
+document.getElementById("btn-topo-voltar-vincular").addEventListener("click", () => {
+document.getElementById("btn-cancelar-vincular").click()
+})
 
 document.getElementById("vl-plano").addEventListener("change", (e) => {
 document.getElementById("vl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
