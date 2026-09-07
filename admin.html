@@ -176,11 +176,11 @@ font-size:13px;color:var(--tinta);display:flex;align-items:center;justify-conten
 .lista-vazia{color:var(--tinta-suave);font-size:14px;text-align:center;padding:40px 16px;}
 
 /* ---------- MODAL ---------- */
-#modal-cliente,#modal-nova-loja,#modal-loja-criada,#modal-vincular-loja{
+#modal-cliente,#modal-nova-loja,#modal-loja-criada,#modal-vincular-loja,#modal-gerenciar-lojas,#modal-editar-loja{
 display:none;position:fixed;inset:0;background:rgba(22,27,25,.55);z-index:200;
 align-items:center;justify-content:center;padding:16px;
 }
-#modal-cliente.aberto,#modal-nova-loja.aberto,#modal-loja-criada.aberto,#modal-vincular-loja.aberto{display:flex;}
+#modal-cliente.aberto,#modal-nova-loja.aberto,#modal-loja-criada.aberto,#modal-vincular-loja.aberto,#modal-gerenciar-lojas.aberto,#modal-editar-loja.aberto{display:flex;}
 .modal-box{background:var(--cartao);border-radius:14px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
 .modal-box h2{margin-bottom:18px;font-size:18px;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -276,7 +276,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div id="tela-painel">
 <header class="topo">
 <div class="marca"><i class="fa fa-layer-group"></i> Painel de Aluguéis</div>
+<div style="display:flex;gap:8px;">
+<button class="sair" id="btn-gerenciar-lojas"><i class="fa fa-store"></i> Lojas</button>
 <button class="sair" id="btn-sair"><i class="fa fa-right-from-bracket"></i> Sair</button>
+</div>
 </header>
 
 <main>
@@ -479,6 +482,73 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </div>
 </div>
 </div>
+
+<!-- ==================== MODAL: GERENCIAR LOJAS (lista) ==================== -->
+<div id="modal-gerenciar-lojas">
+<div class="modal-box">
+<h2>Lojas cadastradas</h2>
+<div class="barra-busca" style="margin-bottom:14px;">
+<input type="text" id="busca-loja" placeholder="Buscar por nome ou slug..." />
+</div>
+<div id="msg-gerenciar-lojas"></div>
+<div id="lista-lojas"></div>
+<div class="modal-acoes" style="justify-content:flex-end;">
+<button class="btn-secundario" id="btn-fechar-gerenciar-lojas">Fechar</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODAL: EDITAR LOJA ==================== -->
+<div id="modal-editar-loja">
+<div class="modal-box modal-box-largo">
+<h2>Editar loja</h2>
+<input type="hidden" id="el-id" />
+<div id="msg-editar-loja"></div>
+
+<div class="grid2">
+<div class="campo"><label>Nome da loja</label><input id="el-nome" /></div>
+<div class="campo"><label>WhatsApp (só números, com DDI e DDD)</label><input id="el-whatsapp" placeholder="5591991392925" /></div>
+</div>
+<div class="grid2">
+<div class="campo"><label>Chave Pix</label><input id="el-chave-pix" placeholder="Opcional" /></div>
+<div class="campo">
+<label>Loja ativa (aparece no site)</label>
+<select id="el-ativa"><option value="true">Sim</option><option value="false">Não</option></select>
+</div>
+</div>
+<div class="grid2">
+<div class="campo">
+<label>Tema visual</label>
+<select id="el-tema"></select>
+</div>
+<div class="campo">
+<label><input type="checkbox" id="el-usar-cor-personalizada" style="width:auto;margin-right:6px;" /> Usar cor personalizada</label>
+<input type="color" id="el-cor" style="margin-top:8px;" />
+</div>
+</div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
+<div class="grupo-checks">
+<label><input type="checkbox" id="el-modo-delivery" /> Delivery</label>
+<label><input type="checkbox" id="el-modo-retirada" /> Retirada</label>
+<label><input type="checkbox" id="el-modo-mesa" /> Mesa</label>
+<label><input type="checkbox" id="el-modo-encomenda" /> Encomenda</label>
+</div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Abas do admin (avançado)</h3>
+<div class="campo">
+<label>Configuração personalizada (JSON — deixe em branco pra usar o padrão)</label>
+<textarea id="el-abas-admin" rows="4" style="font-family:monospace;font-size:12px;"></textarea>
+</div>
+
+<div class="modal-acoes">
+<div></div>
+<div class="modal-acoes-direita">
+<button class="btn-secundario" id="btn-cancelar-editar-loja">Voltar</button>
+<button class="btn-primario" id="btn-salvar-editar-loja" style="width:auto;padding:10px 20px;">Salvar</button>
+</div>
+</div>
+</div>
 </div>
 
 </div>
@@ -521,6 +591,160 @@ function escaparHtml(valor) {
 return String(valor === null || valor === undefined ? "" : valor)
 .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 .replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+
+// ============================================================
+// GERENCIAR LOJAS — editar dados de lojas já cadastradas
+// ============================================================
+let lojasCadastradas = []
+
+const modalGerenciarLojas = document.getElementById("modal-gerenciar-lojas")
+const modalEditarLoja = document.getElementById("modal-editar-loja")
+
+document.getElementById("btn-gerenciar-lojas").addEventListener("click", abrirModalGerenciarLojas)
+document.getElementById("btn-fechar-gerenciar-lojas").addEventListener("click", () => modalGerenciarLojas.classList.remove("aberto"))
+
+async function abrirModalGerenciarLojas() {
+const msg = document.getElementById("msg-gerenciar-lojas")
+msg.innerHTML = "Carregando..."
+modalGerenciarLojas.classList.add("aberto")
+
+const { data, error } = await sb.from("lojas").select("*").order("nome", { ascending: true })
+
+if (error) {
+msg.innerHTML = `<div class="aviso aviso-erro">Erro ao carregar lojas: ${escaparHtml(error.message)}</div>`
+return
+}
+
+msg.innerHTML = ""
+lojasCadastradas = data || []
+renderizarListaLojas()
+}
+
+document.getElementById("busca-loja").addEventListener("input", renderizarListaLojas)
+
+function renderizarListaLojas() {
+const lista = document.getElementById("lista-lojas")
+const termo = document.getElementById("busca-loja").value.trim().toLowerCase()
+
+const visiveis = lojasCadastradas.filter(l =>
+!termo || (l.nome || "").toLowerCase().includes(termo) || (l.slug || "").toLowerCase().includes(termo)
+)
+
+lista.innerHTML = ""
+
+if (!visiveis.length) {
+lista.innerHTML = `<p class="lista-vazia">${lojasCadastradas.length ? "Nenhuma loja encontrada com esse termo." : "Nenhuma loja cadastrada ainda."}</p>`
+return
+}
+
+visiveis.forEach(l => {
+const linha = document.createElement("div")
+linha.className = "cliente-linha"
+linha.innerHTML = `
+<div class="cliente-info">
+<div class="nome">${escaparHtml(l.nome)}</div>
+<div class="sub">${escaparHtml(l.slug)}.cardapiosweb.online${l.whatsapp ? " · " + escaparHtml(l.whatsapp) : ""}</div>
+</div>
+<span class="selo ${l.ativa ? "selo-ativo" : "selo-cancelado"}">${l.ativa ? "Ativa" : "Inativa"}</span>
+<div class="cliente-acoes">
+<button class="btn-icone" title="Editar loja" data-id="${l.id}"><i class="fa fa-pen"></i></button>
+</div>
+`
+linha.querySelector("[data-id]").addEventListener("click", () => abrirModalEditarLoja(l))
+lista.appendChild(linha)
+})
+}
+
+function abrirModalEditarLoja(loja) {
+document.getElementById("msg-editar-loja").innerHTML = ""
+document.getElementById("el-id").value = loja.id
+document.getElementById("el-nome").value = loja.nome || ""
+document.getElementById("el-whatsapp").value = loja.whatsapp || ""
+document.getElementById("el-chave-pix").value = loja.chave_pix || ""
+popularSelectTemas(document.getElementById("el-tema"))
+document.getElementById("el-tema").value = loja.tema || "generico"
+const usaCorPersonalizada = !!loja.cor_principal
+document.getElementById("el-usar-cor-personalizada").checked = usaCorPersonalizada
+document.getElementById("el-cor").value = loja.cor_principal || "#A9321E"
+document.getElementById("el-cor").disabled = !usaCorPersonalizada
+document.getElementById("el-ativa").value = String(!!loja.ativa)
+
+const modo = loja.modo_loja || {}
+document.getElementById("el-modo-delivery").checked = modo.permiteDelivery !== false
+document.getElementById("el-modo-retirada").checked = modo.permiteRetirada !== false
+document.getElementById("el-modo-mesa").checked = !!modo.usaMesa
+document.getElementById("el-modo-encomenda").checked = !!modo.usaEncomenda
+
+document.getElementById("el-abas-admin").value = loja.abas_admin ? JSON.stringify(loja.abas_admin, null, 2) : ""
+
+modalGerenciarLojas.classList.remove("aberto")
+modalEditarLoja.classList.add("aberto")
+}
+
+document.getElementById("el-usar-cor-personalizada").addEventListener("change", (e) => {
+document.getElementById("el-cor").disabled = !e.target.checked
+})
+
+document.getElementById("btn-cancelar-editar-loja").addEventListener("click", () => {
+modalEditarLoja.classList.remove("aberto")
+modalGerenciarLojas.classList.add("aberto")
+})
+
+document.getElementById("btn-salvar-editar-loja").addEventListener("click", async () => {
+const msg = document.getElementById("msg-editar-loja")
+msg.innerHTML = ""
+
+const id = document.getElementById("el-id").value
+const nome = document.getElementById("el-nome").value.trim()
+const whatsappDigitado = document.getElementById("el-whatsapp").value.trim()
+const whatsappNormalizado = whatsappDigitado.replace(/[\s()\-+]/g, "")
+
+if (!nome) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o nome da loja.</div>`; return }
+if (whatsappNormalizado && (!/^\d+$/.test(whatsappNormalizado) || whatsappNormalizado.length < 10 || whatsappNormalizado.length > 15)) {
+msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só números com DDI e DDD.</div>`
+return
+}
+
+let abasAdminValidado = null
+const abasTexto = document.getElementById("el-abas-admin").value.trim()
+if (abasTexto) {
+try {
+abasAdminValidado = JSON.parse(abasTexto)
+} catch (err) {
+msg.innerHTML = `<div class="aviso aviso-erro">A configuração avançada de abas não é um JSON válido.</div>`
+return
+}
+}
+
+const modoLoja = {
+permiteDelivery: document.getElementById("el-modo-delivery").checked,
+usaDelivery: document.getElementById("el-modo-delivery").checked,
+permiteRetirada: document.getElementById("el-modo-retirada").checked,
+usaMesa: document.getElementById("el-modo-mesa").checked,
+usaEncomenda: document.getElementById("el-modo-encomenda").checked
+}
+
+const atualizacao = {
+nome: nome,
+whatsapp: whatsappNormalizado,
+chave_pix: document.getElementById("el-chave-pix").value.trim(),
+tema: document.getElementById("el-tema").value,
+cor_principal: document.getElementById("el-usar-cor-personalizada").checked ? document.getElementById("el-cor").value : null,
+ativa: document.getElementById("el-ativa").value === "true",
+modo_loja: modoLoja,
+abas_admin: abasAdminValidado
+}
+
+const { error } = await sb.from("lojas").update(atualizacao).eq("id", id)
+
+if (error) {
+msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível salvar: ${escaparHtml(error.message)}</div>`
+return
+}
+
+modalEditarLoja.classList.remove("aberto")
+await abrirModalGerenciarLojas()
+})
 }
 
 // ============================================================
