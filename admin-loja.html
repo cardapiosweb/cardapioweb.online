@@ -2079,6 +2079,16 @@ async function iniciarPainel(user) {
     // sem isso, o painel fica com as cores de reserva e a nav some (só "Início").
     if (window.aplicarConfiguracaoDaLoja) window.aplicarConfiguracaoDaLoja(lojaAtual)
 
+    // Remonta a barra de baixo e o menu (⋮), porque a primeira chamada
+    // (lá no topo do script) rodou ANTES do login — nesse momento
+    // window.ABAS_ADMIN/MODO_LOJA ainda não existiam, então a nav
+    // ficava vazia (só "Início"). Agora que já temos os dados da loja,
+    // remonta com o conteúdo certo.
+    renderizarAbasAdmin()
+    aplicarModoAcessoRapido()
+    aplicarModoFormularioProduto()
+    aplicarModoCamposLoja()
+
     telaLogin.style.display = "none"
     telaPainel.style.display = "block"
     document.getElementById("painel-nome-loja").textContent = lojaAtual.nome
