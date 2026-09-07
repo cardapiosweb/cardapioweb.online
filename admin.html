@@ -699,27 +699,39 @@ const modalEditarLoja = document.getElementById("modal-editar-loja")
 // no histórico do navegador, consome esse estado com history.back() —
 // assim o botão/gesto de voltar do próprio celular também fecha o modal
 // em vez de sair da página.
-function fecharModalEditarLoja(atualizarLista) {
-if (voltarEditarLojaEhHistorico) {
-voltarEditarLojaEhHistorico = false
-pendenteAtualizarListaAoVoltar = !!atualizarLista
-history.back()
+// ============================================================
+// HISTÓRICO DO NAVEGADOR PARA MODAIS (botão/gesto de voltar do celular)
+// ============================================================
+// Cada modal aberto empurra um estado no histórico. Fechar — seja por
+// um botão "Cancelar/Voltar" ou pelo botão físico/gesto do aparelho —
+// sempre passa por history.back(); quem realmente esconde o modal e
+// decide o que abrir em seguida é o handler de "popstate" abaixo.
+// Isso serve pra qualquer modal do painel, inclusive transições entre
+// modais (ex: Nova loja → Vincular loja, Gerenciar lojas → Editar loja).
+let pilhaModaisAbertos = [] // cada item: { modal, aoFechar }
+
+function abrirModalComHistorico(modal, aoFechar) {
+modal.classList.add("aberto")
+pilhaModaisAbertos.push({ modal, aoFechar: aoFechar || null })
+history.pushState({ modalAberto: true }, "")
+}
+
+function fecharModalComHistorico(modal, aoFecharAgora) {
+const item = pilhaModaisAbertos.find(i => i.modal === modal)
+if (!item) {
+modal.classList.remove("aberto")
+if (aoFecharAgora) aoFecharAgora()
 return
 }
-modalEditarLoja.classList.remove("aberto")
-if (atualizarLista) { abrirModalGerenciarLojas() } else { modalGerenciarLojas.classList.add("aberto") }
+if (aoFecharAgora) item.aoFechar = aoFecharAgora
+history.back()
 }
 
 window.addEventListener("popstate", () => {
-if (modalEditarLoja.classList.contains("aberto")) {
-modalEditarLoja.classList.remove("aberto")
-if (pendenteAtualizarListaAoVoltar) {
-pendenteAtualizarListaAoVoltar = false
-abrirModalGerenciarLojas()
-} else {
-modalGerenciarLojas.classList.add("aberto")
-}
-}
+const item = pilhaModaisAbertos.pop()
+if (!item) return
+item.modal.classList.remove("aberto")
+if (item.aoFechar) item.aoFechar()
 })
 
 // Mesma lista de config-loja.js — cópia só pro admin.html saber quais
@@ -815,7 +827,7 @@ document.getElementById("el-abas-editor").style.display = e.target.checked ? "no
 })
 
 document.getElementById("btn-gerenciar-lojas").addEventListener("click", abrirModalGerenciarLojas)
-document.getElementById("btn-fechar-gerenciar-lojas").addEventListener("click", () => modalGerenciarLojas.classList.remove("aberto"))
+document.getElementById("btn-fechar-gerenciar-lojas").addEventListener("click", () => fecharModalComHistorico(modalGerenciarLojas, null))
 
 let assinaturasPorLojaId = {}
 let dominiosPorLojaId = {}
@@ -823,7 +835,7 @@ let dominiosPorLojaId = {}
 async function abrirModalGerenciarLojas() {
 const msg = document.getElementById("msg-gerenciar-lojas")
 msg.innerHTML = "Carregando..."
-modalGerenciarLojas.classList.add("aberto")
+abrirModalComHistorico(modalGerenciarLojas, null)
 
 const { data, error } = await sb.from("lojas").select("*").order("nome", { ascending: true })
 
@@ -904,8 +916,6 @@ lista.appendChild(linha)
 
 let elAssinaturaAtualId = null
 let elDominioEditandoId = null
-let voltarEditarLojaEhHistorico = false
-let pendenteAtualizarListaAoVoltar = false
 
 async function abrirModalEditarLoja(loja) {
 document.getElementById("msg-editar-loja").innerHTML = ""
@@ -965,10 +975,9 @@ document.getElementById("el-abas-editor").style.display = usaPadraoAbas ? "none"
 abasEditandoAtual = (usaPadraoAbas ? ABAS_ADMIN_PADRAO_COPIA : loja.abas_admin).map(a => ({ ...a }))
 renderizarAbasEditor()
 
-modalGerenciarLojas.classList.remove("aberto")
-modalEditarLoja.classList.add("aberto")
-history.pushState({ modalEditarLoja: true }, "")
-voltarEditarLojaEhHistorico = true
+fecharModalComHistorico(modalGerenciarLojas, () => {
+abrirModalComHistorico(modalEditarLoja, null)
+})
 }
 
 const RECURSOS_BASICO = ["Site e cardápio digital", "Modo mesa com QR Code", "Sistema de pedidos", "Controle de estoque"]
@@ -1230,7 +1239,9 @@ document.getElementById("el-cor").disabled = !e.target.checked
 })
 
 document.getElementById("btn-cancelar-editar-loja").addEventListener("click", () => {
-fecharModalEditarLoja(false)
+fecharModalComHistorico(modalEditarLoja, () => {
+abrirModalComHistorico(modalGerenciarLojas, null)
+})
 })
 
 document.getElementById("btn-topo-voltar-editar-loja").addEventListener("click", () => {
@@ -1280,7 +1291,7 @@ msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível salvar: ${esca
 return
 }
 
-fecharModalEditarLoja(true)
+fecharModalComHistorico(modalEditarLoja, abrirModalGerenciarLojas)
 })
 
 // ============================================================
@@ -1519,11 +1530,11 @@ document.getElementById("cli-vencimento").value = cliente ? cliente.data_vencime
 document.getElementById("cli-obs").value = cliente ? (cliente.observacoes || "") : ""
 document.getElementById("cli-ativo").checked = cliente ? !!cliente.ativo : true
 document.getElementById("btn-apagar-cliente").style.display = cliente ? "inline-flex" : "none"
-modal.classList.add("aberto")
+abrirModalComHistorico(modal, null)
 }
 
 function fecharModal() {
-modal.classList.remove("aberto")
+fecharModalComHistorico(modal, null)
 }
 
 document.getElementById("cli-plano").addEventListener("change", (e) => {
@@ -1686,11 +1697,11 @@ document.getElementById("nl-plano").value = "basico"
 document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO.basico
 document.getElementById("nl-contratacao").value = hojeISO()
 document.getElementById("nl-vencimento").value = somarMeses(hojeISO(), 1)
-modalNovaLoja.classList.add("aberto")
+abrirModalComHistorico(modalNovaLoja, null)
 }
 
 document.getElementById("btn-nova-loja").addEventListener("click", abrirModalNovaLoja)
-document.getElementById("btn-cancelar-nova-loja").addEventListener("click", () => modalNovaLoja.classList.remove("aberto"))
+document.getElementById("btn-cancelar-nova-loja").addEventListener("click", () => fecharModalComHistorico(modalNovaLoja, null))
 
 document.getElementById("btn-salvar-nova-loja").addEventListener("click", async () => {
 const msg = document.getElementById("msg-nova-loja")
@@ -1791,10 +1802,11 @@ msg.innerHTML = `<div class="aviso aviso-erro">Loja e domínio criados, mas houv
 return
 }
 
-modalNovaLoja.classList.remove("aberto")
+fecharModalComHistorico(modalNovaLoja, () => {
 document.getElementById("link-site-criado").value = `https://${dominioCompleto}`
 document.getElementById("link-admin-criado").value = `https://${dominioCompleto}/admin-loja.html`
-document.getElementById("modal-loja-criada").classList.add("aberto")
+abrirModalComHistorico(document.getElementById("modal-loja-criada"), null)
+})
 await carregarAssinaturas()
 })
 
@@ -1823,7 +1835,7 @@ document.getElementById("btn-copiar-link-admin").addEventListener("click", (e) =
 copiarParaClipboard(document.getElementById("link-admin-criado").value, e.currentTarget)
 })
 document.getElementById("btn-fechar-loja-criada").addEventListener("click", () => {
-document.getElementById("modal-loja-criada").classList.remove("aberto")
+fecharModalComHistorico(document.getElementById("modal-loja-criada"), null)
 })
 
 // ============================================================
@@ -1832,7 +1844,6 @@ document.getElementById("modal-loja-criada").classList.remove("aberto")
 const modalVincularLoja = document.getElementById("modal-vincular-loja")
 
 async function abrirModalVincularLoja() {
-modalNovaLoja.classList.remove("aberto")
 document.getElementById("msg-vincular-loja").innerHTML = ""
 
 const { data: todasLojas, error } = await sb.from("lojas").select("id, nome, slug, whatsapp")
@@ -1868,11 +1879,13 @@ document.getElementById("vl-valor").value = VALOR_PADRAO_PLANO.basico
 document.getElementById("vl-contratacao").value = hojeISO()
 document.getElementById("vl-vencimento").value = somarMeses(hojeISO(), 1)
 
-modalVincularLoja.classList.add("aberto")
+abrirModalComHistorico(modalVincularLoja, null)
 }
 
-document.getElementById("btn-ir-para-vincular").addEventListener("click", abrirModalVincularLoja)
-document.getElementById("btn-cancelar-vincular").addEventListener("click", () => modalVincularLoja.classList.remove("aberto"))
+document.getElementById("btn-ir-para-vincular").addEventListener("click", () => {
+fecharModalComHistorico(modalNovaLoja, abrirModalVincularLoja)
+})
+document.getElementById("btn-cancelar-vincular").addEventListener("click", () => fecharModalComHistorico(modalVincularLoja, null))
 
 document.getElementById("vl-plano").addEventListener("change", (e) => {
 document.getElementById("vl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
@@ -1912,7 +1925,7 @@ msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível vincular: ${es
 return
 }
 
-modalVincularLoja.classList.remove("aberto")
+fecharModalComHistorico(modalVincularLoja, null)
 await carregarAssinaturas()
 })
 
