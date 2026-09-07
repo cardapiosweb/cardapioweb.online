@@ -200,7 +200,7 @@
 
         /* Imagem do produto: cantos suaves + leve sombra de "assado" */
         #menu img.product-clickable {
-            border-radius: 12px;
+            border-radius: var(--raio-base);
             box-shadow: 0 3px 0 rgba(36,27,22,0.12);
         }
 
@@ -209,8 +209,8 @@
             background: rgba(255,255,255,0.4);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 16px;
+            border: var(--borda-espessura) var(--borda-estilo) rgba(255,255,255,0.5);
+            border-radius: var(--raio-grande);
             padding: 12px;
         }
         body.dark #menu .flex.gap-6 {
@@ -436,7 +436,7 @@
             color: white;
             font-size: 10px;
             padding: 2px 8px;
-            border-radius: 4px;
+            border-radius: var(--raio-base);
             font-weight: bold;
             margin-left: 6px;
             vertical-align: middle;
@@ -807,7 +807,7 @@
             backdrop-filter: blur(20px) saturate(160%);
             -webkit-backdrop-filter: blur(20px) saturate(160%);
             border: 1px solid rgba(255,255,255,0.55);
-            border-radius: 16px;
+            border-radius: var(--raio-grande);
             width: 90%;
             max-width: 480px;
             max-height: 90vh;
@@ -1405,7 +1405,7 @@
             align-items: center;
             gap: 8px;
             padding: 12px 22px;
-            border-radius: 999px;
+            border-radius: var(--raio-pill);
             font-weight: 700;
             font-size: 14px;
             text-decoration: none;
@@ -1512,8 +1512,8 @@
         .passo-card {
             position: relative;
             background: white;
-            border: 1.5px solid var(--linha);
-            border-radius: 16px;
+            border: var(--borda-espessura) var(--borda-estilo) var(--linha);
+            border-radius: var(--raio-grande);
             padding: 26px 22px;
             overflow: hidden;
         }
@@ -1596,8 +1596,8 @@
             .diferenciais-grid { grid-template-columns: repeat(2, 1fr); }
         }
         .diferencial-card {
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 14px;
+            border: var(--borda-espessura) var(--borda-estilo) rgba(255,255,255,0.5);
+            border-radius: var(--raio-base);
             padding: 18px 16px;
             background: rgba(255,255,255,0.45);
             backdrop-filter: blur(14px) saturate(160%);

@@ -116,6 +116,14 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
         raiz.setProperty("--tinta-escura", corPrincipalEscura || tema.cores.principalEscura)
         raiz.setProperty("--tinta-clara", corPrincipalClara || tema.cores.principalClara)
 
+        // ---- Formas (raio de borda / espessura) ----
+        const formas = tema.formas || { raioBase: "14px", raioGrande: "20px", raioPill: "999px", bordaEspessura: "1.5px", bordaEstilo: "solid" }
+        raiz.setProperty("--raio-base", formas.raioBase)
+        raiz.setProperty("--raio-grande", formas.raioGrande)
+        raiz.setProperty("--raio-pill", formas.raioPill)
+        raiz.setProperty("--borda-espessura", formas.bordaEspessura)
+        raiz.setProperty("--borda-estilo", formas.bordaEstilo)
+
         // ---- Fontes ----
         raiz.setProperty("--fonte-titulo", `'${tema.fontes.titulo}', serif`)
         raiz.setProperty("--fonte-texto", `'${tema.fontes.texto}', sans-serif`)

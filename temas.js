@@ -2,14 +2,15 @@
 // BIBLIOTECA DE TEMAS VISUAIS
 // ------------------------------------------------------------
 // Cada tema define TODO o conceito visual do site: paleta de
-// cores, fontes, ícone de fallback (quando a loja não tem logo)
-// e o emoji usado nas imagens de placeholder.
+// cores, fontes, formas (raio de borda / espessura), ícone de
+// fallback (quando a loja não tem logo) e o emoji usado nas
+// imagens de placeholder.
 //
 // Pra criar o site de um cliente novo:
 //   1. Copie a pasta do projeto (como já faz hoje).
 //   2. No arquivo config-loja.js, defina: const TEMA = "hamburgueria"
 //   3. Pronto. Não precisa editar CSS, HTML nem lembrar de trocar
-//      nada manualmente — tudo é aplicado por aplicar-tema.js.
+//      nada manualmente — tudo é aplicado por config-loja.js.
 //
 // Pra criar um tema novo do zero, copie um bloco existente,
 // troque o nome da chave e ajuste os valores.
@@ -20,20 +21,27 @@ const TEMAS = {
     pizzaria: {
         nomeExibicao: "Pizzaria",
         cores: {
-            principal:        "#A9321E", // acento (também configurável por loja em cor_principal)
+            principal:        "#A9321E",
             principalEscura:  "#7A2416",
             principalClara:   "#F7E4DC",
-            base:             "#241B16", // "carvão"
+            base:             "#241B16",
             baseSuave:        "#3A2C24",
-            fundo:            "#FBF3E4", // "creme"
-            destaque:         "#D9A441", // "dourado"
-            selo:             "#4C6B3F", // "verde" (badges de oferta)
+            fundo:            "#FBF3E4",
+            destaque:         "#D9A441",
+            selo:             "#4C6B3F",
             linha:            "#E4D5B7"
         },
         fontes: {
             titulo: "Bitter",
             texto: "Mulish",
             script: "Caveat"
+        },
+        formas: {
+            raioBase: "14px",
+            raioGrande: "20px",
+            raioPill: "999px",
+            bordaEspessura: "1.5px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-pizza-slice",
         emojiPlaceholder: "🍕",
@@ -54,9 +62,16 @@ const TEMAS = {
             linha:            "#E4D5B7"
         },
         fontes: {
-            titulo: "Bitter",
+            titulo: "Oswald",
             texto: "Mulish",
-            script: "Caveat"
+            script: "Permanent Marker"
+        },
+        formas: {
+            raioBase: "6px",
+            raioGrande: "10px",
+            raioPill: "999px",
+            bordaEspessura: "2px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-fire-burner",
         emojiPlaceholder: "🍖",
@@ -77,9 +92,16 @@ const TEMAS = {
             linha:            "#EAD9BE"
         },
         fontes: {
-            titulo: "Bitter",
-            texto: "Mulish",
-            script: "Caveat"
+            titulo: "Baloo 2",
+            texto: "Nunito",
+            script: "Kalam"
+        },
+        formas: {
+            raioBase: "22px",
+            raioGrande: "28px",
+            raioPill: "999px",
+            bordaEspessura: "2px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-burger",
         emojiPlaceholder: "🍔",
@@ -100,9 +122,16 @@ const TEMAS = {
             linha:            "#F0D3DE"
         },
         fontes: {
-            titulo: "Bitter",
-            texto: "Mulish",
-            script: "Caveat"
+            titulo: "Cormorant Garamond",
+            texto: "Nunito",
+            script: "Sacramento"
+        },
+        formas: {
+            raioBase: "18px",
+            raioGrande: "24px",
+            raioPill: "999px",
+            bordaEspessura: "1px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-cake-candles",
         emojiPlaceholder: "🍰",
@@ -123,9 +152,16 @@ const TEMAS = {
             linha:            "#DCCBEE"
         },
         fontes: {
-            titulo: "Bitter",
-            texto: "Mulish",
-            script: "Caveat"
+            titulo: "Quicksand",
+            texto: "Nunito",
+            script: "Pacifico"
+        },
+        formas: {
+            raioBase: "24px",
+            raioGrande: "30px",
+            raioPill: "999px",
+            bordaEspessura: "1.5px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-ice-cream",
         emojiPlaceholder: "🍧",
@@ -135,20 +171,27 @@ const TEMAS = {
     praia: {
         nomeExibicao: "Barraca de Praia",
         cores: {
-            principal:        "#E8791A", // laranja do pôr do sol
+            principal:        "#E8791A",
             principalEscura:  "#B85A0F",
             principalClara:   "#FCE4CC",
-            base:             "#1A1410", // preto suave (fundo da logo)
+            base:             "#1A1410",
             baseSuave:        "#2E241C",
-            fundo:            "#FFF8EE", // creme claro, contraste com o preto
-            destaque:         "#F2B33D", // amarelo do sol
-            selo:             "#2F6B4F", // verde (coqueiro/mar), usado em badges de oferta
+            fundo:            "#FFF8EE",
+            destaque:         "#F2B33D",
+            selo:             "#2F6B4F",
             linha:            "#F0DDBE"
         },
         fontes: {
-            titulo: "Bitter",
+            titulo: "Fredoka",
             texto: "Mulish",
             script: "Caveat"
+        },
+        formas: {
+            raioBase: "16px",
+            raioGrande: "22px",
+            raioPill: "999px",
+            bordaEspessura: "1.5px",
+            bordaEstilo: "dashed"
         },
         iconeFallbackLogo: "fa-umbrella-beach",
         emojiPlaceholder: "🏖️",
@@ -158,29 +201,34 @@ const TEMAS = {
     bistro: {
         nomeExibicao: "Bistro",
         cores: {
-            principal:        "#7A1F2B", // vinho
+            principal:        "#7A1F2B",
             principalEscura:  "#4A1420",
             principalClara:   "#F3E3E1",
-            base:             "#201417", // preto com fundo quente
+            base:             "#201417",
             baseSuave:        "#3A2429",
-            fundo:            "#FAF3EA", // creme suave
-            destaque:         "#C6A15B", // dourado fosco
-            selo:             "#5C6E4F", // verde-sálvia (badges de oferta)
+            fundo:            "#FAF3EA",
+            destaque:         "#C6A15B",
+            selo:             "#5C6E4F",
             linha:            "#E8DCC9"
         },
         fontes: {
             titulo: "Playfair Display",
             texto: "Mulish",
-            script: "Caveat"
+            script: "Cormorant Garamond"
+        },
+        formas: {
+            raioBase: "4px",
+            raioGrande: "6px",
+            raioPill: "4px",
+            bordaEspessura: "1px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-champagne-glasses",
         emojiPlaceholder: "🍽️",
         textoAltLogo: "Logo do bistrô"
-    },    
+    },
 
     generico: {
-        // Tema neutro pra qualquer tipo de negócio que não tenha um
-        // preset dedicado ainda — sirva de ponto de partida.
         nomeExibicao: "Genérico",
         cores: {
             principal:        "#2563EB",
@@ -194,9 +242,16 @@ const TEMAS = {
             linha:            "#E5E7EB"
         },
         fontes: {
-            titulo: "Bitter",
-            texto: "Mulish",
-            script: "Caveat"
+            titulo: "Inter",
+            texto: "Inter",
+            script: "Inter"
+        },
+        formas: {
+            raioBase: "10px",
+            raioGrande: "14px",
+            raioPill: "999px",
+            bordaEspessura: "1.5px",
+            bordaEstilo: "solid"
         },
         iconeFallbackLogo: "fa-store",
         emojiPlaceholder: "🏪",
@@ -204,6 +259,4 @@ const TEMAS = {
     }
 }
 
-// Exporta pro escopo global (usado pelo aplicar-tema.js).
-// Se um dia migrar pra módulos ES, troque por: export default TEMAS
 window.TEMAS = TEMAS
