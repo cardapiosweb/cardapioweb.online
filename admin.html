@@ -197,6 +197,14 @@ align-items:center;justify-content:center;padding:16px;
 .aviso-ok{background:var(--ok-bg);color:var(--ok);}
 .aviso-info{background:var(--neutro-bg);color:var(--tinta-suave);border-left:3px solid var(--tinta-suave);}
 .modal-box-largo{max-width:620px;}
+.aba-linha{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--linha);border-radius:8px;background:var(--cartao);}
+.aba-linha.arrastando{opacity:.4;}
+.aba-linha .aba-grip{cursor:grab;color:var(--tinta-suave);flex-shrink:0;}
+.aba-linha input.aba-nome{flex:1;min-width:0;padding:7px 9px;border:1.5px solid var(--linha);border-radius:7px;font-size:13px;}
+.aba-linha input.aba-icone{width:110px;padding:7px 9px;border:1.5px solid var(--linha);border-radius:7px;font-size:12px;font-family:monospace;flex-shrink:0;}
+.aba-linha select.aba-posicao{padding:7px 6px;border:1.5px solid var(--linha);border-radius:7px;font-size:12px;flex-shrink:0;}
+.aba-sugestao-item{display:block;width:100%;text-align:left;background:none;border:none;padding:9px 12px;font-size:13px;cursor:pointer;}
+.aba-sugestao-item:hover{background:var(--papel);}
 .grupo-checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;}
 .grupo-checks label{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;}
 .grupo-checks input{width:auto;}
@@ -536,10 +544,17 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <label><input type="checkbox" id="el-modo-encomenda" /> Encomenda</label>
 </div>
 
-<h3 style="font-size:14px;margin:18px 0 10px;">Abas do admin (avançado)</h3>
-<div class="campo">
-<label>Configuração personalizada (JSON — deixe em branco pra usar o padrão)</label>
-<textarea id="el-abas-admin" rows="4" style="font-family:monospace;font-size:12px;"></textarea>
+<h3 style="font-size:14px;margin:18px 0 10px;">Abas do admin</h3>
+<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:10px;">
+<input type="checkbox" id="el-abas-usar-padrao" style="width:auto;" /> Usar as abas padrão da plataforma
+</label>
+<div id="el-abas-editor">
+<p style="font-size:12.5px;color:var(--tinta-suave);margin:0 0 10px;">Arraste pelo ⠿ para reordenar. "Menu" põe a aba dentro do menu ⋮ em vez da barra de baixo. Desmarcar "usar padrão" acima e remover uma aba daqui esconde ela pra essa loja.</p>
+<div id="el-abas-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+<div style="position:relative;display:inline-block;">
+<button type="button" class="btn-secundario" id="btn-el-add-aba" style="font-size:12.5px;padding:7px 12px;"><i class="fa fa-plus"></i> Adicionar aba</button>
+<div id="el-abas-sugestoes" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--cartao);border:1.5px solid var(--linha);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;min-width:200px;overflow:hidden;"></div>
+</div>
 </div>
 
 <div class="modal-acoes">
@@ -598,6 +613,98 @@ let lojasCadastradas = []
 
 const modalGerenciarLojas = document.getElementById("modal-gerenciar-lojas")
 const modalEditarLoja = document.getElementById("modal-editar-loja")
+
+// Mesma lista de config-loja.js — cópia só pro admin.html saber quais
+// abas existem de verdade no admin-loja.html (cada uma tem uma
+// <section id="secao-{id}"> fixa lá). Nunca gera um id novo aqui, pra
+// não criar uma aba "fantasma" que quebra ao clicar.
+const ABAS_ADMIN_PADRAO_COPIA = [
+{ id: "garcom", label: "Garçom", icone: "fa-bell-concierge", posicao: "nav", requer: "usaMesa", bolinha: "bolinha-garcom" },
+{ id: "mesas", label: "Mesas", icone: "fa-chair", posicao: "nav", requer: "usaMesa", bolinha: "bolinha-mesas" },
+{ id: "historico-delivery", label: "Delivery", icone: "fa-motorcycle", posicao: "nav", requer: "usaDelivery", bolinha: "bolinha-historico-delivery" },
+{ id: "encomendas", label: "Encomendas", icone: "fa-cake-candles", posicao: "nav", requer: "usaEncomenda" },
+{ id: "produtos", label: "Produtos", icone: "fa-utensils", posicao: "nav", requer: null },
+{ id: "historico-mesa", label: "Histórico Mesa", icone: "fa-receipt", posicao: "menu", requer: "usaMesa" },
+{ id: "dashboard", label: "Dashboard", icone: "fa-gauge", posicao: "menu", requer: null },
+{ id: "loja", label: "Dados da loja", icone: "fa-store", posicao: "menu", requer: null }
+]
+
+let abasEditandoAtual = []
+let arrastandoIndiceAba = null
+
+function renderizarAbasEditor() {
+const lista = document.getElementById("el-abas-lista")
+lista.innerHTML = ""
+
+abasEditandoAtual.forEach((aba, i) => {
+const linha = document.createElement("div")
+linha.className = "aba-linha"
+linha.draggable = true
+linha.dataset.index = i
+linha.innerHTML = `
+<i class="fa fa-grip-vertical aba-grip"></i>
+<input type="text" class="aba-icone" value="${escaparHtml(aba.icone || "")}" placeholder="fa-store" title="Ícone (FontAwesome)" oninput="abasEditandoAtual[${i}].icone = this.value" />
+<input type="text" class="aba-nome" value="${escaparHtml(aba.label || "")}" placeholder="Nome da aba" oninput="abasEditandoAtual[${i}].label = this.value" />
+<select class="aba-posicao" onchange="abasEditandoAtual[${i}].posicao = this.value">
+<option value="nav" ${aba.posicao !== "menu" ? "selected" : ""}>Barra</option>
+<option value="menu" ${aba.posicao === "menu" ? "selected" : ""}>Menu ⋮</option>
+</select>
+<button type="button" class="btn-icone apagar" title="Remover aba" onclick="removerAbaEditor(${i})"><i class="fa fa-trash"></i></button>
+`
+linha.addEventListener("dragstart", () => { arrastandoIndiceAba = i; linha.classList.add("arrastando") })
+linha.addEventListener("dragend", () => { linha.classList.remove("arrastando"); arrastandoIndiceAba = null })
+linha.addEventListener("dragover", (e) => e.preventDefault())
+linha.addEventListener("drop", (e) => {
+e.preventDefault()
+if (arrastandoIndiceAba === null || arrastandoIndiceAba === i) return
+const [movida] = abasEditandoAtual.splice(arrastandoIndiceAba, 1)
+abasEditandoAtual.splice(i, 0, movida)
+renderizarAbasEditor()
+})
+lista.appendChild(linha)
+})
+
+renderizarSugestoesAbas()
+}
+
+function removerAbaEditor(i) {
+abasEditandoAtual.splice(i, 1)
+renderizarAbasEditor()
+}
+
+function renderizarSugestoesAbas() {
+const caixa = document.getElementById("el-abas-sugestoes")
+const idsPresentes = new Set(abasEditandoAtual.map(a => a.id))
+const faltando = ABAS_ADMIN_PADRAO_COPIA.filter(a => !idsPresentes.has(a.id))
+
+caixa.innerHTML = faltando.length
+? faltando.map(a => `<button type="button" class="aba-sugestao-item" data-id="${a.id}"><i class="fa ${a.icone}"></i> ${escaparHtml(a.label)}</button>`).join("")
+: `<div class="aba-sugestao-item" style="color:var(--tinta-suave);cursor:default;">Todas as abas já estão na lista</div>`
+
+caixa.querySelectorAll("[data-id]").forEach(btn => {
+btn.addEventListener("click", () => {
+const padrao = ABAS_ADMIN_PADRAO_COPIA.find(a => a.id === btn.dataset.id)
+abasEditandoAtual.push({ ...padrao })
+caixa.style.display = "none"
+renderizarAbasEditor()
+})
+})
+}
+
+document.getElementById("btn-el-add-aba").addEventListener("click", (e) => {
+e.stopPropagation()
+const caixa = document.getElementById("el-abas-sugestoes")
+caixa.style.display = caixa.style.display === "none" ? "block" : "none"
+})
+document.addEventListener("click", (e) => {
+if (!e.target.closest("#el-abas-sugestoes, #btn-el-add-aba")) {
+document.getElementById("el-abas-sugestoes").style.display = "none"
+}
+})
+
+document.getElementById("el-abas-usar-padrao").addEventListener("change", (e) => {
+document.getElementById("el-abas-editor").style.display = e.target.checked ? "none" : "block"
+})
 
 document.getElementById("btn-gerenciar-lojas").addEventListener("click", abrirModalGerenciarLojas)
 document.getElementById("btn-fechar-gerenciar-lojas").addEventListener("click", () => modalGerenciarLojas.classList.remove("aberto"))
@@ -674,7 +781,11 @@ document.getElementById("el-modo-retirada").checked = modo.permiteRetirada !== f
 document.getElementById("el-modo-mesa").checked = !!modo.usaMesa
 document.getElementById("el-modo-encomenda").checked = !!modo.usaEncomenda
 
-document.getElementById("el-abas-admin").value = loja.abas_admin ? JSON.stringify(loja.abas_admin, null, 2) : ""
+const usaPadraoAbas = !loja.abas_admin || !loja.abas_admin.length
+document.getElementById("el-abas-usar-padrao").checked = usaPadraoAbas
+document.getElementById("el-abas-editor").style.display = usaPadraoAbas ? "none" : "block"
+abasEditandoAtual = (usaPadraoAbas ? ABAS_ADMIN_PADRAO_COPIA : loja.abas_admin).map(a => ({ ...a }))
+renderizarAbasEditor()
 
 modalGerenciarLojas.classList.remove("aberto")
 modalEditarLoja.classList.add("aberto")
@@ -704,16 +815,7 @@ msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só núme
 return
 }
 
-let abasAdminValidado = null
-const abasTexto = document.getElementById("el-abas-admin").value.trim()
-if (abasTexto) {
-try {
-abasAdminValidado = JSON.parse(abasTexto)
-} catch (err) {
-msg.innerHTML = `<div class="aviso aviso-erro">A configuração avançada de abas não é um JSON válido.</div>`
-return
-}
-}
+const abasAdminValidado = document.getElementById("el-abas-usar-padrao").checked ? null : abasEditandoAtual
 
 const modoLoja = {
 permiteDelivery: document.getElementById("el-modo-delivery").checked,
