@@ -591,10 +591,8 @@ function escaparHtml(valor) {
 return String(valor === null || valor === undefined ? "" : valor)
 .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 .replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+}
 
-// ============================================================
-// GERENCIAR LOJAS — editar dados de lojas já cadastradas
-// ============================================================
 let lojasCadastradas = []
 
 const modalGerenciarLojas = document.getElementById("modal-gerenciar-lojas")
@@ -745,7 +743,6 @@ return
 modalEditarLoja.classList.remove("aberto")
 await abrirModalGerenciarLojas()
 })
-}
 
 // ============================================================
 // DATAS
