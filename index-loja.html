@@ -1076,7 +1076,7 @@
             top: 16px;
             right: 16px;
             z-index: 55;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.22), rgba(255,255,255,0) 60%), rgba(36,27,22,0.55);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.22), rgba(255,255,255,0) 60%), color-mix(in srgb, var(--carvao) 55%, transparent);
             backdrop-filter: blur(var(--vidro-blur)) saturate(160%);
             -webkit-backdrop-filter: blur(var(--vidro-blur)) saturate(160%);
             color: var(--creme);
@@ -1162,8 +1162,8 @@
             position: absolute;
             inset: 0;
             z-index: 1;
-            background: radial-gradient(circle at 20% 30%, rgba(217,164,65,0.10) 0, transparent 45%),
-                        radial-gradient(circle at 80% 70%, rgba(169,50,30,0.14) 0, transparent 50%);
+            background: radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--dourado) 10%, transparent) 0, transparent 45%),
+                        radial-gradient(circle at 80% 70%, color-mix(in srgb, var(--laranja) 14%, transparent) 0, transparent 50%);
         }
         #header-banner > div {
             position: relative;
@@ -1414,7 +1414,7 @@
             border: none;
         }
         .hero-cta-primaria {
-            background: rgba(169,50,30,0.55);
+            background: color-mix(in srgb, var(--laranja) 55%, transparent);
             backdrop-filter: blur(var(--vidro-blur)) saturate(160%);
             -webkit-backdrop-filter: blur(var(--vidro-blur)) saturate(160%);
             border: 1px solid rgba(255,255,255,0.35);
@@ -1423,17 +1423,17 @@
             position: relative;
             overflow: hidden;
         }
-        .hero-cta-primaria:hover { background: rgba(122,36,22,0.65); transform: translateY(-2px); }
+        .hero-cta-primaria:hover { background: color-mix(in srgb, var(--laranja-escuro) 65%, transparent); transform: translateY(-2px); }
         .hero-cta-secundaria {
-            background: rgba(251,243,228,0.12);
+            background: color-mix(in srgb, var(--creme) 12%, transparent);
             backdrop-filter: blur(var(--vidro-blur));
             -webkit-backdrop-filter: blur(var(--vidro-blur));
             color: var(--creme);
-            border: 1.5px solid rgba(251,243,228,0.5);
+            border: 1.5px solid color-mix(in srgb, var(--creme) 50%, transparent);
             position: relative;
             overflow: hidden;
         }
-        .hero-cta-secundaria:hover { background: rgba(251,243,228,0.22); transform: translateY(-2px); }
+        .hero-cta-secundaria:hover { background: color-mix(in srgb, var(--creme) 22%, transparent); transform: translateY(-2px); }
 
         /* Botões sempre lado a lado, mesmo em telas pequenas/médias.
            Nowrap fixo desde 480px pra baixo, com fonte e padding
@@ -1678,8 +1678,8 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 15% 20%, rgba(217,164,65,0.18) 0, transparent 45%),
-                        radial-gradient(circle at 85% 80%, rgba(169,50,30,0.28) 0, transparent 50%);
+            background: radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--dourado) 18%, transparent) 0, transparent 45%),
+                        radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--laranja) 28%, transparent) 0, transparent 50%);
         }
         .cta-final-conteudo { position: relative; z-index: 1; }
         .cta-final-titulo {
