@@ -106,8 +106,9 @@ header.topo{
 background:var(--tinta);color:white;padding:16px 24px;
 display:flex;align-items:center;justify-content:space-between;gap:12px;
 position:sticky;top:0;z-index:20;
+flex-wrap:wrap;
 }
-header.topo .marca{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;}
+header.topo .marca{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;white-space:nowrap;flex-shrink:0;}
 header.topo .marca i{color:#7FCBB0;}
 header.topo button.sair{
 background:none;border:1.5px solid rgba(255,255,255,.22);color:#EAE8E0;
@@ -224,6 +225,8 @@ align-items:center;justify-content:center;padding:16px;
 .domino-preview strong{color:var(--tinta);}
 @media(max-width:600px){
 header.topo{padding:14px 16px;}
+header.topo .marca{font-size:14.5px;}
+header.topo div[style*="display:flex"]{flex-wrap:wrap;justify-content:flex-end;}
 main{padding:18px 14px 50px;}
 .cliente-linha{padding:14px;}
 .cliente-plano,.cliente-venc{min-width:0;}
