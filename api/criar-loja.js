@@ -55,24 +55,7 @@ module.exports = async (req, res) => {
   console.log("DEBUG erro admin:", erroAdmin)
 
   if (erroAdmin || !admin) {
-    let roleDaChave = null
-    try {
-      const payload = SERVICE_ROLE_KEY.split(".")[1]
-      roleDaChave = JSON.parse(Buffer.from(payload, "base64").toString("utf8")).role
-    } catch (e) {
-      roleDaChave = "erro ao decodificar: " + e.message
-    }
-    res.status(403).json({
-      erro: "Você não tem permissão de administrador da plataforma.",
-      debug: {
-        userIdRecebido: dadosToken.user.id,
-        erroAdmin: erroAdmin ? erroAdmin.message : null,
-        supabaseUrl: SUPABASE_URL,
-        chaveTamanho: SERVICE_ROLE_KEY ? SERVICE_ROLE_KEY.length : 0,
-        chaveInicio: SERVICE_ROLE_KEY ? SERVICE_ROLE_KEY.slice(0, 12) : null,
-        roleDaChaveNoBackend: roleDaChave
-      }
-    })
+    res.status(403).json({ erro: "Você não tem permissão de administrador da plataforma." })
     return
   }
 
