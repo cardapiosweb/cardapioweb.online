@@ -39,6 +39,10 @@ module.exports = async (req, res) => {
   const { data: dadosToken, error: erroToken } = await sbAdmin.auth.getUser(token)
   if (erroToken || !dadosToken?.user) { res.status(401).json({ erro: "Sessão inválida." }); return }
 
+  console.log("DEBUG user_id recebido:", dadosToken.user.id)
+  console.log("DEBUG SUPABASE_URL definido:", !!SUPABASE_URL)
+  console.log("DEBUG SERVICE_ROLE_KEY definido:", !!SERVICE_ROLE_KEY)
+
   const { data: admin, error: erroAdmin } = await sbAdmin
     .from("admins_plataforma")
     .select("id")
@@ -46,8 +50,14 @@ module.exports = async (req, res) => {
     .eq("ativo", true)
     .maybeSingle()
 
+  console.log("DEBUG resultado admin:", admin)
+  console.log("DEBUG erro admin:", erroAdmin)
+
   if (erroAdmin || !admin) {
-    res.status(403).json({ erro: "Você não tem permissão de administrador da plataforma." })
+    res.status(403).json({
+      erro: "Você não tem permissão de administrador da plataforma.",
+      debug: { userIdRecebido: dadosToken.user.id, erroAdmin: erroAdmin ? erroAdmin.message : null }
+    })
     return
   }
 
