@@ -574,7 +574,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <li>Informar o domínio próprio agora (opcional) ou cadastrar depois na seção "Domínio próprio".</li>
 <li>Configurar o DNS/Vercel desse domínio — etapa manual, fora deste painel.</li>
 </ol>
-<div class="campo" style="margin-bottom:8px;"><label>Domínio próprio (opcional)</label><input type="text" id="el-evoluir-dominio" placeholder="ex: pizzarianatureza.com.br" /></div>
+<div class="campo" style="margin-bottom:8px;"><label>Domínio próprio (opcional)</label><input type="text" id="el-evoluir-dominio" placeholder="ex: pizzarianatureza.online" /></div>
 <div id="msg-evoluir-premium"></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;">
 <button type="button" class="btn-secundario" id="btn-el-cancelar-evoluir" style="font-size:12.5px;padding:8px 14px;">Cancelar</button>
@@ -610,7 +610,7 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 <div id="el-dominio-sem-cadastro" style="display:none;margin-top:8px;font-size:12.5px;color:var(--tinta-suave);">Nenhum domínio próprio cadastrado ainda.</div>
 
 <div id="el-dominio-form" style="display:none;margin-top:10px;">
-<div class="campo" style="margin-bottom:8px;"><label>Domínio</label><input type="text" id="el-dominio-input" placeholder="ex: pizzarianatureza.com.br" /></div>
+<div class="campo" style="margin-bottom:8px;"><label>Domínio</label><input type="text" id="el-dominio-input" placeholder="ex: pizzarianatureza.online" /></div>
 <p style="font-size:12px;color:var(--tinta-suave);margin:0 0 8px;">Depois de salvar, ainda é preciso adicionar o domínio no projeto Vercel e criar o registro DNS no provedor do cliente (etapa manual).</p>
 <div id="msg-dominio"></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -981,7 +981,7 @@ return
 visiveis.forEach(l => {
 const assinatura = assinaturasPorLojaId[l.id]
 const dominios = dominiosPorLojaId[l.id] || []
-const dominioProprio = dominios.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+const dominioProprio = (assinatura && assinatura.plano === "premium") ? dominios.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA)) : null
 const linkSite = dominioProprio ? `https://${dominioProprio.dominio}` : `https://${l.slug}.${DOMINIO_PLATAFORMA}`
 const linkAdmin = `${linkSite}/admin-loja.html`
 
@@ -1036,7 +1036,7 @@ dominiosDaLoja = resultado.data
 elAssinaturaAtualId = assinaturaDaLoja ? assinaturaDaLoja.id : null
 renderizarPlanoLoja(assinaturaDaLoja, dominiosDaLoja)
 
-const dominioProprio = (dominiosDaLoja || []).find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+const dominioProprio = (assinaturaDaLoja && assinaturaDaLoja.plano === "premium") ? (dominiosDaLoja || []).find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA)) : null
 const linkBase = dominioProprio ? `https://${dominioProprio.dominio}` : `https://${loja.slug}.${DOMINIO_PLATAFORMA}`
 document.getElementById("el-link-site").href = linkBase
 document.getElementById("el-link-admin").href = `${linkBase}/admin-loja.html`
@@ -1078,7 +1078,7 @@ abrirModalComHistorico(modalEditarLoja, null)
 }
 
 const RECURSOS_BASICO = ["Site e cardápio digital", "Modo mesa com QR Code", "Sistema de pedidos", "Controle de estoque"]
-const RECURSOS_SO_PREMIUM = ["Domínio próprio (.com.br)"]
+const RECURSOS_SO_PREMIUM = ["Domínio próprio (.online)"]
 
 let elPlanoAtual = null
 let elDominiosAtual = []
@@ -1105,7 +1105,7 @@ btnEvoluir.style.display = "none"
 btnVoltarBasico.style.display = "none"
 }
 
-const dominioProprio = elDominiosAtual.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA))
+const dominioProprio = plano === "premium" ? elDominiosAtual.find(d => !d.dominio.endsWith(DOMINIO_PLATAFORMA)) : null
 
 document.getElementById("el-recursos-lista").innerHTML =
 RECURSOS_BASICO.map(r => `<div><i class="fa fa-check" style="color:var(--ok);width:16px;"></i> ${escaparHtml(r)}</div>`).join("") +
@@ -1244,7 +1244,13 @@ document.getElementById("el-voltar-basico-form").style.display = "none"
 const { data: assinaturaAtualizada } = await sb.from("assinaturas").select("id, plano, valor").eq("id", elAssinaturaAtualId).maybeSingle()
 renderizarPlanoLoja(assinaturaAtualizada, elDominiosAtual)
 
-if (assinaturaAtualizada) assinaturasPorLojaId[document.getElementById("el-id").value] = assinaturaAtualizada
+const lojaId = document.getElementById("el-id").value
+if (assinaturaAtualizada) assinaturasPorLojaId[lojaId] = assinaturaAtualizada
+
+const loja = lojasCadastradas.find(l => String(l.id) === String(lojaId))
+const linkBase = `https://${loja.slug}.${DOMINIO_PLATAFORMA}`
+document.getElementById("el-link-site").href = linkBase
+document.getElementById("el-link-admin").href = `${linkBase}/admin-loja.html`
 })
 
 document.getElementById("btn-el-dominio-ir-evoluir").addEventListener("click", () => {
