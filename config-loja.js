@@ -23,49 +23,12 @@ const MODO_LOJA_PADRAO = {
     usaEncomenda: false,
 }
 
-// TEXTOS_PADRAO agora é gerado a partir do tema escolhido, em vez de um
-// objeto fixo único: o ícone do primeiro diferencial passa a ser o
-// mesmo ícone do tema (tema.iconeFallbackLogo), em vez de uma estrela
-// genérica igual pra todo mundo. Se algum tema precisar de textos
-// completamente diferentes no futuro, basta declarar um campo
-// "textosPadrao" dentro dele em temas.js — essa função usa ele no
-// lugar do padrão gerado aqui, sem precisar mudar nada neste arquivo.
+// Todo o texto padrão vive em temas.js, dentro de tema.textosPadrao
+// (todo tema já tem o dele, incluindo o "generico"). Essa função só
+// busca lá — se um tema novo for criado sem textosPadrao configurado,
+// cai pro do tema "generico" em vez de duplicar conteúdo aqui de novo.
 function gerarTextosPadrao(tema) {
-    if (tema.textosPadrao) return tema.textosPadrao
-
-    return {
-        diferenciais: [
-            { icone: `fa ${tema.iconeFallbackLogo}`, titulo: "Qualidade", desc: "Produtos selecionados com cuidado." },
-            { icone: "fa fa-clock", titulo: "Rapidez", desc: "Seu pedido pronto no menor tempo possível." },
-            { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
-            { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algo? É só chamar no WhatsApp." },
-        ],
-        comoFunciona: {
-            titulo: "Como funciona",
-            subtitulo: "Peça em poucos passos, sem complicação.",
-            passos: [
-                { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
-                { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
-                { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
-            ],
-        },
-        ctaFinal: {
-            titulo: "Bateu aquela vontade?",
-            desc: "Monte seu pedido agora, é rapidinho.",
-            botao: "Ver meu pedido",
-        },
-        heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
-        seloCarimbo: null,
-        rodapeDescricao: "Produtos selecionados com cuidado, prontos pra pedir pelo delivery e chegar rapidinho até você.",
-        apresentacao: {
-            botaoPrincipal: "Ver cardápio completo",
-            passos: [
-                { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
-                { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
-                { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
-            ],
-        },
-    }
+    return tema.textosPadrao || window.TEMAS.generico.textosPadrao
 }
 
 const ABAS_ADMIN_PADRAO = [
@@ -253,10 +216,6 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
 
         const ctaTitulo = document.querySelector(".cta-final-titulo")
         const ctaDesc = document.querySelector(".cta-final-desc")
-        const rodapeDescricao = document.getElementById("rodape-descricao")
-        if (rodapeDescricao && t.rodapeDescricao) {
-            rodapeDescricao.textContent = t.rodapeDescricao
-        }
         const ctaBotao = document.querySelector(".cta-final-btn")
         if (t.ctaFinal) {
             if (ctaTitulo) ctaTitulo.textContent = t.ctaFinal.titulo
@@ -267,6 +226,11 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
                 if (icone) ctaBotao.appendChild(icone)
                 ctaBotao.append(" " + t.ctaFinal.botao)
             }
+        }
+
+        const rodapeDescricao = document.getElementById("rodape-descricao")
+        if (rodapeDescricao && t.rodapeDescricao) {
+            rodapeDescricao.textContent = t.rodapeDescricao
         }
 
         const apresentacaoBotao = document.getElementById("apresentacao-ver-cardapio")
