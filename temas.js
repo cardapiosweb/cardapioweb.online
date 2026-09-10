@@ -3,8 +3,16 @@
 // ------------------------------------------------------------
 // Cada tema define TODO o conceito visual do site: paleta de
 // cores, fontes, formas (raio de borda / espessura), ícone de
-// fallback (quando a loja não tem logo) e o emoji usado nas
-// imagens de placeholder.
+// fallback (quando a loja não tem logo), o emoji usado nas
+// imagens de placeholder/favicon, e os textos padrão (CTA final,
+// diferenciais, "como funciona", descrição do rodapé etc).
+//
+// textosPadrao é opcional: se um tema não tiver, config-loja.js
+// gera um texto genérico sozinho (usando o iconeFallbackLogo do
+// próprio tema). Definir textosPadrao aqui serve pra já nascer
+// com uma redação específica do segmento, sem precisar configurar
+// nada loja por loja — e o cliente ainda pode sobrescrever tudo
+// via loja.textos no admin, se quiser algo diferente.
 //
 // Pra criar o site de um cliente novo:
 //   1. Copie a pasta do projeto (como já faz hoje).
@@ -45,7 +53,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-pizza-slice",
         emojiPlaceholder: "🍕",
-        textoAltLogo: "Logo da pizzaria"
+        textoAltLogo: "Logo da pizzaria",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-fire-burner", titulo: "Forno a lenha", desc: "Pizzas assadas na hora do seu pedido, no ponto certo." },
+                { icone: "fa fa-leaf", titulo: "Ingredientes frescos", desc: "Selecionados todos os dias antes de ir pro forno." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum sabor? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha as pizzas do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pro forno." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela fome?",
+                desc: "Sua pizza favorita está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Pizzas assadas no forno a lenha, com ingredientes frescos selecionados todos os dias. Peça pelo delivery e receba quentinha na sua casa.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha as pizzas do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pro forno." },
+                ],
+            },
+        }
     },
 
     churrascaria: {
@@ -75,7 +116,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-fire-burner",
         emojiPlaceholder: "🍖",
-        textoAltLogo: "Logo da churrascaria"
+        textoAltLogo: "Logo da churrascaria",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-fire", titulo: "Direto na brasa", desc: "Carnes grelhadas na hora do seu pedido, no ponto certo." },
+                { icone: "fa fa-drumstick-bite", titulo: "Cortes selecionados", desc: "Escolhidos todos os dias antes de ir pra brasa." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum corte? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os espetos e acompanhamentos do cardápio." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra brasa." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela vontade de churrasco?",
+                desc: "Seu espeto favorito está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Carnes selecionadas e grelhadas no ponto, com tempero na medida certa. Peça pelo delivery e receba quentinho na sua casa.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os espetos e acompanhamentos do cardápio." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra brasa." },
+                ],
+            },
+        }
     },
 
     hamburgueria: {
@@ -105,7 +179,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-burger",
         emojiPlaceholder: "🍔",
-        textoAltLogo: "Logo da hamburgueria"
+        textoAltLogo: "Logo da hamburgueria",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-fire-burner", titulo: "Direto da chapa", desc: "Hambúrgueres montados na hora do seu pedido, quentinhos." },
+                { icone: "fa fa-leaf", titulo: "Ingredientes frescos", desc: "Selecionados todos os dias antes de ir pra chapa." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum lanche? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os lanches do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra chapa." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela fome de lanche?",
+                desc: "Seu hambúrguer favorito está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Hambúrgueres montados na hora, com pão e ingredientes frescos selecionados todos os dias. Peça pelo delivery e receba quentinho na sua casa.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os lanches do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra chapa." },
+                ],
+            },
+        }
     },
 
     doceria: {
@@ -135,7 +242,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-cake-candles",
         emojiPlaceholder: "🍰",
-        textoAltLogo: "Logo da doceria"
+        textoAltLogo: "Logo da doceria",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-cake-candles", titulo: "Feito na hora", desc: "Doces preparados com carinho pra chegar fresquinhos até você." },
+                { icone: "fa fa-leaf", titulo: "Ingredientes selecionados", desc: "Escolhidos todos os dias antes de ir pra cozinha." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum doce? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os doces do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra confeitaria." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela vontade de doce?",
+                desc: "Seu docinho favorito está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Doces e bolos feitos artesanalmente, com ingredientes selecionados todos os dias. Peça pelo delivery e receba fresquinho na sua casa.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os doces do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra confeitaria." },
+                ],
+            },
+        }
     },
 
     acaiteria: {
@@ -165,7 +305,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-ice-cream",
         emojiPlaceholder: "🍧",
-        textoAltLogo: "Logo da açaiteria"
+        textoAltLogo: "Logo da açaiteria",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-ice-cream", titulo: "Açaí na hora", desc: "Batido e montado na hora do seu pedido, sempre geladinho." },
+                { icone: "fa fa-leaf", titulo: "Frutas selecionadas", desc: "Complementos escolhidos todos os dias, fresquinhos." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum complemento? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os açaís e complementos do cardápio." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pro preparo." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela vontade de açaí?",
+                desc: "Seu açaí favorito está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Açaí batido na hora, com frutas e complementos selecionados todos os dias. Peça pelo delivery e receba geladinho na sua casa.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os açaís e complementos do cardápio." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pro preparo." },
+                ],
+            },
+        }
     },
 
     praia: {
@@ -195,7 +368,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-umbrella-beach",
         emojiPlaceholder: "🏖️",
-        textoAltLogo: "Logo da barraca de praia"
+        textoAltLogo: "Logo da barraca de praia",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-umbrella-beach", titulo: "Direto da barraca", desc: "Preparado na hora do seu pedido, sem enrolação." },
+                { icone: "fa fa-snowflake", titulo: "Sempre geladinho", desc: "Bebidas e porções fresquinhas o dia todo." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algo do cardápio? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha as bebidas e porções do cardápio." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega no seu guarda-sol, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra barraca." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela vontade de praia?",
+                desc: "Seu pedido está a poucos toques de distância. Chame a barraca agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Bebidas geladas e petiscos direto da barraca, prontos pra chegar até você. Peça e aproveite o dia de praia.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha as bebidas e porções do cardápio." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega no seu guarda-sol, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra barraca." },
+                ],
+            },
+        }
     },
 
     bistro: {
@@ -225,7 +431,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-champagne-glasses",
         emojiPlaceholder: "🍽️",
-        textoAltLogo: "Logo do bistrô"
+        textoAltLogo: "Logo do bistrô",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-champagne-glasses", titulo: "Pratos autorais", desc: "Preparados na hora do seu pedido, com técnica e cuidado." },
+                { icone: "fa fa-leaf", titulo: "Ingredientes selecionados", desc: "Escolhidos todos os dias antes de ir pra cozinha." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum prato? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os pratos do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Pronto para brindar?",
+                desc: "Seu prato favorito está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Pratos preparados com técnica e ingredientes selecionados, numa experiência gastronômica única. Peça pelo delivery ou reserve sua mesa.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os pratos do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+                ],
+            },
+        }
     },
 
     generico: {
@@ -255,7 +494,40 @@ const TEMAS = {
         },
         iconeFallbackLogo: "fa-store",
         emojiPlaceholder: "🏪",
-        textoAltLogo: "Logo da loja"
+        textoAltLogo: "Logo da loja",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-store", titulo: "Qualidade", desc: "Produtos selecionados com cuidado." },
+                { icone: "fa fa-clock", titulo: "Rapidez", desc: "Seu pedido pronto no menor tempo possível." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algo? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela vontade?",
+                desc: "Monte seu pedido agora, é rapidinho.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Produtos selecionados com cuidado, prontos pra pedir pelo delivery e chegar rapidinho até você.",
+            apresentacao: {
+                botaoPrincipal: "Ver cardápio completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+                ],
+            },
+        }
     }
 }
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">Pizzaria Natureza</title>
-    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=80764&format=png&color=000000">
+    <link rel="icon" type="image/png" id="favicon-tema" href="https://img.icons8.com/?size=100&id=80764&format=png&color=000000">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2164,7 +2164,7 @@
                  config-loja.js, a partir de TEXTOS.apresentacao.botaoPrincipal. -->
             <div class="apresentacao-botoes">
                 <button type="button" class="apresentacao-btn-primario" id="apresentacao-ver-cardapio">
-                    <i class="fa fa-pizza-slice"></i>
+                    <i class="fa fa-pizza-slice" id="apresentacao-btn-icone"></i>
                 </button>
             </div>
 
@@ -2245,7 +2245,7 @@
                  config-loja.js, a partir de TEXTOS.heroCtas. -->
             <div class="hero-ctas">
                 <a href="#titulo-secao-menu" class="hero-cta-primaria">
-                    <i class="fa fa-pizza-slice"></i>
+                    <i class="fa fa-pizza-slice" id="hero-cta-icone"></i>
                 </a>
                 <a href="#" class="hero-cta-secundaria" onclick="event.preventDefault(); document.getElementById('whats-flutuante').click();">
                     <i class="fab fa-whatsapp"></i>
@@ -2524,10 +2524,10 @@
         <div class="rodape-grid">
             <div class="rodape-marca-coluna">
                 <div class="rodape-marca">
-                    <span class="rodape-marca-icone"><i class="fa fa-pizza-slice"></i></span>
+                    <span class="rodape-marca-icone"><i class="fa fa-pizza-slice" id="rodape-marca-icone-i"></i></span>
                     <span class="rodape-marca-nome" id="rodape-nome">Pizzaria Natureza</span>
-                </div>
-                <p class="rodape-descricao">Pizzas assadas no forno a lenha, com ingredientes frescos selecionados todos os dias. Peça pelo delivery e receba quentinha na sua casa.</p>
+                </div><p class="rodape-descricao" id="rodape-descricao">Pizzas assadas no forno a lenha, com ingredientes frescos selecionados todos os dias. Peça pelo delivery e receba quentinha na sua casa.</p>
+                
             </div>
 
             <div>

@@ -23,37 +23,49 @@ const MODO_LOJA_PADRAO = {
     usaEncomenda: false,
 }
 
-const TEXTOS_PADRAO = {
-    diferenciais: [
-        { icone: "fa fa-star", titulo: "Qualidade", desc: "Produtos selecionados com cuidado." },
-        { icone: "fa fa-clock", titulo: "Rapidez", desc: "Seu pedido pronto no menor tempo possível." },
-        { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
-        { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algo? É só chamar no WhatsApp." },
-    ],
-    comoFunciona: {
-        titulo: "Como funciona",
-        subtitulo: "Peça em poucos passos, sem complicação.",
-        passos: [
-            { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
-            { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
-            { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+// TEXTOS_PADRAO agora é gerado a partir do tema escolhido, em vez de um
+// objeto fixo único: o ícone do primeiro diferencial passa a ser o
+// mesmo ícone do tema (tema.iconeFallbackLogo), em vez de uma estrela
+// genérica igual pra todo mundo. Se algum tema precisar de textos
+// completamente diferentes no futuro, basta declarar um campo
+// "textosPadrao" dentro dele em temas.js — essa função usa ele no
+// lugar do padrão gerado aqui, sem precisar mudar nada neste arquivo.
+function gerarTextosPadrao(tema) {
+    if (tema.textosPadrao) return tema.textosPadrao
+
+    return {
+        diferenciais: [
+            { icone: `fa ${tema.iconeFallbackLogo}`, titulo: "Qualidade", desc: "Produtos selecionados com cuidado." },
+            { icone: "fa fa-clock", titulo: "Rapidez", desc: "Seu pedido pronto no menor tempo possível." },
+            { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+            { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algo? É só chamar no WhatsApp." },
         ],
-    },
-    ctaFinal: {
-        titulo: "Bateu aquela vontade?",
-        desc: "Monte seu pedido agora, é rapidinho.",
-        botao: "Ver meu pedido",
-    },
-    heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
-    seloCarimbo: null,
-    apresentacao: {
-        botaoPrincipal: "Ver cardápio completo",
-        passos: [
-            { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
-            { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
-            { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
-        ],
-    },
+        comoFunciona: {
+            titulo: "Como funciona",
+            subtitulo: "Peça em poucos passos, sem complicação.",
+            passos: [
+                { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
+                { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+            ],
+        },
+        ctaFinal: {
+            titulo: "Bateu aquela vontade?",
+            desc: "Monte seu pedido agora, é rapidinho.",
+            botao: "Ver meu pedido",
+        },
+        heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
+        seloCarimbo: null,
+        rodapeDescricao: "Produtos selecionados com cuidado, prontos pra pedir pelo delivery e chegar rapidinho até você.",
+        apresentacao: {
+            botaoPrincipal: "Ver cardápio completo",
+            passos: [
+                { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os itens do cardápio e adicione ao carrinho." },
+                { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra cozinha." },
+            ],
+        },
+    }
 }
 
 const ABAS_ADMIN_PADRAO = [
@@ -91,7 +103,7 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
         window.TEMA_ATUAL = tema
 
         window.MODO_LOJA = campoLoja(loja, "modoLoja", "modo_loja") || MODO_LOJA_PADRAO
-        window.TEXTOS = loja.textos || TEXTOS_PADRAO
+        window.TEXTOS = loja.textos || gerarTextosPadrao(tema)
         window.ABAS_ADMIN = campoLoja(loja, "abasAdmin", "abas_admin") || ABAS_ADMIN_PADRAO
 
         // ---- Variáveis CSS de cor ----
@@ -154,6 +166,20 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
         }
         const logoImg = document.getElementById("logo-img")
         if (logoImg) logoImg.setAttribute("alt", tema.textoAltLogo)
+
+        // ---- Favicon herdado do emoji do tema (SVG gerado na hora,
+        //      sem depender de link externo tipo icons8) ----
+        const faviconLink = document.getElementById("favicon-tema")
+        if (faviconLink) {
+            const svgFavicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="76">${tema.emojiPlaceholder}</text></svg>`
+            faviconLink.href = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`
+        }
+
+        // ---- Ícones que seguem o mesmo símbolo do tema (mesmo
+        //      iconeFallbackLogo do logo/selo): botão "Ver cardápio" do
+        //      topo, botão da tela de apresentação e marca do rodapé ----
+        document.querySelectorAll("#hero-cta-icone, #apresentacao-btn-icone, #rodape-marca-icone-i")
+            .forEach(icone => { icone.className = `fa ${tema.iconeFallbackLogo}` })
 
         aplicarTextos()
     } catch (erro) {
@@ -227,6 +253,10 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
 
         const ctaTitulo = document.querySelector(".cta-final-titulo")
         const ctaDesc = document.querySelector(".cta-final-desc")
+        const rodapeDescricao = document.getElementById("rodape-descricao")
+        if (rodapeDescricao && t.rodapeDescricao) {
+            rodapeDescricao.textContent = t.rodapeDescricao
+        }
         const ctaBotao = document.querySelector(".cta-final-btn")
         if (t.ctaFinal) {
             if (ctaTitulo) ctaTitulo.textContent = t.ctaFinal.titulo
