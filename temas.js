@@ -523,7 +523,7 @@ const TEMAS = {
                 botaoPrincipal: "Ver catálogo completo",
                 passos: [
                     { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os produtos do catálogo e adicione ao carrinho." },
-                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega ou retirada, do jeito que for melhor pra você." },
                     { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra separação." },
                 ],
             },
