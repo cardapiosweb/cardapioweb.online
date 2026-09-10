@@ -467,6 +467,69 @@ const TEMAS = {
         }
     },
 
+    maquiagem: {
+        nomeExibicao: "Loja de Maquiagem",
+        cores: {
+            principal:        "#B23A64",
+            principalEscura:  "#8A2C4E",
+            principalClara:   "#FBE3EC",
+            base:             "#241019",
+            baseSuave:        "#3A1D28",
+            fundo:            "#FFF6F8",
+            destaque:         "#C9A66B",
+            selo:             "#A67C52",
+            linha:            "#F0D6DE"
+        },
+        fontes: {
+            titulo: "Bodoni Moda",
+            texto: "Poppins",
+            script: "Parisienne"
+        },
+        formas: {
+            raioBase: "16px",
+            raioGrande: "24px",
+            raioPill: "999px",
+            bordaEspessura: "1px",
+            bordaEstilo: "solid"
+        },
+        iconeFallbackLogo: "fa-palette",
+        emojiPlaceholder: "💄",
+        textoAltLogo: "Logo da loja de maquiagem",
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-palette", titulo: "Produtos originais", desc: "Maquiagens 100% originais, com procedência garantida." },
+                { icone: "fa fa-gem", titulo: "Seleção cuidadosa", desc: "Itens escolhidos a dedo pra você ficar ainda mais linda." },
+                { icone: "fa fa-wallet", titulo: "Pague como quiser", desc: "Pix, dinheiro ou cartão na entrega ou retirada." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida em algum produto? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Peça em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os produtos do catálogo e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra separação." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Bateu aquela vontade de se cuidar?",
+                desc: "Seu produto favorito está a poucos toques de distância. Monte seu pedido agora.",
+                botao: "Ver meu pedido",
+            },
+            heroCtas: { primaria: "Ver catálogo", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Maquiagens selecionadas com cuidado, prontas pra realçar sua beleza. Peça pelo delivery e receba na sua casa.",
+            apresentacao: {
+                botaoPrincipal: "Ver catálogo completo",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os produtos do catálogo e adicione ao carrinho." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega, retirada no balcão ou direto da sua mesa." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra separação." },
+                ],
+            },
+        }
+    },
+
     generico: {
         nomeExibicao: "Genérico",
         cores: {
