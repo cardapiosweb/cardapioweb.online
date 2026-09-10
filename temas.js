@@ -507,7 +507,7 @@ const TEMAS = {
                 subtitulo: "Peça em poucos passos, sem complicação.",
                 passos: [
                     { icone: "fa fa-list", titulo: "Monte seu pedido", desc: "Escolha os produtos do catálogo e adicione ao carrinho." },
-                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega ou retirada no balcão, do jeito que for melhor pra você." },
+                    { icone: "fa fa-route", titulo: "Escolha como receber", desc: "Entrega ou retirada, do jeito que for melhor pra você." },
                     { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu pedido segue direto pra separação." },
                 ],
             },
