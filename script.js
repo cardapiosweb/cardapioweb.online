@@ -2552,9 +2552,14 @@ document.getElementById("apresentacao-ver-cardapio").addEventListener("click", f
     document.getElementById("tela-apresentacao").style.display = "none"
     document.body.classList.remove("apresentacao-ativa")
 
-    const alvoMenu = document.getElementById("titulo-secao-menu")
-    if (alvoMenu) {
-        const posicao = alvoMenu.getBoundingClientRect().top + window.scrollY - 16
+    // Prioriza a vitrine de categorias (nova seção) — só cai pro título
+    // do cardápio se a loja não tiver categorias com foto (vitrine
+    // escondida por renderizarVitrineCategorias quando não há nenhuma).
+    const vitrine = document.getElementById("categorias-vitrine")
+    const vitrineVisivel = vitrine && vitrine.style.display !== "none"
+    const alvo = vitrineVisivel ? vitrine : document.getElementById("titulo-secao-menu")
+    if (alvo) {
+        const posicao = alvo.getBoundingClientRect().top + window.scrollY - 16
         scrollSuavePara(posicao)
     }
 })

@@ -203,6 +203,14 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
             }
         }
 
+        // Título da vitrine "Compre por categoria" — se a loja não tiver
+        // esse campo configurado em TEXTOS ainda, mantém o texto fixo que
+        // já está no HTML (não quebra lojas antigas sem esse campo).
+        const categoriasVitrineTitulo = document.getElementById("titulo-categorias-vitrine")
+        if (categoriasVitrineTitulo && t.categoriasVitrine && t.categoriasVitrine.titulo) {
+            categoriasVitrineTitulo.textContent = t.categoriasVitrine.titulo
+        }
+
         const seloCarimbo = document.querySelector(".selo-carimbo")
         if (seloCarimbo) {
             if (t.seloCarimbo && (t.seloCarimbo.linha1 || t.seloCarimbo.linha2)) {
