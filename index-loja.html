@@ -390,8 +390,23 @@
             transform: rotate(-90deg);
         }
 
-        /* ===== SEÇÃO "COMPRE POR CATEGORIA" (círculos) ===== */
-        #categorias-vitrine { padding: 6px 4px 30px; }
+        /* ===== SEÇÃO "COMPRE POR CATEGORIA" (círculos) =====
+           Mesmo efeito "vidro" (fundo translúcido + blur) usado nos
+           cards de produto e nos diferenciais — sem isso a seção ficava
+           só com texto solto direto no fundo da página. */
+        #categorias-vitrine {
+            padding: 28px 20px 34px;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(14px) saturate(160%);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
+            border: var(--borda-espessura) var(--borda-estilo) rgba(255,255,255,0.5);
+            border-radius: var(--raio-grande);
+            box-shadow: 0 10px 30px rgba(36,27,22,0.08);
+        }
+        body.dark #categorias-vitrine {
+            background: rgba(36,27,22,0.4);
+            border-color: rgba(255,255,255,0.08);
+        }
         .categorias-vitrine-titulo {
             text-align: center;
             margin-bottom: 22px;
@@ -1703,6 +1718,11 @@
             }
             .diferencial-titulo { font-size: 12.5px; margin-bottom: 2px; }
             .diferencial-desc { font-size: 11px; line-height: 1.3; }
+        }
+
+        @media (max-width: 480px) {
+            #categorias-vitrine { padding: 18px 14px 22px; }
+            .categorias-vitrine-titulo { margin-bottom: 14px; }
         }
 
         /* Título "Espetos/Cardápio" também encolhe um pouco no mobile,

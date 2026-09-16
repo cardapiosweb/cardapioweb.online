@@ -2558,8 +2558,14 @@ document.getElementById("apresentacao-ver-cardapio").addEventListener("click", f
     const vitrine = document.getElementById("categorias-vitrine")
     const vitrineVisivel = vitrine && vitrine.style.display !== "none"
     const alvo = vitrineVisivel ? vitrine : document.getElementById("titulo-secao-menu")
+
     if (alvo) {
-        const posicao = alvo.getBoundingClientRect().top + window.scrollY - 16
+        // A vitrine fica logo no topo da página, onde os botões fixos
+        // (Tema, carrinho, WhatsApp) sobrepõem o conteúdo — por isso
+        // precisa de uma margem bem maior que o padrão (16px) usado nas
+        // outras rolagens, senão o título fica escondido atrás deles.
+        const margem = vitrineVisivel ? 130 : 16
+        const posicao = alvo.getBoundingClientRect().top + window.scrollY - margem
         scrollSuavePara(posicao)
     }
 })
