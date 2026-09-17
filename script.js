@@ -234,9 +234,7 @@ function corDoToast() {
 // ===========================
 function renderizarProdutos() {
     const menu = document.getElementById("menu")
-    const nav = document.getElementById("categorias-nav")
     menu.innerHTML = ""
-    if (nav) nav.innerHTML = ""
 
     // Modo delivery esconde produtos "só retirada"
     let produtosVisiveis = modoMesa
@@ -337,10 +335,7 @@ function renderizarProdutos() {
         // Marca visual (pill + círculo) e rolagem até a categoria — usada
         // tanto pela barra de atalhos quanto pela vitrine em círculo.
         function irParaCategoria() {
-            document.querySelectorAll(".categoria-nav-btn").forEach(b => b.classList.remove("ativa"))
             document.querySelectorAll(".categoria-circulo-item").forEach(b => b.classList.remove("ativa"))
-            const pill = nav ? nav.querySelector(`[data-categoria-index="${index}"]`) : null
-            if (pill) pill.classList.add("ativa")
             const circulo = document.querySelector(`.categoria-circulo-item[data-categoria-index="${index}"]`)
             if (circulo) circulo.classList.add("ativa")
 
@@ -350,17 +345,6 @@ function renderizarProdutos() {
 
             const posicao = tituloWrapper.getBoundingClientRect().top + window.scrollY - 16
             scrollSuavePara(posicao)
-        }
-
-        // Botão de atalho na barra de categorias
-        if (nav) {
-            const navBtn = document.createElement("button")
-            navBtn.className = "categoria-nav-btn"
-            navBtn.type = "button"
-            navBtn.textContent = categoria
-            navBtn.dataset.categoriaIndex = index
-            navBtn.addEventListener("click", irParaCategoria)
-            nav.appendChild(navBtn)
         }
 
         // Guarda a função de navegação pra reaproveitar na vitrine de círculos
