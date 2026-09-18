@@ -481,10 +481,8 @@
             width: 34px;
             height: 34px;
             border-radius: 50%;
-            border: 1px solid var(--vidro-borda);
-            background: color-mix(in srgb, var(--carvao) 60%, transparent);
-            backdrop-filter: blur(var(--vidro-blur));
-            -webkit-backdrop-filter: blur(var(--vidro-blur));
+            border: none;
+            background: rgba(36,27,22,0.75);
             color: white;
             display: flex;
             align-items: center;
@@ -494,7 +492,7 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
             transition: opacity 0.25s ease, background 0.2s, transform 0.15s;
         }
-        .vitrine-seta:hover { background: color-mix(in srgb, var(--carvao) 85%, transparent); }
+        .vitrine-seta:hover { background: rgba(36,27,22,0.95); }
         .vitrine-seta:active { transform: translateY(-50%) scale(0.9); }
         .vitrine-seta.seta-oculta {
             opacity: 0;
