@@ -1501,15 +1501,14 @@
         }
         .hero-cta-primaria:hover { background: color-mix(in srgb, var(--laranja-escuro) 65%, transparent); transform: translateY(-2px); }
         .hero-cta-secundaria {
-            background: color-mix(in srgb, var(--creme) 12%, transparent);
-            backdrop-filter: blur(var(--vidro-blur));
-            -webkit-backdrop-filter: blur(var(--vidro-blur));
-            color: var(--creme);
-            border: 1.5px solid color-mix(in srgb, var(--creme) 50%, transparent);
+            background: rgba(37,211,102,0.85);
+            color: white;
+            border: 1.5px solid rgba(255,255,255,0.4);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
         }
-        .hero-cta-secundaria:hover { background: color-mix(in srgb, var(--creme) 22%, transparent); transform: translateY(-2px); }
+        .hero-cta-secundaria:hover { background: rgba(29,185,86,0.95); transform: translateY(-2px); }
 
         /* Botões sempre lado a lado, mesmo em telas pequenas/médias.
            Nowrap fixo desde 480px pra baixo, com fonte e padding
