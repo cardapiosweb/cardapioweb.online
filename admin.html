@@ -1413,10 +1413,6 @@ document.getElementById("el-nicho").addEventListener("change", (e) => {
 aplicarVisibilidadeModoAtendimento(e.target.value, "el")
 })
 
-document.getElementById("el-nicho").addEventListener("change", (e) => {
-document.getElementById("el-nicho-aviso").style.display = e.target.value === "agendamento" ? "block" : "none"
-})
-
 document.getElementById("btn-el-apagar-loja").addEventListener("click", async () => {
 const loja = lojasCadastradas.find(l => String(l.id) === document.getElementById("el-id").value)
 if (!loja) return
@@ -1992,7 +1988,6 @@ aplicarVisibilidadeModoAtendimento("catalogo", "nl")
 document.getElementById("nl-modulo-agendamento").checked = false
 document.getElementById("nl-modulo-agendamento-self").checked = false
 document.getElementById("nl-modulo-locacao").checked = false
-document.getElementById("nl-modulo-locacao-self").checked = false
 document.getElementById("nl-lojista-nome").value = ""
 document.getElementById("nl-lojista-email").value = ""
 document.getElementById("nl-plano").value = "basico"
