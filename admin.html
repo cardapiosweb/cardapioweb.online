@@ -425,9 +425,17 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.</p>
 <div class="grupo-checks">
 <label><input type="checkbox" id="nl-modulo-agendamento" /> Agendamentos (aba no admin)</label>
-<label><input type="checkbox" id="nl-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 <label><input type="checkbox" id="nl-modulo-locacao" /> Locações (aba no admin)</label>
-<label><input type="checkbox" id="nl-modulo-locacao-self" /> Cliente solicita locação sozinho (self-service)</label>
+</div>
+<!-- Só tem efeito real numa loja de nicho "agendamento" — é o
+     index-loja-agendamento.html que lê essa flag. Numa loja "catalogo"
+     não existe tela pública que consuma isso, então fica escondido.
+     "Locação self-service" não tem checkbox aqui de propósito: a RLS
+     já existe no banco (locacoes_loja: cliente insere com status
+     "solicitado"), mas nenhum front-end público foi construído pra
+     esse fluxo ainda — fica pendente até esse trabalho existir. -->
+<div class="grupo-checks" id="nl-agendamento-self-wrap" style="display:none;">
+<label><input type="checkbox" id="nl-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 </div>
 
 <!-- Só faz sentido pra nicho "catalogo" — nicho "agendamento" usa um
@@ -678,9 +686,10 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 <p class="domino-preview" id="el-nicho-aviso" style="display:none;">Trocar pra "Agendamento" muda qual site é servido — o cliente passa a ver a página de agendamento em vez do cardápio, sem delivery/retirada/mesa/encomenda.</p>
 <div class="grupo-checks">
 <label><input type="checkbox" id="el-modulo-agendamento" /> Agendamentos (aba no admin)</label>
-<label><input type="checkbox" id="el-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 <label><input type="checkbox" id="el-modulo-locacao" /> Locações (aba no admin)</label>
-<label><input type="checkbox" id="el-modulo-locacao-self" /> Cliente solicita locação sozinho (self-service)</label>
+</div>
+<div class="grupo-checks" id="el-agendamento-self-wrap" style="display:none;">
+<label><input type="checkbox" id="el-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 </div>
 
 <div id="el-modo-atendimento-secao">
@@ -1111,7 +1120,9 @@ document.getElementById("el-nicho").value = nichoAtual
 document.getElementById("el-modulo-agendamento").checked = !!modulosAtuais.agendamento
 document.getElementById("el-modulo-agendamento-self").checked = !!modulosAtuais.agendamento_self_service
 document.getElementById("el-modulo-locacao").checked = !!modulosAtuais.locacao
-document.getElementById("el-modulo-locacao-self").checked = !!modulosAtuais.locacao_self_service
+// Sem checkbox de locacao_self_service (pendente, ver nl-modal) — se
+// alguma loja antiga tiver essa flag true no banco (não deveria, mas
+// por segurança), o salvar abaixo força false de qualquer forma.
 // Aplica a visibilidade DEPOIS de preencher os checkboxes de modo —
 // eles são lidos logo abaixo (delivery/retirada/mesa/encomenda), então
 // essa chamada só decide se a seção fica visível, sem apagar o que já
@@ -1492,9 +1503,9 @@ pedido_carrinho: nichoSelecionado === "catalogo",
 mesa: ehNichoAgendamentoEditar ? false : document.getElementById("el-modo-mesa").checked,
 encomenda: ehNichoAgendamentoEditar ? false : document.getElementById("el-modo-encomenda").checked,
 agendamento: document.getElementById("el-modulo-agendamento").checked,
-agendamento_self_service: document.getElementById("el-modulo-agendamento-self").checked,
+agendamento_self_service: ehNichoAgendamentoEditar && document.getElementById("el-modulo-agendamento-self").checked,
 locacao: document.getElementById("el-modulo-locacao").checked,
-locacao_self_service: document.getElementById("el-modulo-locacao-self").checked
+locacao_self_service: false
 }
 
 const atualizacao = {
@@ -1935,6 +1946,15 @@ document.getElementById(`${prefixo}-modo-retirada`).checked = false
 document.getElementById(`${prefixo}-modo-mesa`).checked = false
 document.getElementById(`${prefixo}-modo-encomenda`).checked = false
 }
+
+// "Cliente agenda sozinho" só tem efeito na loja de nicho agendamento
+// (index-loja-agendamento.html é quem lê essa flag) — mesma lógica de
+// esconder + zerar quando não se aplica.
+const wrapSelf = document.getElementById(`${prefixo}-agendamento-self-wrap`)
+if (wrapSelf) {
+wrapSelf.style.display = ehAgendamento ? "flex" : "none"
+if (!ehAgendamento) document.getElementById(`${prefixo}-modulo-agendamento-self`).checked = false
+}
 }
 
 document.getElementById("nl-nicho").addEventListener("change", (e) => {
@@ -2030,9 +2050,14 @@ pedido_carrinho: nicho === "catalogo",
 mesa: ehNichoAgendamento ? false : document.getElementById("nl-modo-mesa").checked,
 encomenda: ehNichoAgendamento ? false : document.getElementById("nl-modo-encomenda").checked,
 agendamento: document.getElementById("nl-modulo-agendamento").checked,
-agendamento_self_service: document.getElementById("nl-modulo-agendamento-self").checked,
+// Só marca self_service quando de fato tem onde ter efeito
+// (a própria checagem de nicho já garante isso, mas o "&&" reforça
+// mesmo se algum dia o checkbox escapar do estado escondido).
+agendamento_self_service: ehNichoAgendamento && document.getElementById("nl-modulo-agendamento-self").checked,
 locacao: document.getElementById("nl-modulo-locacao").checked,
-locacao_self_service: document.getElementById("nl-modulo-locacao-self").checked
+// Pendente: sem front-end de self-service de locação ainda — sempre
+// false até esse trabalho existir (ver comentário no HTML).
+locacao_self_service: false
 }
 
 const { data: { session } } = await sb.auth.getSession()
