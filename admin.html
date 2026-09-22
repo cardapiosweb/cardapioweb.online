@@ -422,6 +422,22 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <label><input type="checkbox" id="nl-modo-encomenda" /> Encomenda</label>
 </div>
 
+<h3 style="font-size:14px;margin:18px 0 10px;">Nicho e módulos</h3>
+<div class="campo">
+<label>Nicho</label>
+<select id="nl-nicho">
+<option value="catalogo">Catálogo (cardápio/loja com carrinho)</option>
+<option value="agendamento">Agendamento (site próprio, sem carrinho)</option>
+</select>
+</div>
+<p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — o cliente escolhe o serviço e marca o horário direto.</p>
+<div class="grupo-checks">
+<label><input type="checkbox" id="nl-modulo-agendamento" /> Agendamentos (aba no admin)</label>
+<label><input type="checkbox" id="nl-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
+<label><input type="checkbox" id="nl-modulo-locacao" /> Locações (aba no admin)</label>
+<label><input type="checkbox" id="nl-modulo-locacao-self" /> Cliente solicita locação sozinho (self-service)</label>
+</div>
+
 <h3 style="font-size:14px;margin:18px 0 10px;">Dados do lojista</h3>
 <div class="grid2">
 <div class="campo"><label>Nome do lojista</label><input id="nl-lojista-nome" placeholder="Opcional" /></div>
@@ -652,6 +668,22 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 <label><input type="checkbox" id="el-modo-retirada" /> Retirada</label>
 <label><input type="checkbox" id="el-modo-mesa" /> Mesa</label>
 <label><input type="checkbox" id="el-modo-encomenda" /> Encomenda</label>
+</div>
+
+<h3 style="font-size:14px;margin:18px 0 10px;">Nicho e módulos</h3>
+<div class="campo">
+<label>Nicho</label>
+<select id="el-nicho">
+<option value="catalogo">Catálogo (cardápio/loja com carrinho)</option>
+<option value="agendamento">Agendamento (site próprio, sem carrinho)</option>
+</select>
+</div>
+<p class="domino-preview" id="el-nicho-aviso" style="display:none;">Trocar pra "Agendamento" muda qual site é servido — o cliente passa a ver a página de agendamento em vez do cardápio.</p>
+<div class="grupo-checks">
+<label><input type="checkbox" id="el-modulo-agendamento" /> Agendamentos (aba no admin)</label>
+<label><input type="checkbox" id="el-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
+<label><input type="checkbox" id="el-modulo-locacao" /> Locações (aba no admin)</label>
+<label><input type="checkbox" id="el-modulo-locacao-self" /> Cliente solicita locação sozinho (self-service)</label>
 </div>
 
 <h3 style="font-size:14px;margin:18px 0 10px;">Abas do admin</h3>
@@ -1066,6 +1098,15 @@ document.getElementById("el-modo-retirada").checked = modo.permiteRetirada !== f
 document.getElementById("el-modo-mesa").checked = !!modo.usaMesa
 document.getElementById("el-modo-encomenda").checked = !!modo.usaEncomenda
 
+const nichoAtual = loja.nicho || "catalogo"
+const modulosAtuais = loja.modulos_ativos || {}
+document.getElementById("el-nicho").value = nichoAtual
+document.getElementById("el-nicho-aviso").style.display = nichoAtual === "agendamento" ? "block" : "none"
+document.getElementById("el-modulo-agendamento").checked = !!modulosAtuais.agendamento
+document.getElementById("el-modulo-agendamento-self").checked = !!modulosAtuais.agendamento_self_service
+document.getElementById("el-modulo-locacao").checked = !!modulosAtuais.locacao
+document.getElementById("el-modulo-locacao-self").checked = !!modulosAtuais.locacao_self_service
+
 const usaPadraoAbas = !loja.abas_admin || !loja.abas_admin.length
 document.getElementById("el-abas-usar-padrao").checked = usaPadraoAbas
 document.getElementById("el-abas-editor").style.display = usaPadraoAbas ? "none" : "block"
@@ -1346,6 +1387,10 @@ document.getElementById("el-usar-cor-personalizada").checked = false
 document.getElementById("el-cor").disabled = true
 })
 
+document.getElementById("el-nicho").addEventListener("change", (e) => {
+document.getElementById("el-nicho-aviso").style.display = e.target.value === "agendamento" ? "block" : "none"
+})
+
 document.getElementById("btn-el-apagar-loja").addEventListener("click", async () => {
 const loja = lojasCadastradas.find(l => String(l.id) === document.getElementById("el-id").value)
 if (!loja) return
@@ -1421,6 +1466,18 @@ usaMesa: document.getElementById("el-modo-mesa").checked,
 usaEncomenda: document.getElementById("el-modo-encomenda").checked
 }
 
+const nichoSelecionado = document.getElementById("el-nicho").value
+const modulosAtivos = {
+catalogo: nichoSelecionado === "catalogo",
+pedido_carrinho: nichoSelecionado === "catalogo",
+mesa: document.getElementById("el-modo-mesa").checked,
+encomenda: document.getElementById("el-modo-encomenda").checked,
+agendamento: document.getElementById("el-modulo-agendamento").checked,
+agendamento_self_service: document.getElementById("el-modulo-agendamento-self").checked,
+locacao: document.getElementById("el-modulo-locacao").checked,
+locacao_self_service: document.getElementById("el-modulo-locacao-self").checked
+}
+
 const atualizacao = {
 nome: nome,
 whatsapp: whatsappNormalizado,
@@ -1429,6 +1486,8 @@ tema: document.getElementById("el-tema").value,
 cor_principal: document.getElementById("el-usar-cor-personalizada").checked ? document.getElementById("el-cor").value : null,
 ativa: document.getElementById("el-ativa").value === "true",
 modo_loja: modoLoja,
+nicho: nichoSelecionado,
+modulos_ativos: modulosAtivos,
 abas_admin: abasAdminValidado
 }
 
@@ -1843,6 +1902,16 @@ document.getElementById("nl-plano").addEventListener("change", (e) => {
 document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
 })
 
+document.getElementById("nl-nicho").addEventListener("change", (e) => {
+document.getElementById("nl-nicho-aviso").style.display = e.target.value === "agendamento" ? "block" : "none"
+// Nicho "agendamento" sem o módulo ligado não faria sentido — pré-marca
+// como ponto de partida, mas o admin pode desmarcar se quiser só a
+// aba do admin sem abrir self-service no site público ainda.
+if (e.target.value === "agendamento") {
+document.getElementById("nl-modulo-agendamento").checked = true
+}
+})
+
 document.getElementById("nl-contratacao").addEventListener("change", (e) => {
 document.getElementById("nl-vencimento").value = somarMeses(e.target.value, 1)
 })
@@ -1863,6 +1932,12 @@ document.getElementById("nl-modo-delivery").checked = true
 document.getElementById("nl-modo-retirada").checked = true
 document.getElementById("nl-modo-mesa").checked = false
 document.getElementById("nl-modo-encomenda").checked = false
+document.getElementById("nl-nicho").value = "catalogo"
+document.getElementById("nl-nicho-aviso").style.display = "none"
+document.getElementById("nl-modulo-agendamento").checked = false
+document.getElementById("nl-modulo-agendamento-self").checked = false
+document.getElementById("nl-modulo-locacao").checked = false
+document.getElementById("nl-modulo-locacao-self").checked = false
 document.getElementById("nl-lojista-nome").value = ""
 document.getElementById("nl-lojista-email").value = ""
 document.getElementById("nl-plano").value = "basico"
@@ -1908,6 +1983,18 @@ usaMesa: document.getElementById("nl-modo-mesa").checked,
 usaEncomenda: document.getElementById("nl-modo-encomenda").checked
 }
 
+const nicho = document.getElementById("nl-nicho").value
+const modulosAtivos = {
+catalogo: nicho === "catalogo",
+pedido_carrinho: nicho === "catalogo",
+mesa: document.getElementById("nl-modo-mesa").checked,
+encomenda: document.getElementById("nl-modo-encomenda").checked,
+agendamento: document.getElementById("nl-modulo-agendamento").checked,
+agendamento_self_service: document.getElementById("nl-modulo-agendamento-self").checked,
+locacao: document.getElementById("nl-modulo-locacao").checked,
+locacao_self_service: document.getElementById("nl-modulo-locacao-self").checked
+}
+
 const { data: { session } } = await sb.auth.getSession()
 
 let resposta
@@ -1921,6 +2008,8 @@ chavePix: document.getElementById("nl-chave-pix").value.trim(),
 tema: document.getElementById("nl-tema").value,
 corPrincipal: document.getElementById("nl-usar-cor-personalizada").checked ? document.getElementById("nl-cor").value : null,
 modoLoja,
+nicho,
+modulosAtivos,
 plano: document.getElementById("nl-plano").value,
 valor: parseFloat(document.getElementById("nl-valor").value) || 0,
 dataContratacao: document.getElementById("nl-contratacao").value,
