@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Agendamentos</title>
+    <link rel="icon" type="image/png" id="favicon-tema" href="https://img.icons8.com/?size=100&id=80764&format=png&color=000000">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700;800&family=Caveat:wght@600;700&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- ===== SISTEMA DE TEMAS =====
+         Mesmo padrão dos demais templates da loja: fontes-tema é
+         preenchido pelo config-loja.js, que precisa vir depois de
+         temas.js. As variáveis CSS abaixo (--laranja, --creme etc.)
+         são sobrescritas em tempo real por eles. -->
+    <link id="fontes-tema" rel="stylesheet" href="" />
+    <script src="./temas.js"></script>
+    <script src="./config-loja.js"></script>
+
+    <style>
+        :root {
+            --laranja: #A9321E;
+            --laranja-escuro: #7A2416;
+            --laranja-claro: #F7E4DC;
+            --carvao: #241B16;
+            --carvao-suave: #3A2C24;
+            --creme: #FBF3E4;
+            --dourado: #D9A441;
+            --verde-manjericao: #4C6B3F;
+            --linha: #E4D5B7;
+            --vidro-bg: rgba(255,255,255,0.55);
+            --vidro-borda: rgba(255,255,255,0.35);
+            --fonte-titulo: 'Bitter', serif;
+            --fonte-texto: 'Mulish', sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: var(--fonte-texto); background: var(--creme); color: var(--carvao); }
+        h1, h2 { font-family: var(--fonte-titulo); }
+
+        #whats-flutuante {
+            position: fixed; top: 16px; right: 16px; z-index: 50;
+            background: rgba(37,211,102,0.85); color: white; border-radius: 50%;
+            width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-decoration: none;
+        }
+
+        #header-banner {
+            background: var(--carvao);
+            padding: 44px 16px 40px;
+            text-align: center;
+        }
+        #header-banner .selo {
+            width: 108px; height: 108px; border-radius: 50%;
+            background: var(--creme); border: 4px solid var(--laranja);
+            margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        #header-banner .selo img { width: 100%; height: 100%; object-fit: cover; }
+        #header-banner h1 { color: var(--creme); font-size: clamp(22px, 6vw, 34px); margin: 0 0 4px; }
+        #header-banner .tagline { color: var(--dourado); font-size: 15px; margin: 0 0 10px; }
+        #header-banner .endereco { color: #E4D5C4; font-size: 13px; margin: 0 0 14px; }
+
+        .status-loja-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700;
+            background: rgba(76,107,63,0.22); color: #8FD19E; border: 1.5px solid rgba(143,209,158,0.5);
+        }
+        .status-loja-pill.fechada { background: rgba(179,38,30,0.22); color: #F3A7A1; border-color: rgba(243,167,161,0.5); }
+        .status-loja-bolinha { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; }
+        .status-loja-pill.fechada .status-loja-bolinha { background: #EF4444; }
+
+        #titulo-servicos { text-align: center; font-size: 24px; margin: 32px 16px 20px; }
+
+        .servicos-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px; max-width: 1000px; margin: 0 auto; padding: 0 16px 48px;
+        }
+        .servico-card {
+            border: 1.5px solid var(--linha); border-radius: 14px; overflow: hidden;
+            background: white; display: flex; flex-direction: column;
+        }
+        .servico-card img { width: 100%; height: 140px; object-fit: cover; }
+        .servico-info { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .servico-nome { font-family: var(--fonte-titulo); font-weight: 700; font-size: 16px; margin: 0; }
+        .servico-desc { font-size: 13px; color: var(--carvao-suave); margin: 0; flex: 1; }
+        .servico-footer { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--carvao-suave); }
+        .servico-preco { font-weight: 700; color: var(--laranja); }
+        .btn-agendar {
+            margin: 0 16px 16px; padding: 10px; border: none; border-radius: 10px;
+            background: var(--laranja); color: white; font-weight: 700; font-size: 13.5px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-agendar.btn-whats { background: var(--verde-manjericao); }
+        .btn-agendar:hover { opacity: 0.92; }
+
+        .ag-modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(36,27,22,0.55);
+            z-index: 200; align-items: center; justify-content: center; padding: 16px;
+        }
+        .ag-modal-overlay.open { display: flex; }
+        .ag-modal-box {
+            background: white; border-radius: 16px; width: 100%; max-width: 420px;
+            max-height: 90vh; overflow-y: auto; padding: 22px; position: relative;
+        }
+        .ag-modal-fechar {
+            position: absolute; top: 12px; right: 12px; background: none; border: none;
+            font-size: 18px; color: var(--carvao-suave); cursor: pointer;
+        }
+        .ag-modal-servico { font-family: var(--fonte-titulo); font-weight: 700; font-size: 17px; margin: 0 0 16px; }
+        .campo { margin-bottom: 12px; }
+        .campo label { display: block; font-size: 12.5px; font-weight: 700; color: var(--carvao-suave); margin-bottom: 4px; }
+        .campo input, .campo textarea {
+            width: 100%; border: 1.5px solid var(--linha); border-radius: 8px; padding: 9px 10px; font-size: 14px; font-family: inherit;
+        }
+        .ag-slots-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+        .ag-slot-btn {
+            border: 1.5px solid var(--linha); background: var(--creme); border-radius: 8px;
+            padding: 7px 12px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--carvao);
+        }
+        .ag-slot-btn.selecionado { border-color: var(--laranja); background: var(--laranja-claro); color: var(--laranja-escuro); }
+
+        #rodape-loja-agendamento {
+            text-align: center; padding: 30px 16px; color: var(--carvao-suave); font-size: 13px;
+            border-top: 1.5px solid var(--linha);
+        }
+        #footer-promo { text-align: center; padding: 10px 10px 22px; font-size: 11.5px; color: var(--carvao-suave); opacity: 0.65; }
+        #footer-promo a { color: inherit; }
+    </style>
+</head>
+<body>
+
+    <a id="whats-flutuante" href="#" target="_blank" title="Fale conosco">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <header id="header-banner">
+        <div class="selo">
+            <img id="logo-img" alt="" onerror="this.style.display='none'" />
+        </div>
+        <h1 id="loja-nome"></h1>
+        <p class="tagline" id="loja-tagline"></p>
+        <p class="endereco" id="loja-endereco"></p>
+        <div class="status-loja-pill" id="status-loja-pill">
+            <span class="status-loja-bolinha"></span>
+            <span id="status-loja-texto">Carregando...</span>
+        </div>
+    </header>
+
+    <h2 id="titulo-servicos">Nossos serviços</h2>
+    <div class="servicos-grid" id="servicos-grid"></div>
+
+    <!-- ===== MODAL: AGENDAMENTO (self-service) ===== -->
+    <div id="modal-agendamento-cliente" class="ag-modal-overlay">
+        <div class="ag-modal-box">
+            <button type="button" id="ag-modal-fechar" class="ag-modal-fechar"><i class="fa fa-xmark"></i></button>
+            <div id="ag-modal-corpo">
+                <p class="ag-modal-servico" id="ag-modal-servico-nome"></p>
+                <div class="campo">
+                    <label>Escolha a data</label>
+                    <input type="date" id="ag-data" />
+                </div>
+                <div id="ag-slots"></div>
+                <div id="ag-form-cliente" style="display:none;">
+                    <div class="campo"><label>Seu nome</label><input id="ag-cliente-nome" /></div>
+                    <div class="campo"><label>Seu WhatsApp (com DDD)</label><input id="ag-cliente-whatsapp" placeholder="91991396925" /></div>
+                    <div class="campo"><label>Observações (opcional)</label><textarea id="ag-obs" rows="2"></textarea></div>
+                    <div id="msg-agendamento-cliente"></div>
+                    <button type="button" id="ag-confirmar-btn" class="btn-agendar" style="width:100%;">Confirmar agendamento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="rodape-loja-agendamento">
+        <p id="rodape-contato"></p>
+    </footer>
+    <footer id="footer-promo">
+        <a href="https://www.cardapiosweb.online/" target="_blank" rel="noopener noreferrer">Alugue seu site aqui também</a>
+    </footer>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-loader.js"></script>
+    <script src="script-agendamento.js"></script>
+
+</body>
+</html>

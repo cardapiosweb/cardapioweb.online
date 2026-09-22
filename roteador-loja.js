@@ -42,6 +42,79 @@
         return false
     }
 
+    // ------------------------------------------------------------
+    // Multi-nicho: só o site público (index-loja.html) pode virar
+    // um template diferente por nicho — admin-loja.html continua
+    // sempre fixo, o CRUD dos módulos já convive lá dentro via
+    // requerModulo.
+    //
+    // Consulta direta via REST (fetch), sem @supabase/supabase-js:
+    // esse script roda ANTES do supabase-loader.js (que só é
+    // carregado depois, como parte do HTML da loja que ainda nem
+    // foi buscado) — não dá pra esperar a lib carregar só pra essa
+    // checagem. Mesma chave anon pública e a mesma tabela/permissão
+    // que supabase-loader.js já usa pra resolver hostname → loja.
+    //
+    // Qualquer falha aqui (rede, domínio não cadastrado, nicho não
+    // mapeado) cai no template padrão (index-loja.html) — nunca
+    // derruba a loja por causa dessa checagem extra.
+    // ------------------------------------------------------------
+    var SUPABASE_URL_ROTEADOR = "https://bjnnkeutfilbzdhbqqij.supabase.co"
+    var SUPABASE_ANON_KEY_ROTEADOR = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqbm5rZXV0ZmlsYnpkaGJxcWlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTU0MzIsImV4cCI6MjA5OTM3MTQzMn0.kyj-JDRj4YAwlgGze56MGsd9UjezpF1PeG-HpJnm3_I"
+
+    var TEMPLATES_POR_NICHO = {
+        agendamento: "index-loja-agendamento.html"
+    }
+
+    function slugForcadoPorQueryStringRoteador() {
+        var params = new URLSearchParams(window.location.search)
+        return params.get("loja") || null
+    }
+
+    async function buscarNichoDaLoja() {
+        var headers = {
+            apikey: SUPABASE_ANON_KEY_ROTEADOR,
+            Authorization: "Bearer " + SUPABASE_ANON_KEY_ROTEADOR
+        }
+
+        var slugForcado = slugForcadoPorQueryStringRoteador()
+
+        if (slugForcado) {
+            var respostaSlug = await fetch(
+                SUPABASE_URL_ROTEADOR + "/rest/v1/lojas?select=nicho&slug=eq." + encodeURIComponent(slugForcado),
+                { headers: headers }
+            )
+            if (!respostaSlug.ok) return null
+            var linhasSlug = await respostaSlug.json()
+            return (linhasSlug[0] && linhasSlug[0].nicho) || null
+        }
+
+        var hostname = window.location.hostname
+        var respostaDominio = await fetch(
+            SUPABASE_URL_ROTEADOR + "/rest/v1/dominios_loja?select=loja_id,lojas(nicho)&dominio=eq." + encodeURIComponent(hostname),
+            { headers: headers }
+        )
+        if (!respostaDominio.ok) return null
+        var linhasDominio = await respostaDominio.json()
+        var linha = linhasDominio[0]
+        return (linha && linha.lojas && linha.lojas.nicho) || null
+    }
+
+    async function resolverPaginaLojaPorNicho(paginaPadrao) {
+        if (paginaPadrao !== "index-loja.html") return paginaPadrao
+
+        try {
+            var nicho = await buscarNichoDaLoja()
+            if (nicho && TEMPLATES_POR_NICHO[nicho]) {
+                return TEMPLATES_POR_NICHO[nicho]
+            }
+        } catch (erro) {
+            console.error("Roteador Cardápios Web: falha ao resolver nicho, usando template padrão.", erro)
+        }
+
+        return paginaPadrao
+    }
+
     // Se um script inline no <head> já calculou isso mais cedo (ver
     // comentário no index.html/admin.html — precisa existir ANTES do
     // script antigo da plataforma, que também depende dessa variável
@@ -83,7 +156,9 @@
 
         if (telaCarregamento) telaCarregamento.style.display = "flex"
 
-        carregarPaginaDaLoja(paginaLoja, raizLoja, telaCarregamento)
+        resolverPaginaLojaPorNicho(paginaLoja).then(function (paginaResolvida) {
+            carregarPaginaDaLoja(paginaResolvida, raizLoja, telaCarregamento)
+        })
     })
 
     async function carregarPaginaDaLoja(url, raizLoja, telaCarregamento) {

@@ -174,7 +174,14 @@ async function carregarDadosDaLoja() {
         antecedencia_minima_horas: p.antecedencia_minima_horas,
         icone: p.icone || undefined,
         opcoes: p.opcoes || null,
-        mostrar_botao_duvida: p.mostrar_botao_duvida
+        mostrar_botao_duvida: p.mostrar_botao_duvida,
+
+        // Multi-nicho: usados pelo template index-loja-agendamento.html
+        // (filtra produtos agendáveis) — inofensivo pra templates de
+        // catálogo, que simplesmente ignoram esses três campos.
+        agendavel: p.agendavel,
+        duracao_minutos: p.duracao_minutos,
+        locavel: p.locavel
     }))
 
     // Só agora, com "loja" completo (incluindo tema/modoLoja/textos
