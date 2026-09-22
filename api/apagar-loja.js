@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   }
 
   // 2) Tabelas operacionais (best effort — segue mesmo se alguma não existir)
-  const tabelas = ['produtos', 'pedidos_mesa', 'relatorio_dia', 'comandas_finalizadas', 'pedidos_encomenda', 'funcionarios', 'agendamentos']
+  const tabelas = ['produtos', 'pedidos_mesa', 'relatorio_dia', 'comandas_finalizadas', 'pedidos_encomenda', 'funcionarios', 'agendamentos', 'agendamentos_loja', 'locacoes_loja']
   for (const tabela of tabelas) {
     const { error } = await supabaseAdmin.from(tabela).delete().eq('loja_id', lojaId)
     if (error && !/does not exist|schema cache/i.test(error.message || '')) erros.push(`${tabela}: ${error.message}`)

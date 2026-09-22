@@ -37,6 +37,13 @@ const ABAS_ADMIN_PADRAO = [
     { id: "historico-delivery", label: "Delivery", icone: "fa-motorcycle", posicao: "nav", requer: "usaDelivery", bolinha: "bolinha-historico-delivery" },
     { id: "encomendas", label: "Encomendas", icone: "fa-cake-candles", posicao: "nav", requer: "usaEncomenda" },
     { id: "produtos", label: "Produtos", icone: "fa-utensils", posicao: "nav", requer: null },
+    // Módulos multi-nicho: gated por modulosAtivos (config-loja.js:
+    // MODULOS_ATIVOS), não por MODO_LOJA — por isso usam "requerModulo"
+    // em vez de "requer". Placeholder por enquanto: as seções
+    // #secao-agendamentos / #secao-locacoes ainda não existem no HTML
+    // (ver admin-loja.html) — entram quando o CRUD dessas abas for feito.
+    { id: "agendamentos", label: "Agendamentos", icone: "fa-calendar-check", posicao: "nav", requerModulo: "agendamento" },
+    { id: "locacoes", label: "Locações", icone: "fa-dolly", posicao: "nav", requerModulo: "locacao" },
     { id: "historico-mesa", label: "Histórico Mesa", icone: "fa-receipt", posicao: "menu", requer: "usaMesa" },
     { id: "dashboard", label: "Dashboard", icone: "fa-gauge", posicao: "menu", requer: null },
     { id: "loja", label: "Dados da loja", icone: "fa-store", posicao: "menu", requer: null },
@@ -66,6 +73,10 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
         window.TEMA_ATUAL = tema
 
         window.MODO_LOJA = campoLoja(loja, "modoLoja", "modo_loja") || MODO_LOJA_PADRAO
+        // Multi-nicho: flags funcionais independentes do MODO_LOJA (ex:
+        // agendamento, locacao) — ver supabase-loader.js, que já busca
+        // esse campo da tabela lojas.
+        window.MODULOS_ATIVOS = campoLoja(loja, "modulosAtivos", "modulos_ativos") || {}
         window.TEXTOS = loja.textos || gerarTextosPadrao(tema)
         window.ABAS_ADMIN = campoLoja(loja, "abasAdmin", "abas_admin") || ABAS_ADMIN_PADRAO
 

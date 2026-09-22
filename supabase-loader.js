@@ -125,7 +125,23 @@ async function carregarDadosDaLoja() {
             usaEncomenda: false
         },
         textos: lojaDb.textos || null,
-        abasAdmin: lojaDb.abas_admin || null
+        abasAdmin: lojaDb.abas_admin || null,
+
+        // Multi-nicho: "nicho" é rótulo de negócio (branding/template
+        // padrão); "modulosAtivos" é o que a loja de fato usa, independente
+        // do nicho. Merge com defaults pra loja antiga sem esses campos
+        // preenchidos ainda não quebrar.
+        nicho: lojaDb.nicho || "catalogo",
+        modulosAtivos: Object.assign({
+            catalogo: true,
+            pedido_carrinho: true,
+            mesa: false,
+            encomenda: false,
+            agendamento: false,
+            agendamento_self_service: false,
+            locacao: false,
+            locacao_self_service: false
+        }, lojaDb.modulos_ativos || {})
     }
 
     categorias = {}

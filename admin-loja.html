@@ -1152,10 +1152,16 @@ function renderizarAbasAdmin() {
     btnInicio.innerHTML = `<i class="fa fa-house"></i> Início`
     nav.appendChild(btnInicio)
 
+    const modulos = window.MODULOS_ATIVOS || {}
+
     abas.forEach(aba => {
         // "requer" aponta pro nome de uma flag do MODO_LOJA — se ela
         // for false, essa aba nem chega a ser criada.
         if (aba.requer && config[aba.requer] === false) return
+        // "requerModulo" aponta pro nome de uma flag do MODULOS_ATIVOS
+        // (multi-nicho) — precisa estar explicitamente true, já que o
+        // padrão de um módulo novo é ficar desligado.
+        if (aba.requerModulo && modulos[aba.requerModulo] !== true) return
 
         const btn = document.createElement("button")
         btn.dataset.aba = aba.id
@@ -1183,11 +1189,14 @@ renderizarAbasAdmin()
 // reaproveita o mesmo array, evita duplicar usaMesa/usaDelivery aqui.
 function aplicarModoAcessoRapido() {
     const config = window.MODO_LOJA || {}
+    const modulos = window.MODULOS_ATIVOS || {}
     const abas = window.ABAS_ADMIN || []
 
     abas.forEach(aba => {
-        if (!aba.requer) return
-        const escondida = config[aba.requer] === false
+        let escondida = false
+        if (aba.requer) escondida = escondida || config[aba.requer] === false
+        if (aba.requerModulo) escondida = escondida || modulos[aba.requerModulo] !== true
+        if (!aba.requer && !aba.requerModulo) return
         document.querySelectorAll(`.acesso-rapido-item[data-aba="${aba.id}"]`)
             .forEach(el => el.classList.toggle("oculto-modo", escondida))
     })
