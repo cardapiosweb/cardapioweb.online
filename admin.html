@@ -414,14 +414,6 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </div>
 </div>
 
-<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
-<div class="grupo-checks">
-<label><input type="checkbox" id="nl-modo-delivery" checked /> Delivery</label>
-<label><input type="checkbox" id="nl-modo-retirada" checked /> Retirada</label>
-<label><input type="checkbox" id="nl-modo-mesa" /> Mesa</label>
-<label><input type="checkbox" id="nl-modo-encomenda" /> Encomenda</label>
-</div>
-
 <h3 style="font-size:14px;margin:18px 0 10px;">Nicho e módulos</h3>
 <div class="campo">
 <label>Nicho</label>
@@ -430,12 +422,25 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <option value="agendamento">Agendamento (site próprio, sem carrinho)</option>
 </select>
 </div>
-<p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — o cliente escolhe o serviço e marca o horário direto.</p>
+<p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.</p>
 <div class="grupo-checks">
 <label><input type="checkbox" id="nl-modulo-agendamento" /> Agendamentos (aba no admin)</label>
 <label><input type="checkbox" id="nl-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 <label><input type="checkbox" id="nl-modulo-locacao" /> Locações (aba no admin)</label>
 <label><input type="checkbox" id="nl-modulo-locacao-self" /> Cliente solicita locação sozinho (self-service)</label>
+</div>
+
+<!-- Só faz sentido pra nicho "catalogo" — nicho "agendamento" usa um
+     site sem carrinho, então delivery/retirada/mesa/encomenda não se
+     aplicam. Escondido (e zerado ao salvar) quando o nicho é agendamento. -->
+<div id="nl-modo-atendimento-secao">
+<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
+<div class="grupo-checks">
+<label><input type="checkbox" id="nl-modo-delivery" checked /> Delivery</label>
+<label><input type="checkbox" id="nl-modo-retirada" checked /> Retirada</label>
+<label><input type="checkbox" id="nl-modo-mesa" /> Mesa</label>
+<label><input type="checkbox" id="nl-modo-encomenda" /> Encomenda</label>
+</div>
 </div>
 
 <h3 style="font-size:14px;margin:18px 0 10px;">Dados do lojista</h3>
@@ -662,14 +667,6 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 </div>
 </div>
 
-<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
-<div class="grupo-checks">
-<label><input type="checkbox" id="el-modo-delivery" /> Delivery</label>
-<label><input type="checkbox" id="el-modo-retirada" /> Retirada</label>
-<label><input type="checkbox" id="el-modo-mesa" /> Mesa</label>
-<label><input type="checkbox" id="el-modo-encomenda" /> Encomenda</label>
-</div>
-
 <h3 style="font-size:14px;margin:18px 0 10px;">Nicho e módulos</h3>
 <div class="campo">
 <label>Nicho</label>
@@ -678,12 +675,22 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 <option value="agendamento">Agendamento (site próprio, sem carrinho)</option>
 </select>
 </div>
-<p class="domino-preview" id="el-nicho-aviso" style="display:none;">Trocar pra "Agendamento" muda qual site é servido — o cliente passa a ver a página de agendamento em vez do cardápio.</p>
+<p class="domino-preview" id="el-nicho-aviso" style="display:none;">Trocar pra "Agendamento" muda qual site é servido — o cliente passa a ver a página de agendamento em vez do cardápio, sem delivery/retirada/mesa/encomenda.</p>
 <div class="grupo-checks">
 <label><input type="checkbox" id="el-modulo-agendamento" /> Agendamentos (aba no admin)</label>
 <label><input type="checkbox" id="el-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 <label><input type="checkbox" id="el-modulo-locacao" /> Locações (aba no admin)</label>
 <label><input type="checkbox" id="el-modulo-locacao-self" /> Cliente solicita locação sozinho (self-service)</label>
+</div>
+
+<div id="el-modo-atendimento-secao">
+<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
+<div class="grupo-checks">
+<label><input type="checkbox" id="el-modo-delivery" /> Delivery</label>
+<label><input type="checkbox" id="el-modo-retirada" /> Retirada</label>
+<label><input type="checkbox" id="el-modo-mesa" /> Mesa</label>
+<label><input type="checkbox" id="el-modo-encomenda" /> Encomenda</label>
+</div>
 </div>
 
 <h3 style="font-size:14px;margin:18px 0 10px;">Abas do admin</h3>
@@ -1101,11 +1108,15 @@ document.getElementById("el-modo-encomenda").checked = !!modo.usaEncomenda
 const nichoAtual = loja.nicho || "catalogo"
 const modulosAtuais = loja.modulos_ativos || {}
 document.getElementById("el-nicho").value = nichoAtual
-document.getElementById("el-nicho-aviso").style.display = nichoAtual === "agendamento" ? "block" : "none"
 document.getElementById("el-modulo-agendamento").checked = !!modulosAtuais.agendamento
 document.getElementById("el-modulo-agendamento-self").checked = !!modulosAtuais.agendamento_self_service
 document.getElementById("el-modulo-locacao").checked = !!modulosAtuais.locacao
 document.getElementById("el-modulo-locacao-self").checked = !!modulosAtuais.locacao_self_service
+// Aplica a visibilidade DEPOIS de preencher os checkboxes de modo —
+// eles são lidos logo abaixo (delivery/retirada/mesa/encomenda), então
+// essa chamada só decide se a seção fica visível, sem apagar o que já
+// foi carregado do banco.
+aplicarVisibilidadeModoAtendimento(nichoAtual, "el")
 
 const usaPadraoAbas = !loja.abas_admin || !loja.abas_admin.length
 document.getElementById("el-abas-usar-padrao").checked = usaPadraoAbas
@@ -1388,6 +1399,10 @@ document.getElementById("el-cor").disabled = true
 })
 
 document.getElementById("el-nicho").addEventListener("change", (e) => {
+aplicarVisibilidadeModoAtendimento(e.target.value, "el")
+})
+
+document.getElementById("el-nicho").addEventListener("change", (e) => {
 document.getElementById("el-nicho-aviso").style.display = e.target.value === "agendamento" ? "block" : "none"
 })
 
@@ -1458,7 +1473,12 @@ return
 
 const abasAdminValidado = document.getElementById("el-abas-usar-padrao").checked ? null : abasEditandoAtual
 
-const modoLoja = {
+const nichoSelecionado = document.getElementById("el-nicho").value
+const ehNichoAgendamentoEditar = nichoSelecionado === "agendamento"
+
+const modoLoja = ehNichoAgendamentoEditar
+? { permiteDelivery: false, usaDelivery: false, permiteRetirada: false, usaMesa: false, usaEncomenda: false }
+: {
 permiteDelivery: document.getElementById("el-modo-delivery").checked,
 usaDelivery: document.getElementById("el-modo-delivery").checked,
 permiteRetirada: document.getElementById("el-modo-retirada").checked,
@@ -1466,12 +1486,11 @@ usaMesa: document.getElementById("el-modo-mesa").checked,
 usaEncomenda: document.getElementById("el-modo-encomenda").checked
 }
 
-const nichoSelecionado = document.getElementById("el-nicho").value
 const modulosAtivos = {
 catalogo: nichoSelecionado === "catalogo",
 pedido_carrinho: nichoSelecionado === "catalogo",
-mesa: document.getElementById("el-modo-mesa").checked,
-encomenda: document.getElementById("el-modo-encomenda").checked,
+mesa: ehNichoAgendamentoEditar ? false : document.getElementById("el-modo-mesa").checked,
+encomenda: ehNichoAgendamentoEditar ? false : document.getElementById("el-modo-encomenda").checked,
 agendamento: document.getElementById("el-modulo-agendamento").checked,
 agendamento_self_service: document.getElementById("el-modulo-agendamento-self").checked,
 locacao: document.getElementById("el-modulo-locacao").checked,
@@ -1902,8 +1921,24 @@ document.getElementById("nl-plano").addEventListener("change", (e) => {
 document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
 })
 
+function aplicarVisibilidadeModoAtendimento(nicho, prefixo) {
+const secao = document.getElementById(`${prefixo}-modo-atendimento-secao`)
+const ehAgendamento = nicho === "agendamento"
+secao.style.display = ehAgendamento ? "none" : "block"
+document.getElementById(`${prefixo}-nicho-aviso`).style.display = ehAgendamento ? "block" : "none"
+
+// Some da tela E zera — evita salvar delivery/mesa marcados por trás
+// de uma seção escondida (estado de uma escolha anterior de nicho).
+if (ehAgendamento) {
+document.getElementById(`${prefixo}-modo-delivery`).checked = false
+document.getElementById(`${prefixo}-modo-retirada`).checked = false
+document.getElementById(`${prefixo}-modo-mesa`).checked = false
+document.getElementById(`${prefixo}-modo-encomenda`).checked = false
+}
+}
+
 document.getElementById("nl-nicho").addEventListener("change", (e) => {
-document.getElementById("nl-nicho-aviso").style.display = e.target.value === "agendamento" ? "block" : "none"
+aplicarVisibilidadeModoAtendimento(e.target.value, "nl")
 // Nicho "agendamento" sem o módulo ligado não faria sentido — pré-marca
 // como ponto de partida, mas o admin pode desmarcar se quiser só a
 // aba do admin sem abrir self-service no site público ainda.
@@ -1933,7 +1968,7 @@ document.getElementById("nl-modo-retirada").checked = true
 document.getElementById("nl-modo-mesa").checked = false
 document.getElementById("nl-modo-encomenda").checked = false
 document.getElementById("nl-nicho").value = "catalogo"
-document.getElementById("nl-nicho-aviso").style.display = "none"
+aplicarVisibilidadeModoAtendimento("catalogo", "nl")
 document.getElementById("nl-modulo-agendamento").checked = false
 document.getElementById("nl-modulo-agendamento-self").checked = false
 document.getElementById("nl-modulo-locacao").checked = false
@@ -1975,7 +2010,10 @@ const btn = document.getElementById("btn-salvar-nova-loja")
 btn.disabled = true
 btn.textContent = "Criando..."
 
-const modoLoja = {
+const nichoSelecionadoNovaLoja = document.getElementById("nl-nicho").value
+const modoLoja = nichoSelecionadoNovaLoja === "agendamento"
+? { permiteDelivery: false, usaDelivery: false, permiteRetirada: false, usaMesa: false, usaEncomenda: false }
+: {
 permiteDelivery: document.getElementById("nl-modo-delivery").checked,
 usaDelivery: document.getElementById("nl-modo-delivery").checked,
 permiteRetirada: document.getElementById("nl-modo-retirada").checked,
@@ -1984,11 +2022,13 @@ usaEncomenda: document.getElementById("nl-modo-encomenda").checked
 }
 
 const nicho = document.getElementById("nl-nicho").value
+const ehNichoAgendamento = nicho === "agendamento"
+
 const modulosAtivos = {
 catalogo: nicho === "catalogo",
 pedido_carrinho: nicho === "catalogo",
-mesa: document.getElementById("nl-modo-mesa").checked,
-encomenda: document.getElementById("nl-modo-encomenda").checked,
+mesa: ehNichoAgendamento ? false : document.getElementById("nl-modo-mesa").checked,
+encomenda: ehNichoAgendamento ? false : document.getElementById("nl-modo-encomenda").checked,
 agendamento: document.getElementById("nl-modulo-agendamento").checked,
 agendamento_self_service: document.getElementById("nl-modulo-agendamento-self").checked,
 locacao: document.getElementById("nl-modulo-locacao").checked,
