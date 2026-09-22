@@ -68,6 +68,8 @@ module.exports = async (req, res) => {
   const tema = corpo.tema || "generico"
   const corPrincipal = corpo.corPrincipal || null
   const modoLoja = corpo.modoLoja || {}
+  const nicho = corpo.nicho || "catalogo"
+  const modulosAtivos = corpo.modulosAtivos || {}
   const plano = corpo.plano === "premium" ? "premium" : "basico"
   const valor = Number(corpo.valor) || VALOR_PADRAO_PLANO[plano]
   const dataContratacao = corpo.dataContratacao
@@ -109,6 +111,7 @@ module.exports = async (req, res) => {
     const { data: lojaCriada, error: erroLoja } = await sbAdmin.from("lojas").insert({
       nome, slug, whatsapp, chave_pix: chavePix, tema,
       cor_principal: corPrincipal, modo_loja: modoLoja,
+      nicho, modulos_ativos: modulosAtivos,
       owner_user_id: usuarioCriadoId, ativa: true
     }).select("id").single()
     if (erroLoja) throw new Error(`loja: ${erroLoja.message}`)

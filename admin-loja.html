@@ -738,6 +738,26 @@
             <div id="lista-encomendas"></div>
         </section>
 
+        <!-- ===== ABA AGENDAMENTOS ===== -->
+        <section class="painel-secao" id="secao-agendamentos">
+            <p style="font-size:13px;color:#8a7361;margin:0 0 14px;">Mostra os agendamentos futuros (não cancelados). Pra um serviço aparecer aqui pra escolher, marque "Agendável" no cadastro dele em Produtos e defina a duração.</p>
+            <div class="barra-acoes">
+                <div id="msg-agendamentos"></div>
+                <button class="btn-novo" id="btn-novo-agendamento"><i class="fa fa-plus"></i> Novo agendamento</button>
+            </div>
+            <div id="lista-agendamentos"></div>
+        </section>
+
+        <!-- ===== ABA LOCAÇÕES ===== -->
+        <section class="painel-secao" id="secao-locacoes">
+            <p style="font-size:13px;color:#8a7361;margin:0 0 14px;">Controle de itens alugados. Pra um item aparecer aqui pra escolher, marque "Locável" no cadastro dele em Produtos. Atualize o status conforme a locação avança (confirmada → em andamento → devolvida).</p>
+            <div class="barra-acoes">
+                <div id="msg-locacoes"></div>
+                <button class="btn-novo" id="btn-nova-locacao"><i class="fa fa-plus"></i> Nova locação</button>
+            </div>
+            <div id="lista-locacoes"></div>
+        </section>
+
         <!-- ===== ABA PRODUTOS ===== -->
         <section class="painel-secao" id="secao-produtos">
             <!-- ===== Categorias do cardápio (ordem usada no site e no admin) ===== -->
@@ -950,6 +970,23 @@
             <label>Antecedência mínima (em horas)</label>
             <input type="number" min="1" id="prod-antecedencia" placeholder="Ex: 48" />
         </div>
+        <!-- Módulo Agendamentos: só aparece pra loja com modulos_ativos.agendamento
+            ligado (ver aplicarModoFormularioProduto). Duração é o que o CRUD de
+            Agendamentos usa pra calcular o horário de fim automaticamente. -->
+        <div class="campo oculto-modo" id="campo-agendavel">
+            <label><input type="checkbox" id="prod-agendavel" style="width:auto;margin-right:6px;" /> Agendável (aparece pra escolher em Agendamentos)</label>
+        </div>
+        <div class="campo" id="campo-duracao-minutos" style="display:none;">
+            <label>Duração do atendimento (em minutos)</label>
+            <input type="number" min="1" id="prod-duracao-minutos" placeholder="Ex: 30" />
+        </div>
+        <!-- Módulo Locações: só aparece pra loja com modulos_ativos.locacao
+            ligado. Diferente de Agendável, não precisa de duração — a
+            locação usa datas de retirada/devolução digitadas na hora do
+            registro, sem exclusion constraint no banco. -->
+        <div class="campo oculto-modo" id="campo-locavel">
+            <label><input type="checkbox" id="prod-locavel" style="width:auto;margin-right:6px;" /> Locável (aparece pra escolher em Locações)</label>
+        </div>
         <div class="campo">
             <label>Fotos do produto</label>
             <div id="prod-fotos-galeria" class="fotos-galeria"></div>
@@ -1010,6 +1047,59 @@
             <button type="button" class="btn-historico btn-copiar" id="btn-detalhes-copiar"><i class="fa fa-copy"></i> Copiar comanda</button>
             <button type="button" class="btn-mesa-finalizar" id="btn-detalhes-finalizar"><i class="fa fa-check"></i> Finalizar comanda</button>
             <button type="button" class="btn-secundario" id="btn-detalhes-fechar">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: NOVO/EDITAR AGENDAMENTO ==================== -->
+<div id="modal-agendamento" style="display:none;position:fixed;inset:0;background:rgba(36,27,22,.6);z-index:207;align-items:center;justify-content:center;padding:16px;">
+    <div class="modal-box" style="max-width:460px;">
+        <h2 id="agendamento-modal-titulo">Novo agendamento</h2>
+        <input type="hidden" id="ag-id" />
+        <div class="campo"><label>Serviço</label><select id="ag-produto"></select></div>
+        <div class="campo"><label>Nome do cliente</label><input id="ag-cliente-nome" /></div>
+        <div class="campo"><label>WhatsApp do cliente (só números, com DDI e DDD)</label><input id="ag-cliente-whatsapp" placeholder="5591991396925" /></div>
+        <div class="grid2">
+            <div class="campo"><label>Data</label><input type="date" id="ag-data" /></div>
+            <div class="campo"><label>Hora de início</label><input type="time" id="ag-hora-inicio" /></div>
+        </div>
+        <div class="campo"><label>Observações</label><textarea id="ag-obs" rows="2"></textarea></div>
+        <div id="msg-modal-agendamento"></div>
+        <div class="modal-acoes">
+            <button class="btn-secundario" id="btn-cancelar-agendamento">Cancelar</button>
+            <button class="btn-primario" id="btn-salvar-agendamento" style="width:auto;padding:10px 20px;">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: NOVA/EDITAR LOCAÇÃO ==================== -->
+<div id="modal-locacao" style="display:none;position:fixed;inset:0;background:rgba(36,27,22,.6);z-index:208;align-items:center;justify-content:center;padding:16px;">
+    <div class="modal-box" style="max-width:460px;">
+        <h2 id="locacao-modal-titulo">Nova locação</h2>
+        <input type="hidden" id="loc-id" />
+        <div class="campo"><label>Item</label><select id="loc-produto"></select></div>
+        <div class="campo"><label>Nome do cliente</label><input id="loc-cliente-nome" /></div>
+        <div class="campo"><label>WhatsApp do cliente (só números, com DDI e DDD)</label><input id="loc-cliente-whatsapp" placeholder="5591991396925" /></div>
+        <div class="grid2">
+            <div class="campo"><label>Data de retirada</label><input type="date" id="loc-data-retirada" /></div>
+            <div class="campo"><label>Devolução prevista</label><input type="date" id="loc-data-devolucao-prevista" /></div>
+        </div>
+        <div class="grid2">
+            <div class="campo"><label>Valor combinado (R$)</label><input type="number" step="0.01" min="0" id="loc-valor" /></div>
+            <div class="campo"><label>Status</label>
+                <select id="loc-status">
+                    <option value="confirmado">Confirmada</option>
+                    <option value="em_andamento">Em andamento</option>
+                    <option value="devolvido">Devolvida</option>
+                    <option value="cancelado">Cancelada</option>
+                </select>
+            </div>
+        </div>
+        <div class="campo"><label>Observações</label><textarea id="loc-obs" rows="2"></textarea></div>
+        <div id="msg-modal-locacao"></div>
+        <div class="modal-acoes">
+            <button class="btn-secundario" id="btn-cancelar-locacao">Cancelar</button>
+            <button class="btn-primario" id="btn-salvar-locacao" style="width:auto;padding:10px 20px;">Salvar</button>
         </div>
     </div>
 </div>
@@ -1217,6 +1307,14 @@ function aplicarModoFormularioProduto() {
     const usaEncomenda = (window.MODO_LOJA || {}).usaEncomenda !== false
     document.getElementById("campo-sob-encomenda").classList.toggle("oculto-modo", !usaEncomenda)
     document.getElementById("campo-antecedencia").classList.toggle("oculto-modo", !usaEncomenda)
+
+    // Multi-nicho: só mostra "Agendável" pra loja com o módulo ligado
+    // (config-loja.js: MODULOS_ATIVOS, vindo de supabase-loader.js).
+    const usaAgendamento = (window.MODULOS_ATIVOS || {}).agendamento === true
+    document.getElementById("campo-agendavel").classList.toggle("oculto-modo", !usaAgendamento)
+
+    const usaLocacao = (window.MODULOS_ATIVOS || {}).locacao === true
+    document.getElementById("campo-locavel").classList.toggle("oculto-modo", !usaLocacao)
 }
 
 aplicarModoFormularioProduto()
@@ -1695,6 +1793,14 @@ function salvarRascunhoProdutoEmAndamento() {
             retiradaApenas: document.getElementById("prod-retirada-apenas").checked,
             esconderSetas: document.getElementById("prod-esconder-setas").checked,
             esconderObservacao: document.getElementById("prod-esconder-observacao").checked,
+            // Multi-nicho: mesmos campos que aplicarModoFormularioProduto
+            // esconde/mostra por módulo (MODULOS_ATIVOS) — salvos aqui
+            // independente do módulo estar ligado ou não, pra não perder o
+            // valor caso a loja tenha os dois módulos ativos e o lojista
+            // esteja no meio do preenchimento quando a página recarregar.
+            agendavel: document.getElementById("prod-agendavel").checked,
+            duracaoMinutos: document.getElementById("prod-duracao-minutos").value,
+            locavel: document.getElementById("prod-locavel").checked,
             fotos: fotosProdutoAtual,
             opcoes: opcoesProdutoAtual,
             temOpcoes: document.getElementById("prod-tem-opcoes").checked
@@ -1740,6 +1846,11 @@ function restaurarRascunhoProdutoSeExistir() {
     document.getElementById("prod-esconder-setas").checked = !!rascunho.esconderSetas
     esconderSetasTocadoManualmente = true
     document.getElementById("prod-esconder-observacao").checked = !!rascunho.esconderObservacao
+
+    document.getElementById("prod-agendavel").checked = !!rascunho.agendavel
+    document.getElementById("prod-duracao-minutos").value = rascunho.duracaoMinutos || ""
+    document.getElementById("campo-duracao-minutos").style.display = rascunho.agendavel ? "block" : "none"
+    document.getElementById("prod-locavel").checked = !!rascunho.locavel
 
     fotosProdutoAtual = rascunho.fotos || []
     renderGaleriaFotos()
@@ -1788,6 +1899,9 @@ document.getElementById("prod-tem-opcoes").addEventListener("change", (e) => {
 
 document.getElementById("prod-sob-encomenda").addEventListener("change", (e) => {
     document.getElementById("campo-antecedencia").style.display = e.target.checked ? "block" : "none"
+})
+document.getElementById("prod-agendavel").addEventListener("change", (e) => {
+    document.getElementById("campo-duracao-minutos").style.display = e.target.checked ? "block" : "none"
 })
 
 // Se o preço-base for zerado (produto com variantes de preço),
@@ -2173,6 +2287,12 @@ function irParaAba(aba) {
     }
     if (aba === "encomendas") {
         carregarHistoricoEncomendas()
+    }
+    if (aba === "agendamentos") {
+        carregarAgendamentos()
+    }
+    if (aba === "locacoes") {
+        carregarLocacoes()
     }
 
     fecharMenuLateral()
@@ -2908,6 +3028,10 @@ function abrirModalProduto(produto) {
     document.getElementById("prod-sob-encomenda").checked = produto ? !!produto.sob_encomenda : false
     document.getElementById("prod-antecedencia").value = (produto && produto.antecedencia_minima_horas) ? produto.antecedencia_minima_horas : ""
     document.getElementById("campo-antecedencia").style.display = (produto && produto.sob_encomenda) ? "block" : "none"
+    document.getElementById("prod-agendavel").checked = produto ? !!produto.agendavel : false
+    document.getElementById("prod-duracao-minutos").value = (produto && produto.duracao_minutos) ? produto.duracao_minutos : ""
+    document.getElementById("campo-duracao-minutos").style.display = (produto && produto.agendavel) ? "block" : "none"
+    document.getElementById("prod-locavel").checked = produto ? !!produto.locavel : false
     fotosProdutoAtual = produto && produto.fotos ? [...produto.fotos] : []
     fotosNovasNestaSessao = []
     fotosParaApagarAoSalvar = []
@@ -2992,7 +3116,14 @@ document.getElementById("btn-salvar-produto").addEventListener("click", async ()
         mostrar_botao_duvida: document.getElementById("prod-mostrar-duvida").checked,
         sob_encomenda: document.getElementById("prod-sob-encomenda").checked,
         antecedencia_minima_horas: document.getElementById("prod-antecedencia").value ? parseInt(document.getElementById("prod-antecedencia").value) : null,
+        agendavel: document.getElementById("prod-agendavel").checked,
+        duracao_minutos: document.getElementById("prod-duracao-minutos").value ? parseInt(document.getElementById("prod-duracao-minutos").value) : null,
+        locavel: document.getElementById("prod-locavel").checked,
         opcoes: temOpcoes ? opcoesProdutoAtual : null
+    }
+    if (registro.agendavel && !registro.duracao_minutos) {
+        alert("Informe a duração (em minutos) para um produto agendável.")
+        return
     }
     if (!id) registro.ordem = produtosAtuais.length
 
@@ -4273,6 +4404,371 @@ async function copiarHistorico(id, tipo) {
 
     btn.innerHTML = `<i class="fa fa-check"></i> Copiado!`
     setTimeout(() => { btn.innerHTML = textoOriginal }, 1800)
+}
+
+// ============================================================
+// ABA "AGENDAMENTOS" (módulo multi-nicho: agendamentos_loja)
+// A duração de cada agendamento vem de produtos.duracao_minutos —
+// o front nunca digita a hora de fim, só calcula (início + duração).
+// O banco tem uma exclusion constraint que rejeita overlap por
+// produto_id: se o INSERT/UPDATE vier com erro dessa constraint,
+// tratamos como "horário ocupado" em vez de mostrar o erro técnico.
+// ============================================================
+let agendamentosAtuais = []
+let produtosAgendaveisAtuais = []
+
+async function carregarAgendamentos() {
+    const msg = document.getElementById("msg-agendamentos")
+    const { data, error } = await sb
+        .from("agendamentos_loja")
+        .select("*, produtos(nome, duracao_minutos)")
+        .eq("loja_id", lojaAtual.id)
+        .neq("status", "cancelado")
+        .order("data_hora_inicio", { ascending: true })
+
+    if (error) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Erro ao carregar agendamentos.</div>`
+        return
+    }
+    msg.innerHTML = ""
+    agendamentosAtuais = data || []
+    renderizarAgendamentos()
+}
+
+function renderizarAgendamentos() {
+    const lista = document.getElementById("lista-agendamentos")
+    lista.innerHTML = ""
+
+    if (!agendamentosAtuais.length) {
+        lista.innerHTML = `<p style="color:#8a7361;font-size:14px;">Nenhum agendamento futuro.</p>`
+        return
+    }
+
+    agendamentosAtuais.forEach(a => {
+        const inicio = new Date(a.data_hora_inicio)
+        const fim = new Date(a.data_hora_fim)
+        const dataFormatada = inicio.toLocaleDateString("pt-BR")
+        const horaFormatada = `${inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} – ${fim.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+        const nomeServico = (a.produtos && a.produtos.nome) || "(serviço removido)"
+
+        const linha = document.createElement("div")
+        linha.className = "produto-linha"
+        linha.innerHTML = `
+            <div class="info">
+                <strong>${escaparHtml(nomeServico)} ${a.criado_por === "cliente" ? '<span class="tag" style="background:#8a5a2b;color:white;">Self-service</span>' : ''}</strong>
+                <span>${escaparHtml(dataFormatada)} · ${escaparHtml(horaFormatada)}</span><br>
+                <span>${escaparHtml(a.cliente_nome)} · ${escaparHtml(a.cliente_whatsapp)}</span>
+            </div>
+            <div class="produto-acoes">
+                <button class="btn-icone" title="Editar" onclick="editarAgendamento('${a.id}')"><i class="fa fa-pen"></i></button>
+                <button class="btn-icone apagar" title="Cancelar" onclick="cancelarAgendamento('${a.id}')"><i class="fa fa-xmark"></i></button>
+            </div>
+        `
+        lista.appendChild(linha)
+    })
+}
+
+// Carrega só os produtos marcados como agendáveis — é essa lista que
+// preenche o select do modal e também dá a duração usada pra calcular
+// o horário de fim automaticamente.
+async function preencherSelectServicosAgendaveis(produtoIdAtual) {
+    const { data } = await sb
+        .from("produtos")
+        .select("id, nome, duracao_minutos")
+        .eq("loja_id", lojaAtual.id)
+        .eq("agendavel", true)
+        .order("nome", { ascending: true })
+
+    produtosAgendaveisAtuais = data || []
+    const select = document.getElementById("ag-produto")
+    select.innerHTML = ""
+
+    if (!produtosAgendaveisAtuais.length) {
+        select.innerHTML = `<option value="">Nenhum serviço agendável — marque "Agendável" num produto primeiro</option>`
+        return
+    }
+
+    produtosAgendaveisAtuais.forEach(p => {
+        const opt = document.createElement("option")
+        opt.value = p.id
+        opt.textContent = `${p.nome} (${p.duracao_minutos || "?"} min)`
+        select.appendChild(opt)
+    })
+
+    if (produtoIdAtual) select.value = produtoIdAtual
+}
+
+document.getElementById("btn-novo-agendamento").addEventListener("click", () => abrirModalAgendamento())
+
+async function abrirModalAgendamento(agendamento) {
+    document.getElementById("agendamento-modal-titulo").textContent = agendamento ? "Editar agendamento" : "Novo agendamento"
+    document.getElementById("msg-modal-agendamento").innerHTML = ""
+    document.getElementById("ag-id").value = agendamento ? agendamento.id : ""
+    await preencherSelectServicosAgendaveis(agendamento ? agendamento.produto_id : null)
+    document.getElementById("ag-cliente-nome").value = agendamento ? agendamento.cliente_nome : ""
+    document.getElementById("ag-cliente-whatsapp").value = agendamento ? agendamento.cliente_whatsapp : ""
+    document.getElementById("ag-obs").value = agendamento ? (agendamento.observacoes || "") : ""
+
+    if (agendamento) {
+        const inicio = new Date(agendamento.data_hora_inicio)
+        document.getElementById("ag-data").value = inicio.toISOString().slice(0, 10)
+        document.getElementById("ag-hora-inicio").value = inicio.toTimeString().slice(0, 5)
+    } else {
+        document.getElementById("ag-data").value = ""
+        document.getElementById("ag-hora-inicio").value = ""
+    }
+
+    document.getElementById("modal-agendamento").style.display = "flex"
+}
+
+document.getElementById("btn-cancelar-agendamento").addEventListener("click", () => {
+    document.getElementById("modal-agendamento").style.display = "none"
+})
+
+function editarAgendamento(id) {
+    const a = agendamentosAtuais.find(x => x.id === id)
+    if (a) abrirModalAgendamento(a)
+}
+
+document.getElementById("btn-salvar-agendamento").addEventListener("click", async () => {
+    const msg = document.getElementById("msg-modal-agendamento")
+    msg.innerHTML = ""
+
+    const id = document.getElementById("ag-id").value
+    const produtoId = document.getElementById("ag-produto").value
+    const clienteNome = document.getElementById("ag-cliente-nome").value.trim()
+    const clienteWhatsappDigitado = document.getElementById("ag-cliente-whatsapp").value.trim()
+    const clienteWhatsapp = clienteWhatsappDigitado.replace(/[\s()\-+]/g, "")
+    const data = document.getElementById("ag-data").value
+    const horaInicio = document.getElementById("ag-hora-inicio").value
+    const observacoes = document.getElementById("ag-obs").value.trim()
+
+    if (!produtoId || !clienteNome || !data || !horaInicio) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Preencha serviço, cliente, data e hora.</div>`
+        return
+    }
+
+    const produto = produtosAgendaveisAtuais.find(p => p.id === produtoId)
+    const duracaoMinutos = (produto && produto.duracao_minutos) || 30
+
+    const inicio = new Date(`${data}T${horaInicio}:00`)
+    const fim = new Date(inicio.getTime() + duracaoMinutos * 60000)
+
+    const registro = {
+        loja_id: lojaAtual.id,
+        produto_id: produtoId,
+        cliente_nome: clienteNome,
+        cliente_whatsapp: clienteWhatsapp,
+        data_hora_inicio: inicio.toISOString(),
+        data_hora_fim: fim.toISOString(),
+        observacoes: observacoes || null,
+        criado_por: "lojista"
+    }
+
+    const query = id
+        ? sb.from("agendamentos_loja").update(registro).eq("id", id)
+        : sb.from("agendamentos_loja").insert(registro)
+
+    const { error } = await query
+
+    if (error) {
+        const ehConflito = error.code === "23P01" || /exclu|conflict|overlap/i.test(error.message || "")
+        msg.innerHTML = `<div class="aviso aviso-erro">${ehConflito ? "Esse horário já está ocupado para este serviço." : "Não foi possível salvar: " + escaparHtml(error.message)}</div>`
+        return
+    }
+
+    document.getElementById("modal-agendamento").style.display = "none"
+    await carregarAgendamentos()
+})
+
+async function cancelarAgendamento(id) {
+    if (!confirm("Cancelar este agendamento?")) return
+    const { error } = await sb.from("agendamentos_loja").update({ status: "cancelado" }).eq("id", id)
+    if (error) { alert("Não foi possível cancelar: " + error.message); return }
+    await carregarAgendamentos()
+}
+
+// ============================================================
+// ABA "LOCAÇÕES" (módulo multi-nicho: locacoes_loja)
+// Diferente de Agendamentos, não tem exclusion constraint no banco —
+// o lojista controla o ciclo de vida manualmente via campo status
+// (confirmado → em_andamento → devolvido), já que uma locação não
+// tem um horário de fim automático calculável (o item pode voltar
+// antes ou depois do previsto).
+// ============================================================
+let locacoesAtuais = []
+let produtosLocaveisAtuais = []
+
+const LABEL_STATUS_LOCACAO = {
+    solicitado: "Solicitada",
+    confirmado: "Confirmada",
+    em_andamento: "Em andamento",
+    devolvido: "Devolvida",
+    cancelado: "Cancelada"
+}
+
+async function carregarLocacoes() {
+    const msg = document.getElementById("msg-locacoes")
+    const { data, error } = await sb
+        .from("locacoes_loja")
+        .select("*, produtos(nome)")
+        .eq("loja_id", lojaAtual.id)
+        .neq("status", "cancelado")
+        .order("data_retirada", { ascending: true })
+
+    if (error) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Erro ao carregar locações.</div>`
+        return
+    }
+    msg.innerHTML = ""
+    locacoesAtuais = data || []
+    renderizarLocacoes()
+}
+
+function formatarDataLocacao(valor) {
+    if (!valor) return "—"
+    return new Date(valor + "T00:00:00").toLocaleDateString("pt-BR")
+}
+
+function renderizarLocacoes() {
+    const lista = document.getElementById("lista-locacoes")
+    lista.innerHTML = ""
+
+    if (!locacoesAtuais.length) {
+        lista.innerHTML = `<p style="color:#8a7361;font-size:14px;">Nenhuma locação em aberto.</p>`
+        return
+    }
+
+    locacoesAtuais.forEach(l => {
+        const nomeItem = (l.produtos && l.produtos.nome) || "(item removido)"
+        const cores = { confirmado: "#8a5a2b", em_andamento: "#D9A441", devolvido: "#4C6B3F", solicitado: "#6b7280" }
+        const corStatus = cores[l.status] || "#6b7280"
+
+        const linha = document.createElement("div")
+        linha.className = "produto-linha"
+        linha.innerHTML = `
+            <div class="info">
+                <strong>${escaparHtml(nomeItem)} <span class="tag" style="background:${corStatus};color:white;">${escaparHtml(LABEL_STATUS_LOCACAO[l.status] || l.status)}</span></strong>
+                <span>Retirada: ${escaparHtml(formatarDataLocacao(l.data_retirada))} · Devolução prevista: ${escaparHtml(formatarDataLocacao(l.data_devolucao_prevista))}</span><br>
+                <span>${escaparHtml(l.cliente_nome)} · ${escaparHtml(l.cliente_whatsapp)}</span>
+            </div>
+            <div class="produto-acoes">
+                <button class="btn-icone" title="Editar" onclick="editarLocacao('${l.id}')"><i class="fa fa-pen"></i></button>
+                <button class="btn-icone apagar" title="Cancelar" onclick="cancelarLocacao('${l.id}')"><i class="fa fa-xmark"></i></button>
+            </div>
+        `
+        lista.appendChild(linha)
+    })
+}
+
+async function preencherSelectItensLocaveis(produtoIdAtual) {
+    const { data } = await sb
+        .from("produtos")
+        .select("id, nome")
+        .eq("loja_id", lojaAtual.id)
+        .eq("locavel", true)
+        .order("nome", { ascending: true })
+
+    produtosLocaveisAtuais = data || []
+    const select = document.getElementById("loc-produto")
+    select.innerHTML = ""
+
+    if (!produtosLocaveisAtuais.length) {
+        select.innerHTML = `<option value="">Nenhum item locável — marque "Locável" num produto primeiro</option>`
+        return
+    }
+
+    produtosLocaveisAtuais.forEach(p => {
+        const opt = document.createElement("option")
+        opt.value = p.id
+        opt.textContent = p.nome
+        select.appendChild(opt)
+    })
+
+    if (produtoIdAtual) select.value = produtoIdAtual
+}
+
+document.getElementById("btn-nova-locacao").addEventListener("click", () => abrirModalLocacao())
+
+async function abrirModalLocacao(locacao) {
+    document.getElementById("locacao-modal-titulo").textContent = locacao ? "Editar locação" : "Nova locação"
+    document.getElementById("msg-modal-locacao").innerHTML = ""
+    document.getElementById("loc-id").value = locacao ? locacao.id : ""
+    await preencherSelectItensLocaveis(locacao ? locacao.produto_id : null)
+    document.getElementById("loc-cliente-nome").value = locacao ? locacao.cliente_nome : ""
+    document.getElementById("loc-cliente-whatsapp").value = locacao ? locacao.cliente_whatsapp : ""
+    document.getElementById("loc-data-retirada").value = locacao && locacao.data_retirada ? locacao.data_retirada.slice(0, 10) : ""
+    document.getElementById("loc-data-devolucao-prevista").value = locacao && locacao.data_devolucao_prevista ? locacao.data_devolucao_prevista.slice(0, 10) : ""
+    document.getElementById("loc-valor").value = (locacao && locacao.valor_combinado) ? locacao.valor_combinado : ""
+    document.getElementById("loc-status").value = locacao ? locacao.status : "confirmado"
+    document.getElementById("loc-obs").value = locacao ? (locacao.observacoes || "") : ""
+
+    document.getElementById("modal-locacao").style.display = "flex"
+}
+
+document.getElementById("btn-cancelar-locacao").addEventListener("click", () => {
+    document.getElementById("modal-locacao").style.display = "none"
+})
+
+function editarLocacao(id) {
+    const l = locacoesAtuais.find(x => x.id === id)
+    if (l) abrirModalLocacao(l)
+}
+
+document.getElementById("btn-salvar-locacao").addEventListener("click", async () => {
+    const msg = document.getElementById("msg-modal-locacao")
+    msg.innerHTML = ""
+
+    const id = document.getElementById("loc-id").value
+    const produtoId = document.getElementById("loc-produto").value
+    const clienteNome = document.getElementById("loc-cliente-nome").value.trim()
+    const clienteWhatsappDigitado = document.getElementById("loc-cliente-whatsapp").value.trim()
+    const clienteWhatsapp = clienteWhatsappDigitado.replace(/[\s()\-+]/g, "")
+    const dataRetirada = document.getElementById("loc-data-retirada").value
+    const dataDevolucaoPrevista = document.getElementById("loc-data-devolucao-prevista").value
+    const valor = document.getElementById("loc-valor").value
+    const status = document.getElementById("loc-status").value
+    const observacoes = document.getElementById("loc-obs").value.trim()
+
+    if (!produtoId || !clienteNome) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Preencha ao menos o item e o cliente.</div>`
+        return
+    }
+
+    const registro = {
+        loja_id: lojaAtual.id,
+        produto_id: produtoId,
+        cliente_nome: clienteNome,
+        cliente_whatsapp: clienteWhatsapp,
+        data_retirada: dataRetirada || null,
+        data_devolucao_prevista: dataDevolucaoPrevista || null,
+        data_devolucao_real: status === "devolvido" ? new Date().toISOString() : null,
+        valor_combinado: valor ? parseFloat(valor) : null,
+        status,
+        observacoes: observacoes || null,
+        criado_por: "lojista"
+    }
+
+    const query = id
+        ? sb.from("locacoes_loja").update(registro).eq("id", id)
+        : sb.from("locacoes_loja").insert(registro)
+
+    const { error } = await query
+
+    if (error) {
+        msg.innerHTML = `<div class="aviso aviso-erro">Não foi possível salvar: ${escaparHtml(error.message)}</div>`
+        return
+    }
+
+    document.getElementById("modal-locacao").style.display = "none"
+    await carregarLocacoes()
+})
+
+async function cancelarLocacao(id) {
+    if (!confirm("Cancelar esta locação?")) return
+    const { error } = await sb.from("locacoes_loja").update({ status: "cancelado" }).eq("id", id)
+    if (error) { alert("Não foi possível cancelar: " + error.message); return }
+    await carregarLocacoes()
 }
 
 // ============================================================
