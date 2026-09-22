@@ -1413,6 +1413,14 @@ document.getElementById("el-nicho").addEventListener("change", (e) => {
 aplicarVisibilidadeModoAtendimento(e.target.value, "el")
 })
 
+document.getElementById("nl-modulo-agendamento").addEventListener("change", () => {
+atualizarVisibilidadeAgendamentoSelf("nl")
+})
+
+document.getElementById("el-modulo-agendamento").addEventListener("change", () => {
+atualizarVisibilidadeAgendamentoSelf("el")
+})
+
 document.getElementById("btn-el-apagar-loja").addEventListener("click", async () => {
 const loja = lojasCadastradas.find(l => String(l.id) === document.getElementById("el-id").value)
 if (!loja) return
@@ -1943,24 +1951,36 @@ document.getElementById(`${prefixo}-modo-mesa`).checked = false
 document.getElementById(`${prefixo}-modo-encomenda`).checked = false
 }
 
-// "Cliente agenda sozinho" só tem efeito na loja de nicho agendamento
-// (index-loja-agendamento.html é quem lê essa flag) — mesma lógica de
-// esconder + zerar quando não se aplica.
-const wrapSelf = document.getElementById(`${prefixo}-agendamento-self-wrap`)
-if (wrapSelf) {
-wrapSelf.style.display = ehAgendamento ? "flex" : "none"
-if (!ehAgendamento) document.getElementById(`${prefixo}-modulo-agendamento-self`).checked = false
+atualizarVisibilidadeAgendamentoSelf(prefixo)
 }
+
+// "Cliente agenda sozinho" só faz sentido quando as DUAS condições valem:
+// nicho é "agendamento" (é o index-loja-agendamento.html que lê essa
+// flag) E o módulo "Agendamentos" está marcado (não tem sentido oferecer
+// self-service de um módulo desligado). Chamada tanto ao trocar o nicho
+// quanto ao marcar/desmarcar o checkbox de Agendamentos.
+function atualizarVisibilidadeAgendamentoSelf(prefixo) {
+const wrapSelf = document.getElementById(`${prefixo}-agendamento-self-wrap`)
+if (!wrapSelf) return
+
+const nicho = document.getElementById(`${prefixo}-nicho`).value
+const moduloAgendamentoAtivo = document.getElementById(`${prefixo}-modulo-agendamento`).checked
+const mostrar = nicho === "agendamento" && moduloAgendamentoAtivo
+
+wrapSelf.style.display = mostrar ? "flex" : "none"
+if (!mostrar) document.getElementById(`${prefixo}-modulo-agendamento-self`).checked = false
 }
 
 document.getElementById("nl-nicho").addEventListener("change", (e) => {
-aplicarVisibilidadeModoAtendimento(e.target.value, "nl")
 // Nicho "agendamento" sem o módulo ligado não faria sentido — pré-marca
 // como ponto de partida, mas o admin pode desmarcar se quiser só a
-// aba do admin sem abrir self-service no site público ainda.
+// aba do admin sem abrir self-service no site público ainda. Precisa
+// vir ANTES de aplicarVisibilidadeModoAtendimento, que decide a
+// visibilidade do self-service lendo o estado atual desse checkbox.
 if (e.target.value === "agendamento") {
 document.getElementById("nl-modulo-agendamento").checked = true
 }
+aplicarVisibilidadeModoAtendimento(e.target.value, "nl")
 })
 
 document.getElementById("nl-contratacao").addEventListener("change", (e) => {
