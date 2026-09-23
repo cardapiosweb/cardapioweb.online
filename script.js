@@ -625,11 +625,17 @@ function aplicarModoMesa() {
 // traria ?mesa= na URL — pede o número da mesa direto no carrinho, em
 // vez de mostrar entrega/retirada/pagamento, que não se aplicam aqui.
 // ===========================
-const somenteMesaSemQr = !modoMesa
-    && !!(window.MODO_LOJA && window.MODO_LOJA.usaMesa)
-    && !(window.MODO_LOJA && (window.MODO_LOJA.permiteDelivery || window.MODO_LOJA.permiteRetirada))
+let somenteMesaSemQr = false
 
 function aplicarMesaManual() {
+    // Mesmo motivo do somenteQuarto: calculado aqui dentro (não numa
+    // "const" no topo do arquivo), porque window.MODO_LOJA só existe
+    // depois que o supabase-loader.js termina a busca assíncrona — e
+    // essa função só roda dentro do listener de "dadosDaLojaProntos".
+    somenteMesaSemQr = !modoMesa
+        && !!(window.MODO_LOJA && window.MODO_LOJA.usaMesa)
+        && !(window.MODO_LOJA && (window.MODO_LOJA.permiteDelivery || window.MODO_LOJA.permiteRetirada))
+
     if (!somenteMesaSemQr) return
 
     document.getElementById("delivery-type-section")?.classList.add("oculto-modo")
@@ -648,9 +654,16 @@ function aplicarMesaManual() {
 // observação, opcionais). Pagamento continua normal (Pix/Dinheiro/
 // Cartão) — diferente do modo mesa, que fecha com o garçom.
 // ===========================
-const somenteQuarto = !!(window.MODO_LOJA && window.MODO_LOJA.usaQuarto)
+let somenteQuarto = false
 
 function aplicarModoQuarto() {
+    // Calculado aqui dentro, não numa "const" lá no topo do arquivo —
+    // window.MODO_LOJA só chega depois que o supabase-loader.js termina
+    // a busca assíncrona, e script.js roda ANTES disso terminar. Uma
+    // "const" no topo capturava sempre "false", porque nesse momento
+    // window.MODO_LOJA ainda não existia. Essa função só roda dentro do
+    // listener de "dadosDaLojaProntos", quando os dados já chegaram.
+    somenteQuarto = !!(window.MODO_LOJA && window.MODO_LOJA.usaQuarto)
     if (!somenteQuarto) return
 
     document.getElementById("delivery-type-section")?.classList.add("oculto-modo")
