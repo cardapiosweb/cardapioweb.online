@@ -1993,17 +1993,18 @@ document.getElementById(`${prefixo}-modo-encomenda`).checked = false
 }
 
 // Agendamentos/Locações continuam disponíveis em qualquer nicho, mas
-// no catálogo (caso mais raro de uso) ficam recolhidos por padrão,
-// com aviso de que é pouco comum; nos outros dois nichos (onde faz
-// mais sentido) já abrem expandidos.
+// só fazem parte do uso comum do nicho "Agendamento" — ali abrem
+// expandidos por padrão. Catálogo e Hotel/Pousada são ambos casos de
+// uso raro pra esses módulos (a variação de Hospedagem é só sobre
+// como o pedido chega até o hóspede, não sobre reserva/aluguel), então
+// os dois ficam recolhidos, com o mesmo aviso.
 const detalhesModulos = document.getElementById(`${prefixo}-modulos-avancados`)
 if (detalhesModulos) {
 const tituloModulos = document.getElementById(`${prefixo}-modulos-avancados-titulo`)
-const ehCatalogo = !ehAgendamento && !ehHospedagem
-detalhesModulos.open = !ehCatalogo
-tituloModulos.textContent = ehCatalogo
-? "Agendamentos / Locações — opções avançadas, raramente usadas nesse nicho"
-: "Agendamentos / Locações"
+detalhesModulos.open = ehAgendamento
+tituloModulos.textContent = ehAgendamento
+? "Agendamentos / Locações"
+: "Agendamentos / Locações — opções avançadas, raramente usadas nesse nicho"
 }
 
 atualizarVisibilidadeAgendamentoSelf(prefixo)
