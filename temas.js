@@ -54,6 +54,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-pizza-slice",
         emojiPlaceholder: "🍕",
         textoAltLogo: "Logo da pizzaria",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-fire-burner", titulo: "Forno a lenha", desc: "Pizzas assadas na hora do seu pedido, no ponto certo." },
@@ -117,6 +118,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-fire-burner",
         emojiPlaceholder: "🍖",
         textoAltLogo: "Logo da churrascaria",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-fire", titulo: "Direto na brasa", desc: "Carnes grelhadas na hora do seu pedido, no ponto certo." },
@@ -180,6 +182,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-burger",
         emojiPlaceholder: "🍔",
         textoAltLogo: "Logo da hamburgueria",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-fire-burner", titulo: "Direto da chapa", desc: "Hambúrgueres montados na hora do seu pedido, quentinhos." },
@@ -243,6 +246,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-cake-candles",
         emojiPlaceholder: "🍰",
         textoAltLogo: "Logo da doceria",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-cake-candles", titulo: "Feito na hora", desc: "Doces preparados com carinho pra chegar fresquinhos até você." },
@@ -306,6 +310,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-ice-cream",
         emojiPlaceholder: "🍧",
         textoAltLogo: "Logo da açaiteria",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-ice-cream", titulo: "Açaí na hora", desc: "Batido e montado na hora do seu pedido, sempre geladinho." },
@@ -369,6 +374,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-umbrella-beach",
         emojiPlaceholder: "🏖️",
         textoAltLogo: "Logo da barraca de praia",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-umbrella-beach", titulo: "Direto da barraca", desc: "Preparado na hora do seu pedido, sem enrolação." },
@@ -432,6 +438,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-champagne-glasses",
         emojiPlaceholder: "🍽️",
         textoAltLogo: "Logo do bistrô",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-champagne-glasses", titulo: "Pratos autorais", desc: "Preparados na hora do seu pedido, com técnica e cuidado." },
@@ -495,6 +502,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-palette",
         emojiPlaceholder: "💄",
         textoAltLogo: "Logo da loja de maquiagem",
+        nichosCompativeis: ["catalogo", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-palette", titulo: "Produtos originais", desc: "Maquiagens 100% originais, com procedência garantida." },
@@ -558,6 +566,7 @@ const TEMAS = {
         iconeFallbackLogo: "fa-store",
         emojiPlaceholder: "🏪",
         textoAltLogo: "Logo da loja",
+        nichosCompativeis: ["catalogo", "agendamento", "hospedagem"],
         textosPadrao: {
             diferenciais: [
                 { icone: "fa fa-store", titulo: "Qualidade", desc: "Produtos selecionados com cuidado." },

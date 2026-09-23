@@ -383,7 +383,43 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </div>
 </div>
 
-<!-- ==================== MODAL: NOVA LOJA (provisionamento completo) ==================== -->
+<style>
+.wizard-progresso{margin-bottom:18px;}
+.wizard-progresso-barra{background:var(--linha);border-radius:999px;height:6px;overflow:hidden;}
+.wizard-progresso-preenchido{background:var(--acento);height:100%;border-radius:999px;transition:width .25s;}
+.wizard-progresso-texto{font-size:12px;color:var(--tinta-suave);font-weight:600;margin-top:6px;}
+.wizard-passo-titulo{font-size:17px;margin-bottom:4px;}
+.wizard-passo-sub{font-size:13px;color:var(--tinta-suave);margin:0 0 16px;}
+.wizard-cartoes-categoria{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(max-width:520px){.wizard-cartoes-categoria{grid-template-columns:1fr;}}
+.wizard-cartao{border:1.5px solid var(--linha);border-radius:12px;padding:14px;cursor:pointer;text-align:left;background:var(--cartao);transition:border-color .15s;}
+.wizard-cartao:hover{border-color:var(--acento);}
+.wizard-cartao.selecionado{border-color:var(--acento);background:var(--papel);box-shadow:0 0 0 1.5px var(--acento) inset;}
+.wizard-cartao i{font-size:20px;color:var(--acento);margin-bottom:8px;display:block;}
+.wizard-cartao .titulo{font-weight:700;font-size:14px;margin-bottom:3px;}
+.wizard-cartao .desc{font-size:12px;color:var(--tinta-suave);}
+.wizard-modulo-card{border:1.5px solid var(--linha);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;}
+.wizard-modulo-card input{width:auto;margin-top:3px;flex-shrink:0;}
+.wizard-modulo-card .titulo{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.wizard-modulo-card .desc{font-size:12.5px;color:var(--tinta-suave);margin-top:2px;}
+.wizard-modulo-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.02em;}
+.wizard-modulo-tag.recomendado{background:var(--ok-bg);color:var(--ok);}
+.wizard-modulo-tag.opcional{background:var(--neutro-bg);color:var(--neutro);}
+.wizard-grade-temas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:520px){.wizard-grade-temas{grid-template-columns:repeat(2,1fr);}}
+.wizard-tema-card{border:1.5px solid var(--linha);border-radius:12px;padding:10px;cursor:pointer;text-align:center;background:var(--cartao);}
+.wizard-tema-card:hover{border-color:var(--acento);}
+.wizard-tema-card.selecionado{border-color:var(--acento);box-shadow:0 0 0 1.5px var(--acento) inset;}
+.wizard-tema-swatch{width:100%;height:36px;border-radius:8px;margin-bottom:8px;}
+.wizard-tema-card .nome{font-size:12px;font-weight:600;}
+.wizard-revisao-secao{border:1.5px solid var(--linha);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.wizard-revisao-secao .cabecalho{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.wizard-revisao-secao .cabecalho strong{font-size:13px;}
+.wizard-revisao-secao .editar{background:none;border:none;color:var(--acento);font-size:12px;font-weight:600;padding:0;cursor:pointer;}
+.wizard-revisao-secao .conteudo{font-size:12.5px;color:var(--tinta-suave);line-height:1.7;}
+</style>
+
+<!-- ==================== MODAL: NOVA LOJA (wizard guiado) ==================== -->
 <div id="modal-nova-loja">
 <div class="modal-box modal-box-largo">
 <div class="modal-topo">
@@ -391,9 +427,17 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <h2>Nova loja</h2>
 </div>
 <button type="button" class="link-vincular" id="btn-ir-para-vincular">Já tem uma loja cadastrada no banco? Vincular loja existente</button>
+
+<div class="wizard-progresso">
+<div class="wizard-progresso-barra"><div class="wizard-progresso-preenchido" id="wizard-progresso-preenchido"></div></div>
+<div class="wizard-progresso-texto" id="wizard-progresso-texto">Passo 1 de 7 — Informações básicas</div>
+</div>
+
 <div id="msg-nova-loja"></div>
 
-<h3 style="font-size:14px;margin:18px 0 10px;">Dados da loja</h3>
+<div class="wizard-passo" data-passo="1">
+<h3 class="wizard-passo-titulo">Informações básicas</h3>
+<p class="wizard-passo-sub">Como sua loja vai se chamar e como o cliente encontra ela.</p>
 <div class="grid2">
 <div class="campo"><label>Nome da loja</label><input id="nl-nome" placeholder="Ex: Mestre do Churrasco" /></div>
 <div class="campo"><label>Subdomínio (slug)</label><input id="nl-slug" placeholder="gerado automaticamente" /></div>
@@ -404,75 +448,15 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div class="campo"><label>Chave Pix</label><input id="nl-chave-pix" placeholder="Opcional" /></div>
 </div>
 <div class="grid2">
-<div class="campo">
-<label>Tema visual</label>
-<select id="nl-tema"></select>
-</div>
-<div class="campo">
-<label><input type="checkbox" id="nl-usar-cor-personalizada" style="width:auto;margin-right:6px;" /> Usar cor personalizada</label>
-<input type="color" id="nl-cor" style="margin-top:8px;" disabled />
-</div>
-</div>
-
-<h3 style="font-size:14px;margin:18px 0 10px;">Nicho e módulos</h3>
-<div class="campo">
-<label>Nicho</label>
-<select id="nl-nicho">
-<option value="catalogo">Catálogo — pizzaria, hamburgueria, doceria (com carrinho)</option>
-<option value="agendamento">Agendamento — barbearia, salão, clínica (sem carrinho)</option>
-<option value="hospedagem">Hotel/Pousada — entrega de pedidos pro quarto</option>
-</select>
-</div>
-<p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.</p>
-
-<!-- Módulos funcionam em qualquer nicho (proposital — ver Manual 1
-     §12.1), mas pra não parecer "aleatório" no catálogo (caso mais
-     raro), ficam recolhidos atrás de um <details> nesse nicho e
-     abertos nos outros dois — controlado por JS em
-     aplicarVisibilidadeModoAtendimento. -->
-<details class="campo" id="nl-modulos-avancados" style="border:1.5px solid var(--linha);border-radius:8px;padding:10px 12px;margin-top:4px;">
-<summary id="nl-modulos-avancados-titulo" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--tinta-suave);">Agendamentos / Locações</summary>
-<div class="grupo-checks" style="margin-top:10px;">
-<label><input type="checkbox" id="nl-modulo-agendamento" /> Agendamentos (aba no admin)</label>
-</div>
-<p class="domino-preview" style="margin:4px 0 0;">Ex: salão que atende com hora marcada, espaço que aceita reserva.</p>
-<div class="grupo-checks" style="margin-top:12px;">
-<label><input type="checkbox" id="nl-modulo-locacao" /> Locações (aba no admin)</label>
-</div>
-<p class="domino-preview" style="margin:4px 0 0;">Ex: aluguel de equipamento, bike, roupa de festa.</p>
-</details>
-<!-- Só tem efeito real numa loja de nicho "agendamento" — é o
-     index-loja-agendamento.html que lê essa flag. Numa loja "catalogo"
-     não existe tela pública que consuma isso, então fica escondido.
-     "Locação self-service" não tem checkbox aqui de propósito: a RLS
-     já existe no banco (locacoes_loja: cliente insere com status
-     "solicitado"), mas nenhum front-end público foi construído pra
-     esse fluxo ainda — fica pendente até esse trabalho existir. -->
-<div class="grupo-checks" id="nl-agendamento-self-wrap" style="display:none;">
-<label><input type="checkbox" id="nl-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
-</div>
-
-<!-- Só faz sentido pra nicho "catalogo" — nicho "agendamento" usa um
-     site sem carrinho, então delivery/retirada/mesa/encomenda não se
-     aplicam. Escondido (e zerado ao salvar) quando o nicho é agendamento. -->
-<div id="nl-modo-atendimento-secao">
-<h3 style="font-size:14px;margin:18px 0 10px;">Modo de atendimento</h3>
-<div class="grupo-checks">
-<label><input type="checkbox" id="nl-modo-delivery" checked /> Delivery</label>
-<label><input type="checkbox" id="nl-modo-retirada" checked /> Retirada</label>
-<label><input type="checkbox" id="nl-modo-mesa" /> Mesa</label>
-<label><input type="checkbox" id="nl-modo-encomenda" /> Encomenda</label>
-</div>
-</div>
-
-<h3 style="font-size:14px;margin:18px 0 10px;">Dados do lojista</h3>
-<div class="grid2">
 <div class="campo"><label>Nome do lojista</label><input id="nl-lojista-nome" placeholder="Opcional" /></div>
 <div class="campo"><label>E-mail do lojista</label><input type="email" id="nl-lojista-email" placeholder="lojista@email.com" /></div>
 </div>
 <div class="aviso aviso-info"><i class="fa fa-circle-info"></i> A conta do lojista é criada automaticamente com esse e-mail. Depois de criar a loja, você recebe aqui uma senha temporária pra repassar a ele.</div>
+</div>
 
-<h3 style="font-size:14px;margin:18px 0 10px;">Assinatura / aluguel</h3>
+<div class="wizard-passo" data-passo="2" style="display:none;">
+<h3 class="wizard-passo-titulo">Plano / assinatura</h3>
+<p class="wizard-passo-sub">Como esse cliente vai pagar pelo aluguel do site.</p>
 <div class="grid2">
 <div class="campo">
 <label>Plano</label>
@@ -487,12 +471,87 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <div class="campo"><label>Data de contratação</label><input type="date" id="nl-contratacao" /></div>
 <div class="campo"><label>Data de vencimento</label><input type="date" id="nl-vencimento" /></div>
 </div>
+</div>
+
+<div class="wizard-passo" data-passo="3" style="display:none;">
+<h3 class="wizard-passo-titulo">Tipo de negócio</h3>
+<p class="wizard-passo-sub">Isso define os módulos e temas disponíveis nos próximos passos. Mais categorias chegam depois.</p>
+<div class="wizard-cartoes-categoria" id="wizard-cartoes-categoria"></div>
+<p class="domino-preview" id="nl-nicho-aviso" style="display:none;"></p>
+<input type="hidden" id="nl-nicho" value="catalogo" />
+</div>
+
+<div class="wizard-passo" data-passo="4" style="display:none;">
+<h3 class="wizard-passo-titulo">Módulos</h3>
+<p class="wizard-passo-sub">Ative o que essa loja vai usar. O mais comum nesse tipo de negócio já vem marcado.</p>
+
+<label class="wizard-modulo-card" data-nichos="catalogo">
+<input type="checkbox" id="nl-modo-delivery" />
+<div><div class="titulo">Delivery <span class="wizard-modulo-tag recomendado">Recomendado</span></div><div class="desc">Cliente pede e recebe em casa.</div></div>
+</label>
+
+<label class="wizard-modulo-card" data-nichos="catalogo">
+<input type="checkbox" id="nl-modo-retirada" />
+<div><div class="titulo">Retirada <span class="wizard-modulo-tag recomendado">Recomendado</span></div><div class="desc">Cliente busca o pedido no balcão.</div></div>
+</label>
+
+<label class="wizard-modulo-card" data-nichos="catalogo">
+<input type="checkbox" id="nl-modo-mesa" />
+<div><div class="titulo">Mesa <span class="wizard-modulo-tag opcional">Opcional</span></div><div class="desc">Atendimento com QR Code na mesa (modo garçom).</div></div>
+</label>
+
+<label class="wizard-modulo-card" data-nichos="catalogo">
+<input type="checkbox" id="nl-modo-encomenda" />
+<div><div class="titulo">Encomenda <span class="wizard-modulo-tag opcional">Opcional</span></div><div class="desc">Pedidos programados com antecedência (ex: bolos, festas).</div></div>
+</label>
+
+<label class="wizard-modulo-card" data-nichos="agendamento">
+<input type="checkbox" id="nl-modulo-agendamento" />
+<div><div class="titulo">Agendamentos <span class="wizard-modulo-tag recomendado">Recomendado</span></div><div class="desc">Aba no admin pra controlar horários marcados.</div></div>
+</label>
+
+<label class="wizard-modulo-card" data-nichos="agendamento">
+<input type="checkbox" id="nl-modulo-agendamento-self" />
+<div><div class="titulo">Cliente agenda sozinho <span class="wizard-modulo-tag opcional">Opcional</span></div><div class="desc">O cliente escolhe o horário direto pelo site, sem precisar chamar no WhatsApp.</div></div>
+</label>
+
+<label class="wizard-modulo-card" data-nichos="catalogo,agendamento,hospedagem">
+<input type="checkbox" id="nl-modulo-locacao" />
+<div><div class="titulo">Locações <span class="wizard-modulo-tag opcional">Opcional</span></div><div class="desc">Aba no admin pra controlar aluguel de itens (ex: equipamento, roupa de festa).</div></div>
+</label>
+
+<p class="domino-preview" id="wizard-hospedagem-nota" style="display:none;">Nesse tipo de negócio, o pedido é sempre entregue direto pro número do quarto — não tem delivery, retirada, mesa ou encomenda pra configurar.</p>
+</div>
+
+<div class="wizard-passo" data-passo="5" style="display:none;">
+<h3 class="wizard-passo-titulo">Tema visual</h3>
+<p class="wizard-passo-sub">Só aparecem os temas compatíveis com o tipo de negócio escolhido.</p>
+<div class="wizard-grade-temas" id="wizard-grade-temas"></div>
+<input type="hidden" id="nl-tema" value="generico" />
+</div>
+
+<div class="wizard-passo" data-passo="6" style="display:none;">
+<h3 class="wizard-passo-titulo">Personalização</h3>
+<p class="wizard-passo-sub">Por enquanto só a cor. Logo e textos próprios chegam em breve — por ora dá pra configurar isso depois em "Editar loja".</p>
+<label class="linha-check"><input type="checkbox" id="nl-usar-cor-personalizada" style="width:auto;" /> Usar cor personalizada</label>
+<input type="color" id="nl-cor" style="margin-top:10px;" disabled />
+<div class="aviso aviso-info" style="margin-top:14px;"><i class="fa fa-circle-info"></i> Logo e textos personalizados: em breve. Por ora a loja usa os textos padrão do tema escolhido.</div>
+</div>
+
+<div class="wizard-passo" data-passo="7" style="display:none;">
+<h3 class="wizard-passo-titulo">Revisão</h3>
+<p class="wizard-passo-sub">Confira tudo antes de criar a loja. Clique em "Editar" pra voltar a um passo específico.</p>
+<div id="wizard-revisao"></div>
+</div>
 
 <div class="modal-acoes">
-<div></div>
+<div>
+<button class="btn-secundario" id="btn-wizard-voltar" style="display:none;">Voltar</button>
+</div>
 <div class="modal-acoes-direita">
 <button class="btn-secundario" id="btn-cancelar-nova-loja">Cancelar</button>
-<button class="btn-primario" id="btn-salvar-nova-loja" style="width:auto;padding:10px 20px;">Criar loja</button>
+<button class="btn-primario" id="btn-wizard-avancar" style="width:auto;padding:10px 20px;">Continuar</button>
+<button class="btn-primario" id="btn-salvar-nova-loja" style="width:auto;padding:10px 20px;display:none;">Criar loja</button>
 </div>
 </div>
 </div>
@@ -1436,10 +1495,6 @@ document.getElementById("el-nicho").addEventListener("change", (e) => {
 aplicarVisibilidadeModoAtendimento(e.target.value, "el")
 })
 
-document.getElementById("nl-modulo-agendamento").addEventListener("change", () => {
-atualizarVisibilidadeAgendamentoSelf("nl")
-})
-
 document.getElementById("el-modulo-agendamento").addEventListener("change", () => {
 atualizarVisibilidadeAgendamentoSelf("el")
 })
@@ -2027,21 +2082,195 @@ wrapSelf.style.display = mostrar ? "flex" : "none"
 if (!mostrar) document.getElementById(`${prefixo}-modulo-agendamento-self`).checked = false
 }
 
-document.getElementById("nl-nicho").addEventListener("change", (e) => {
-// Nicho "agendamento" sem o módulo ligado não faria sentido — pré-marca
-// como ponto de partida, mas o admin pode desmarcar se quiser só a
-// aba do admin sem abrir self-service no site público ainda. Precisa
-// vir ANTES de aplicarVisibilidadeModoAtendimento, que decide a
-// visibilidade do self-service lendo o estado atual desse checkbox.
-if (e.target.value === "agendamento") {
-document.getElementById("nl-modulo-agendamento").checked = true
-}
-aplicarVisibilidadeModoAtendimento(e.target.value, "nl")
-})
-
 document.getElementById("nl-contratacao").addEventListener("change", (e) => {
 document.getElementById("nl-vencimento").value = somarMeses(e.target.value, 1)
 })
+
+// ============================================================
+// WIZARD "NOVA LOJA" — passos, cartões de categoria, temas e revisão
+// ============================================================
+const WIZARD_CATEGORIAS = [
+{ id: "alimentacao", nicho: "catalogo", icone: "fa-utensils", titulo: "Alimentação", desc: "Cardápio com carrinho — pizzaria, hamburgueria, doceria, açaiteria." },
+{ id: "beleza", nicho: "agendamento", icone: "fa-scissors", titulo: "Beleza", desc: "Atendimento com hora marcada — salão, barbearia, estética." },
+{ id: "saude", nicho: "agendamento", icone: "fa-heart-pulse", titulo: "Saúde", desc: "Atendimento com hora marcada — clínica, consultório." },
+{ id: "hospedagem", nicho: "hospedagem", icone: "fa-bed", titulo: "Hospedagem", desc: "Cardápio entregue direto no quarto — hotel, pousada." },
+{ id: "servicos", nicho: "agendamento", icone: "fa-toolbox", titulo: "Serviços", desc: "Atendimento com hora marcada — espaços, prestadores em geral." }
+]
+
+let categoriaSelecionadaId = null
+let passoAtualWizard = 1
+const TOTAL_PASSOS_WIZARD = 7
+const TITULOS_PASSOS_WIZARD = ["Informações básicas", "Plano", "Tipo de negócio", "Módulos", "Tema visual", "Personalização", "Revisão"]
+
+function renderizarCartoesCategoria() {
+const wrap = document.getElementById("wizard-cartoes-categoria")
+wrap.innerHTML = WIZARD_CATEGORIAS.map(c => `
+<button type="button" class="wizard-cartao" data-categoria="${c.id}">
+<i class="fa ${c.icone}"></i>
+<div class="titulo">${escaparHtml(c.titulo)}</div>
+<div class="desc">${escaparHtml(c.desc)}</div>
+</button>
+`).join("")
+wrap.querySelectorAll("[data-categoria]").forEach(btn => {
+btn.addEventListener("click", () => selecionarCategoria(btn.dataset.categoria))
+})
+}
+
+function selecionarCategoria(categoriaId) {
+categoriaSelecionadaId = categoriaId
+const categoria = WIZARD_CATEGORIAS.find(c => c.id === categoriaId)
+document.querySelectorAll("#wizard-cartoes-categoria .wizard-cartao").forEach(btn => {
+btn.classList.toggle("selecionado", btn.dataset.categoria === categoriaId)
+})
+
+document.getElementById("nl-nicho").value = categoria.nicho
+
+const aviso = document.getElementById("nl-nicho-aviso")
+document.getElementById("nl-modo-delivery").checked = false
+document.getElementById("nl-modo-retirada").checked = false
+document.getElementById("nl-modo-mesa").checked = false
+document.getElementById("nl-modo-encomenda").checked = false
+document.getElementById("nl-modulo-agendamento").checked = false
+document.getElementById("nl-modulo-agendamento-self").checked = false
+document.getElementById("nl-modulo-locacao").checked = false
+
+if (categoria.nicho === "agendamento") {
+aviso.textContent = 'Esse tipo de negócio usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.'
+aviso.style.display = "block"
+document.getElementById("nl-modulo-agendamento").checked = true
+} else if (categoria.nicho === "hospedagem") {
+aviso.textContent = 'Esse tipo de negócio mantém o carrinho normal, mas troca entrega por endereço pela entrega pro número do quarto.'
+aviso.style.display = "block"
+} else {
+aviso.style.display = "none"
+document.getElementById("nl-modo-delivery").checked = true
+document.getElementById("nl-modo-retirada").checked = true
+}
+
+configurarPasso4(categoria.nicho)
+renderizarGradeTemas(categoria.nicho)
+}
+
+function configurarPasso4(nicho) {
+document.querySelectorAll(".wizard-modulo-card").forEach(card => {
+const nichos = card.dataset.nichos.split(",")
+const mostra = nichos.includes(nicho)
+card.style.display = mostra ? "flex" : "none"
+if (!mostra) card.querySelector("input").checked = false
+})
+document.getElementById("wizard-hospedagem-nota").style.display = nicho === "hospedagem" ? "block" : "none"
+}
+
+function renderizarGradeTemas(nicho) {
+const wrap = document.getElementById("wizard-grade-temas")
+const temas = window.TEMAS || {}
+const chaves = Object.keys(temas).filter(k => (temas[k].nichosCompativeis || ["catalogo"]).includes(nicho))
+wrap.innerHTML = chaves.map(chave => `
+<button type="button" class="wizard-tema-card" data-tema="${chave}">
+<div class="wizard-tema-swatch" style="background:${temas[chave].cores.principal};"></div>
+<div class="nome">${escaparHtml(temas[chave].nomeExibicao)}</div>
+</button>
+`).join("")
+wrap.querySelectorAll("[data-tema]").forEach(btn => {
+btn.addEventListener("click", () => selecionarTema(btn.dataset.tema))
+})
+const temaAtual = document.getElementById("nl-tema").value
+selecionarTema(chaves.includes(temaAtual) ? temaAtual : (chaves[0] || "generico"))
+}
+
+function selecionarTema(chave) {
+document.getElementById("nl-tema").value = chave
+document.querySelectorAll("#wizard-grade-temas .wizard-tema-card").forEach(btn => {
+btn.classList.toggle("selecionado", btn.dataset.tema === chave)
+})
+}
+
+function irParaPassoWizard(n) {
+passoAtualWizard = n
+document.querySelectorAll(".wizard-passo").forEach(el => {
+el.style.display = Number(el.dataset.passo) === n ? "block" : "none"
+})
+document.getElementById("wizard-progresso-preenchido").style.width = `${(n / TOTAL_PASSOS_WIZARD) * 100}%`
+document.getElementById("wizard-progresso-texto").textContent = `Passo ${n} de ${TOTAL_PASSOS_WIZARD} — ${TITULOS_PASSOS_WIZARD[n - 1]}`
+document.getElementById("btn-wizard-voltar").style.display = n === 1 ? "none" : "inline-flex"
+document.getElementById("btn-wizard-avancar").style.display = n === TOTAL_PASSOS_WIZARD ? "none" : "inline-flex"
+document.getElementById("btn-salvar-nova-loja").style.display = n === TOTAL_PASSOS_WIZARD ? "inline-flex" : "none"
+document.getElementById("msg-nova-loja").innerHTML = ""
+if (n === TOTAL_PASSOS_WIZARD) renderizarRevisaoWizard()
+}
+
+function validarPassoWizard(n) {
+const msg = document.getElementById("msg-nova-loja")
+msg.innerHTML = ""
+if (n === 1) {
+const nome = document.getElementById("nl-nome").value.trim()
+const emailLojista = document.getElementById("nl-lojista-email").value.trim()
+const whatsapp = document.getElementById("nl-whatsapp").value.trim().replace(/[\s()\-+]/g, "")
+if (!nome) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o nome da loja.</div>`; return false }
+if (!emailLojista) { msg.innerHTML = `<div class="aviso aviso-erro">Preencha o e-mail do lojista.</div>`; return false }
+if (whatsapp && (!/^\d+$/.test(whatsapp) || whatsapp.length < 10 || whatsapp.length > 15)) {
+msg.innerHTML = `<div class="aviso aviso-erro">WhatsApp inválido. Use só números com DDI e DDD.</div>`
+return false
+}
+}
+if (n === 3 && !categoriaSelecionadaId) {
+msg.innerHTML = `<div class="aviso aviso-erro">Escolha o tipo de negócio pra continuar.</div>`
+return false
+}
+return true
+}
+
+document.getElementById("btn-wizard-avancar").addEventListener("click", () => {
+if (!validarPassoWizard(passoAtualWizard)) return
+if (passoAtualWizard < TOTAL_PASSOS_WIZARD) irParaPassoWizard(passoAtualWizard + 1)
+})
+document.getElementById("btn-wizard-voltar").addEventListener("click", () => {
+if (passoAtualWizard > 1) irParaPassoWizard(passoAtualWizard - 1)
+})
+
+function renderizarRevisaoWizard() {
+const temas = window.TEMAS || {}
+const temaAtual = temas[document.getElementById("nl-tema").value] || {}
+const categoria = WIZARD_CATEGORIAS.find(c => c.id === categoriaSelecionadaId)
+const modulosLigados = []
+if (document.getElementById("nl-modo-delivery").checked) modulosLigados.push("Delivery")
+if (document.getElementById("nl-modo-retirada").checked) modulosLigados.push("Retirada")
+if (document.getElementById("nl-modo-mesa").checked) modulosLigados.push("Mesa")
+if (document.getElementById("nl-modo-encomenda").checked) modulosLigados.push("Encomenda")
+if (document.getElementById("nl-modulo-agendamento").checked) modulosLigados.push("Agendamentos")
+if (document.getElementById("nl-modulo-agendamento-self").checked) modulosLigados.push("Cliente agenda sozinho")
+if (document.getElementById("nl-modulo-locacao").checked) modulosLigados.push("Locações")
+
+document.getElementById("wizard-revisao").innerHTML = `
+<div class="wizard-revisao-secao">
+<div class="cabecalho"><strong>Informações básicas</strong><button type="button" class="editar" data-ir="1">Editar</button></div>
+<div class="conteudo">${escaparHtml(document.getElementById("nl-nome").value)} · ${escaparHtml(document.getElementById("nl-slug").value)}.cardapiosweb.online${document.getElementById("nl-whatsapp").value ? " · " + escaparHtml(document.getElementById("nl-whatsapp").value) : ""}<br>Lojista: ${escaparHtml(document.getElementById("nl-lojista-email").value)}</div>
+</div>
+<div class="wizard-revisao-secao">
+<div class="cabecalho"><strong>Plano</strong><button type="button" class="editar" data-ir="2">Editar</button></div>
+<div class="conteudo">${document.getElementById("nl-plano").value === "premium" ? "Premium" : "Básico"} · R$ ${Number(document.getElementById("nl-valor").value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês</div>
+</div>
+<div class="wizard-revisao-secao">
+<div class="cabecalho"><strong>Tipo de negócio</strong><button type="button" class="editar" data-ir="3">Editar</button></div>
+<div class="conteudo">${categoria ? escaparHtml(categoria.titulo) : "—"}</div>
+</div>
+<div class="wizard-revisao-secao">
+<div class="cabecalho"><strong>Módulos</strong><button type="button" class="editar" data-ir="4">Editar</button></div>
+<div class="conteudo">${modulosLigados.length ? modulosLigados.map(escaparHtml).join(", ") : "Nenhum módulo extra ativado"}</div>
+</div>
+<div class="wizard-revisao-secao">
+<div class="cabecalho"><strong>Tema visual</strong><button type="button" class="editar" data-ir="5">Editar</button></div>
+<div class="conteudo">${escaparHtml(temaAtual.nomeExibicao || "—")}</div>
+</div>
+<div class="wizard-revisao-secao">
+<div class="cabecalho"><strong>Personalização</strong><button type="button" class="editar" data-ir="6">Editar</button></div>
+<div class="conteudo">${document.getElementById("nl-usar-cor-personalizada").checked ? "Cor personalizada: " + document.getElementById("nl-cor").value : "Cor padrão do tema"}</div>
+</div>
+`
+document.getElementById("wizard-revisao").querySelectorAll("[data-ir]").forEach(btn => {
+btn.addEventListener("click", () => irParaPassoWizard(Number(btn.dataset.ir)))
+})
+}
 
 function abrirModalNovaLoja() {
 document.getElementById("msg-nova-loja").innerHTML = ""
@@ -2051,25 +2280,34 @@ slugEditadoManualmente = false
 atualizarPreviewDominio()
 document.getElementById("nl-whatsapp").value = ""
 document.getElementById("nl-chave-pix").value = ""
-popularSelectTemas(document.getElementById("nl-tema"))
-document.getElementById("nl-usar-cor-personalizada").checked = false
-document.getElementById("nl-cor").value = "#A9321E"
-document.getElementById("nl-cor").disabled = true
-document.getElementById("nl-modo-delivery").checked = true
-document.getElementById("nl-modo-retirada").checked = true
-document.getElementById("nl-modo-mesa").checked = false
-document.getElementById("nl-modo-encomenda").checked = false
-document.getElementById("nl-nicho").value = "catalogo"
-aplicarVisibilidadeModoAtendimento("catalogo", "nl")
-document.getElementById("nl-modulo-agendamento").checked = false
-document.getElementById("nl-modulo-agendamento-self").checked = false
-document.getElementById("nl-modulo-locacao").checked = false
 document.getElementById("nl-lojista-nome").value = ""
 document.getElementById("nl-lojista-email").value = ""
 document.getElementById("nl-plano").value = "basico"
 document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO.basico
 document.getElementById("nl-contratacao").value = hojeISO()
 document.getElementById("nl-vencimento").value = somarMeses(hojeISO(), 1)
+
+categoriaSelecionadaId = null
+document.getElementById("nl-nicho").value = "catalogo"
+document.getElementById("nl-nicho-aviso").style.display = "none"
+renderizarCartoesCategoria()
+
+document.getElementById("nl-modo-delivery").checked = true
+document.getElementById("nl-modo-retirada").checked = true
+document.getElementById("nl-modo-mesa").checked = false
+document.getElementById("nl-modo-encomenda").checked = false
+document.getElementById("nl-modulo-agendamento").checked = false
+document.getElementById("nl-modulo-agendamento-self").checked = false
+document.getElementById("nl-modulo-locacao").checked = false
+configurarPasso4("catalogo")
+
+document.getElementById("nl-usar-cor-personalizada").checked = false
+document.getElementById("nl-cor").value = "#A9321E"
+document.getElementById("nl-cor").disabled = true
+
+renderizarGradeTemas("catalogo")
+
+irParaPassoWizard(1)
 abrirModalComHistorico(modalNovaLoja, null)
 }
 
