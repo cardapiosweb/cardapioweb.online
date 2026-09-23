@@ -424,10 +424,23 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </select>
 </div>
 <p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.</p>
-<div class="grupo-checks">
+
+<!-- Módulos funcionam em qualquer nicho (proposital — ver Manual 1
+     §12.1), mas pra não parecer "aleatório" no catálogo (caso mais
+     raro), ficam recolhidos atrás de um <details> nesse nicho e
+     abertos nos outros dois — controlado por JS em
+     aplicarVisibilidadeModoAtendimento. -->
+<details class="campo" id="nl-modulos-avancados" style="border:1.5px solid var(--linha);border-radius:8px;padding:10px 12px;margin-top:4px;">
+<summary id="nl-modulos-avancados-titulo" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--tinta-suave);">Agendamentos / Locações</summary>
+<div class="grupo-checks" style="margin-top:10px;">
 <label><input type="checkbox" id="nl-modulo-agendamento" /> Agendamentos (aba no admin)</label>
+</div>
+<p class="domino-preview" style="margin:4px 0 0;">Ex: salão que atende com hora marcada, espaço que aceita reserva.</p>
+<div class="grupo-checks" style="margin-top:12px;">
 <label><input type="checkbox" id="nl-modulo-locacao" /> Locações (aba no admin)</label>
 </div>
+<p class="domino-preview" style="margin:4px 0 0;">Ex: aluguel de equipamento, bike, roupa de festa.</p>
+</details>
 <!-- Só tem efeito real numa loja de nicho "agendamento" — é o
      index-loja-agendamento.html que lê essa flag. Numa loja "catalogo"
      não existe tela pública que consuma isso, então fica escondido.
@@ -682,13 +695,22 @@ Disponível apenas no plano Premium. <button type="button" id="btn-el-dominio-ir
 <select id="el-nicho">
 <option value="catalogo">Catálogo (cardápio/loja com carrinho)</option>
 <option value="agendamento">Agendamento (site próprio, sem carrinho)</option>
+<option value="hospedagem">Hotel/Pousada (catálogo com entrega para quarto)</option>
 </select>
 </div>
 <p class="domino-preview" id="el-nicho-aviso" style="display:none;">Trocar pra "Agendamento" muda qual site é servido — o cliente passa a ver a página de agendamento em vez do cardápio, sem delivery/retirada/mesa/encomenda.</p>
-<div class="grupo-checks">
+
+<details class="campo" id="el-modulos-avancados" style="border:1.5px solid var(--linha);border-radius:8px;padding:10px 12px;margin-top:4px;">
+<summary id="el-modulos-avancados-titulo" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--tinta-suave);">Agendamentos / Locações</summary>
+<div class="grupo-checks" style="margin-top:10px;">
 <label><input type="checkbox" id="el-modulo-agendamento" /> Agendamentos (aba no admin)</label>
+</div>
+<p class="domino-preview" style="margin:4px 0 0;">Ex: salão que atende com hora marcada, espaço que aceita reserva.</p>
+<div class="grupo-checks" style="margin-top:12px;">
 <label><input type="checkbox" id="el-modulo-locacao" /> Locações (aba no admin)</label>
 </div>
+<p class="domino-preview" style="margin:4px 0 0;">Ex: aluguel de equipamento, bike, roupa de festa.</p>
+</details>
 <div class="grupo-checks" id="el-agendamento-self-wrap" style="display:none;">
 <label><input type="checkbox" id="el-modulo-agendamento-self" /> Cliente agenda sozinho (self-service)</label>
 </div>
@@ -1968,6 +1990,20 @@ document.getElementById(`${prefixo}-modo-delivery`).checked = false
 document.getElementById(`${prefixo}-modo-retirada`).checked = false
 document.getElementById(`${prefixo}-modo-mesa`).checked = false
 document.getElementById(`${prefixo}-modo-encomenda`).checked = false
+}
+
+// Agendamentos/Locações continuam disponíveis em qualquer nicho, mas
+// no catálogo (caso mais raro de uso) ficam recolhidos por padrão,
+// com aviso de que é pouco comum; nos outros dois nichos (onde faz
+// mais sentido) já abrem expandidos.
+const detalhesModulos = document.getElementById(`${prefixo}-modulos-avancados`)
+if (detalhesModulos) {
+const tituloModulos = document.getElementById(`${prefixo}-modulos-avancados-titulo`)
+const ehCatalogo = !ehAgendamento && !ehHospedagem
+detalhesModulos.open = !ehCatalogo
+tituloModulos.textContent = ehCatalogo
+? "Agendamentos / Locações — opções avançadas, raramente usadas nesse nicho"
+: "Agendamentos / Locações"
 }
 
 atualizarVisibilidadeAgendamentoSelf(prefixo)
