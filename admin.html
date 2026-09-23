@@ -417,6 +417,10 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 .wizard-revisao-secao .cabecalho strong{font-size:13px;}
 .wizard-revisao-secao .editar{background:none;border:none;color:var(--acento);font-size:12px;font-weight:600;padding:0;cursor:pointer;}
 .wizard-revisao-secao .conteudo{font-size:12.5px;color:var(--tinta-suave);line-height:1.7;}
+.wizard-logo-area{display:flex;align-items:center;gap:14px;}
+.wizard-logo-preview{width:72px;height:72px;border:1.5px dashed var(--linha);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--tinta-suave);font-size:22px;overflow:hidden;flex-shrink:0;background:var(--papel);}
+.wizard-logo-preview img{width:100%;height:100%;object-fit:contain;}
+.campo textarea{resize:vertical;}
 </style>
 
 <!-- ==================== MODAL: NOVA LOJA (wizard guiado) ==================== -->
@@ -532,10 +536,29 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 
 <div class="wizard-passo" data-passo="6" style="display:none;">
 <h3 class="wizard-passo-titulo">Personalização</h3>
-<p class="wizard-passo-sub">Por enquanto só a cor. Logo e textos próprios chegam em breve — por ora dá pra configurar isso depois em "Editar loja".</p>
+<p class="wizard-passo-sub">Tudo aqui é opcional. Se pular, a loja usa o ícone e os textos padrão do tema, e dá pra ajustar depois em "Editar loja".</p>
+
+<div class="campo">
+<label>Logo</label>
+<div class="wizard-logo-area">
+<div class="wizard-logo-preview" id="wizard-logo-preview"><i class="fa fa-image"></i></div>
+<div>
+<input type="file" id="nl-logo-arquivo" accept="image/png,image/jpeg,image/webp" style="display:none;" />
+<button type="button" class="btn-secundario" id="btn-wizard-escolher-logo" style="font-size:12.5px;padding:8px 14px;">Escolher imagem</button>
+<button type="button" class="btn-secundario" id="btn-wizard-remover-logo" style="font-size:12.5px;padding:8px 14px;display:none;">Remover</button>
+<p class="domino-preview" style="margin-top:6px;">PNG, JPG ou WebP. A imagem é reduzida automaticamente.</p>
+</div>
+</div>
+</div>
+
+<div class="campo"><label>Descrição do rodapé</label><textarea id="nl-texto-rodape" rows="3" maxlength="300"></textarea></div>
+<div class="grid2">
+<div class="campo"><label>Título da chamada final</label><input id="nl-texto-cta-titulo" maxlength="80" /></div>
+<div class="campo"><label>Descrição da chamada final</label><input id="nl-texto-cta-desc" maxlength="160" /></div>
+</div>
+
 <label class="linha-check"><input type="checkbox" id="nl-usar-cor-personalizada" style="width:auto;" /> Usar cor personalizada</label>
 <input type="color" id="nl-cor" style="margin-top:10px;" disabled />
-<div class="aviso aviso-info" style="margin-top:14px;"><i class="fa fa-circle-info"></i> Logo e textos personalizados: em breve. Por ora a loja usa os textos padrão do tema escolhido.</div>
 </div>
 
 <div class="wizard-passo" data-passo="7" style="display:none;">
@@ -550,6 +573,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </div>
 <div class="modal-acoes-direita">
 <button class="btn-secundario" id="btn-cancelar-nova-loja">Cancelar</button>
+<button class="btn-secundario" id="btn-wizard-pular" style="display:none;">Pular esta etapa</button>
 <button class="btn-primario" id="btn-wizard-avancar" style="width:auto;padding:10px 20px;">Continuar</button>
 <button class="btn-primario" id="btn-salvar-nova-loja" style="width:auto;padding:10px 20px;display:none;">Criar loja</button>
 </div>
@@ -2148,7 +2172,7 @@ document.getElementById("nl-modo-retirada").checked = true
 }
 
 configurarPasso4(categoria.nicho)
-renderizarGradeTemas(categoria.nicho)
+renderizarGradeTemas(categoria.nicho, categoriaId)
 }
 
 function configurarPasso4(nicho) {
@@ -2161,10 +2185,15 @@ if (!mostra) card.querySelector("input").checked = false
 document.getElementById("wizard-hospedagem-nota").style.display = nicho === "hospedagem" ? "block" : "none"
 }
 
-function renderizarGradeTemas(nicho) {
+function renderizarGradeTemas(nicho, categoriaId) {
 const wrap = document.getElementById("wizard-grade-temas")
 const temas = window.TEMAS || {}
-const chaves = Object.keys(temas).filter(k => (temas[k].nichosCompativeis || ["catalogo"]).includes(nicho))
+const chaves = Object.keys(temas).filter(k => {
+const t = temas[k]
+const nichoOk = (t.nichosCompativeis || ["catalogo"]).includes(nicho)
+const categoriaOk = !t.categoriasCompativeis || !categoriaId || t.categoriasCompativeis.includes(categoriaId)
+return nichoOk && categoriaOk
+})
 wrap.innerHTML = chaves.map(chave => `
 <button type="button" class="wizard-tema-card" data-tema="${chave}">
 <div class="wizard-tema-swatch" style="background:${temas[chave].cores.principal};"></div>
@@ -2196,6 +2225,8 @@ document.getElementById("btn-wizard-voltar").style.display = n === 1 ? "none" : 
 document.getElementById("btn-wizard-avancar").style.display = n === TOTAL_PASSOS_WIZARD ? "none" : "inline-flex"
 document.getElementById("btn-salvar-nova-loja").style.display = n === TOTAL_PASSOS_WIZARD ? "inline-flex" : "none"
 document.getElementById("msg-nova-loja").innerHTML = ""
+document.getElementById("btn-wizard-pular").style.display = n === 6 ? "inline-flex" : "none"
+if (n === 6) preencherPlaceholdersPersonalizacao()
 if (n === TOTAL_PASSOS_WIZARD) renderizarRevisaoWizard()
 }
 
@@ -2264,13 +2295,105 @@ document.getElementById("wizard-revisao").innerHTML = `
 </div>
 <div class="wizard-revisao-secao">
 <div class="cabecalho"><strong>Personalização</strong><button type="button" class="editar" data-ir="6">Editar</button></div>
-<div class="conteudo">${document.getElementById("nl-usar-cor-personalizada").checked ? "Cor personalizada: " + document.getElementById("nl-cor").value : "Cor padrão do tema"}</div>
+<div class="conteudo">${[
+document.getElementById("nl-usar-cor-personalizada").checked ? "Cor personalizada: " + document.getElementById("nl-cor").value : "Cor padrão do tema",
+logoWizardDataUrl ? "Logo enviado" : "Sem logo (usa o ícone do tema)",
+(document.getElementById("nl-texto-rodape").value.trim() || document.getElementById("nl-texto-cta-titulo").value.trim() || document.getElementById("nl-texto-cta-desc").value.trim()) ? "Textos personalizados" : "Textos padrão do tema"
+].join("<br>")}</div>
 </div>
 `
 document.getElementById("wizard-revisao").querySelectorAll("[data-ir]").forEach(btn => {
 btn.addEventListener("click", () => irParaPassoWizard(Number(btn.dataset.ir)))
 })
 }
+
+// ---------- Personalização (passo 6) ----------
+let logoWizardDataUrl = null
+
+function reduzirImagemLogo(arquivo, ladoMax = 512) {
+return new Promise((resolve, reject) => {
+const leitor = new FileReader()
+leitor.onerror = () => reject(new Error("Não foi possível ler o arquivo."))
+leitor.onload = () => {
+const img = new Image()
+img.onerror = () => reject(new Error("Arquivo de imagem inválido."))
+img.onload = () => {
+const escala = Math.min(1, ladoMax / Math.max(img.width, img.height))
+const canvas = document.createElement("canvas")
+canvas.width = Math.round(img.width * escala)
+canvas.height = Math.round(img.height * escala)
+canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height)
+resolve(canvas.toDataURL("image/webp", 0.9))
+}
+img.src = leitor.result
+}
+leitor.readAsDataURL(arquivo)
+})
+}
+
+function atualizarPreviewLogoWizard() {
+const prev = document.getElementById("wizard-logo-preview")
+prev.innerHTML = logoWizardDataUrl ? `<img src="${logoWizardDataUrl}" alt="Logo" />` : `<i class="fa fa-image"></i>`
+document.getElementById("btn-wizard-remover-logo").style.display = logoWizardDataUrl ? "inline-flex" : "none"
+}
+
+document.getElementById("btn-wizard-escolher-logo").addEventListener("click", () => {
+document.getElementById("nl-logo-arquivo").click()
+})
+document.getElementById("nl-logo-arquivo").addEventListener("change", async (e) => {
+const arquivo = e.target.files[0]
+if (!arquivo) return
+try {
+logoWizardDataUrl = await reduzirImagemLogo(arquivo)
+atualizarPreviewLogoWizard()
+} catch (erro) {
+document.getElementById("msg-nova-loja").innerHTML = `<div class="aviso aviso-erro">${escaparHtml(erro.message)}</div>`
+}
+})
+document.getElementById("btn-wizard-remover-logo").addEventListener("click", () => {
+logoWizardDataUrl = null
+document.getElementById("nl-logo-arquivo").value = ""
+atualizarPreviewLogoWizard()
+})
+
+function preencherPlaceholdersPersonalizacao() {
+const tema = (window.TEMAS || {})[document.getElementById("nl-tema").value] || {}
+const p = tema.textosPadrao || {}
+document.getElementById("nl-texto-rodape").placeholder = p.rodapeDescricao || "Deixe em branco pra usar o texto padrão do tema"
+document.getElementById("nl-texto-cta-titulo").placeholder = (p.ctaFinal && p.ctaFinal.titulo) || "Padrão do tema"
+document.getElementById("nl-texto-cta-desc").placeholder = (p.ctaFinal && p.ctaFinal.desc) || "Padrão do tema"
+}
+
+function resetarPersonalizacaoWizard() {
+logoWizardDataUrl = null
+document.getElementById("nl-logo-arquivo").value = ""
+document.getElementById("nl-texto-rodape").value = ""
+document.getElementById("nl-texto-cta-titulo").value = ""
+document.getElementById("nl-texto-cta-desc").value = ""
+atualizarPreviewLogoWizard()
+}
+
+function coletarTextosWizard() {
+const rodape = document.getElementById("nl-texto-rodape").value.trim()
+const ctaTitulo = document.getElementById("nl-texto-cta-titulo").value.trim()
+const ctaDesc = document.getElementById("nl-texto-cta-desc").value.trim()
+const padraoCta = ((window.TEMAS || {})[document.getElementById("nl-tema").value] || {}).textosPadrao?.ctaFinal || {}
+const textos = {}
+if (rodape) textos.rodapeDescricao = rodape
+if (ctaTitulo || ctaDesc) {
+// manda o ctaFinal completo (com o botão do tema) caso o config-loja.js
+// substitua o objeto inteiro em vez de mesclar campo a campo
+textos.ctaFinal = { titulo: ctaTitulo || padraoCta.titulo || "", desc: ctaDesc || padraoCta.desc || "", botao: padraoCta.botao || "" }
+}
+return Object.keys(textos).length ? textos : null
+}
+
+document.getElementById("btn-wizard-pular").addEventListener("click", () => {
+resetarPersonalizacaoWizard()
+document.getElementById("nl-usar-cor-personalizada").checked = false
+document.getElementById("nl-cor").disabled = true
+irParaPassoWizard(7)
+})
 
 function abrirModalNovaLoja() {
 document.getElementById("msg-nova-loja").innerHTML = ""
@@ -2305,7 +2428,9 @@ document.getElementById("nl-usar-cor-personalizada").checked = false
 document.getElementById("nl-cor").value = "#A9321E"
 document.getElementById("nl-cor").disabled = true
 
-renderizarGradeTemas("catalogo")
+renderizarGradeTemas("catalogo", null)
+
+resetarPersonalizacaoWizard()
 
 irParaPassoWizard(1)
 abrirModalComHistorico(modalNovaLoja, null)
@@ -2394,7 +2519,9 @@ valor: parseFloat(document.getElementById("nl-valor").value) || 0,
 dataContratacao: document.getElementById("nl-contratacao").value,
 dataVencimento: document.getElementById("nl-vencimento").value,
 nomeLojista: document.getElementById("nl-lojista-nome").value.trim(),
-emailLojista
+emailLojista,
+textos: coletarTextosWizard(),
+logoDataUrl: logoWizardDataUrl
 })
 })
 } catch (erroRede) {
@@ -2421,6 +2548,7 @@ document.getElementById("senha-lojista-criada").value = resultado.senhaTemporari
 abrirModalComHistorico(document.getElementById("modal-loja-criada"), null)
 })
 await carregarAssinaturas()
+if (resultado.avisoLogo) alert(resultado.avisoLogo)
 })
 
 async function copiarParaClipboard(texto, btn) {

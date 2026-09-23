@@ -4,6 +4,24 @@ const SUPABASE_URL = process.env.SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const DOMINIO_PLATAFORMA = "cardapiosweb.online"
+// ⚠ CONFIRME estes dois nomes com o upload de logo do admin-loja.html ("Dados da loja")
+const LOGO_BUCKET = "logos"
+const LOGO_COLUNA = "logo_url"
+
+function limparTextos(t) {
+  if (!t || typeof t !== "object") return null
+  const cortar = (v, max) => String(v || "").trim().slice(0, max)
+  const limpo = {}
+  if (t.rodapeDescricao) limpo.rodapeDescricao = cortar(t.rodapeDescricao, 300)
+  if (t.ctaFinal && typeof t.ctaFinal === "object") {
+    limpo.ctaFinal = {
+      titulo: cortar(t.ctaFinal.titulo, 80),
+      desc: cortar(t.ctaFinal.desc, 160),
+      botao: cortar(t.ctaFinal.botao, 40)
+    }
+  }
+  return Object.keys(limpo).length ? limpo : null
+}
 const VALOR_PADRAO_PLANO = { basico: 39.90, premium: 49.90 }
 
 function gerarSenhaTemporaria() {
@@ -39,20 +57,12 @@ module.exports = async (req, res) => {
   const { data: dadosToken, error: erroToken } = await sbAdmin.auth.getUser(token)
   if (erroToken || !dadosToken?.user) { res.status(401).json({ erro: "Sessão inválida." }); return }
 
-  console.log("DEBUG user_id recebido:", dadosToken.user.id)
-  console.log("DEBUG SUPABASE_URL:", SUPABASE_URL)
-  console.log("DEBUG SERVICE_ROLE_KEY tamanho:", SERVICE_ROLE_KEY ? SERVICE_ROLE_KEY.length : 0)
-  console.log("DEBUG SERVICE_ROLE_KEY inicio:", SERVICE_ROLE_KEY ? SERVICE_ROLE_KEY.slice(0, 12) : null)
-
   const { data: admin, error: erroAdmin } = await sbAdmin
     .from("admins_plataforma")
     .select("id")
     .eq("user_id", dadosToken.user.id)
     .eq("ativo", true)
     .maybeSingle()
-
-  console.log("DEBUG resultado admin:", admin)
-  console.log("DEBUG erro admin:", erroAdmin)
 
   if (erroAdmin || !admin) {
     res.status(403).json({ erro: "Você não tem permissão de administrador da plataforma." })
@@ -75,6 +85,8 @@ module.exports = async (req, res) => {
   const dataContratacao = corpo.dataContratacao
   const dataVencimento = corpo.dataVencimento
   const nomeLojista = (corpo.nomeLojista || "").trim()
+  const textos = limparTextos(corpo.textos)
+  const logoDataUrl = typeof corpo.logoDataUrl === "string" ? corpo.logoDataUrl : null
 
   if (!nome || !emailLojista || !dataContratacao || !dataVencimento) {
     res.status(400).json({ erro: "Preencha nome da loja, e-mail do lojista e as datas." })
@@ -112,7 +124,8 @@ module.exports = async (req, res) => {
       nome, slug, whatsapp, chave_pix: chavePix, tema,
       cor_principal: corPrincipal, modo_loja: modoLoja,
       nicho, modulos_ativos: modulosAtivos,
-      owner_user_id: usuarioCriadoId, ativa: true
+      owner_user_id: usuarioCriadoId, ativa: true,
+      ...(textos ? { textos } : {})
     }).select("id").single()
     if (erroLoja) throw new Error(`loja: ${erroLoja.message}`)
     lojaCriadaId = lojaCriada.id
@@ -131,12 +144,32 @@ module.exports = async (req, res) => {
     })
     if (erroAssinatura) throw new Error(`assinatura: ${erroAssinatura.message}`)
 
+    // ---- 7.1 Logo (opcional; falha aqui NÃO desfaz a loja) ----
+    let avisoLogo = null
+    if (logoDataUrl) {
+      try {
+        const m = /^data:(image\/(png|jpeg|webp));base64,(.+)$/.exec(logoDataUrl)
+        if (!m) throw new Error("formato de imagem não suportado")
+        const buffer = Buffer.from(m[3], "base64")
+        if (buffer.length > 2 * 1024 * 1024) throw new Error("imagem maior que 2 MB")
+        const ext = m[2] === "jpeg" ? "jpg" : m[2]
+        const caminho = `${lojaCriadaId}/logo-${Date.now()}.${ext}`
+        const { error: erroUpload } = await sbAdmin.storage.from(LOGO_BUCKET).upload(caminho, buffer, { contentType: m[1], upsert: true })
+        if (erroUpload) throw new Error(erroUpload.message)
+        const { data: urlPublica } = sbAdmin.storage.from(LOGO_BUCKET).getPublicUrl(caminho)
+        const { error: erroLogoLoja } = await sbAdmin.from("lojas").update({ [LOGO_COLUNA]: urlPublica.publicUrl }).eq("id", lojaCriadaId)
+        if (erroLogoLoja) throw new Error(erroLogoLoja.message)
+      } catch (e) {
+        avisoLogo = `A loja foi criada, mas o logo não pôde ser salvo (${e.message}). Envie depois em "Editar loja".`
+      }
+    }
+
     // ---- 8. Sucesso ----
     res.status(200).json({
       ok: true, lojaId: lojaCriadaId, slug, dominio: dominioCompleto,
       linkSite: `https://${dominioCompleto}`,
       linkAdmin: `https://${dominioCompleto}/admin-loja.html`,
-      emailLojista, senhaTemporaria
+      emailLojista, senhaTemporaria, avisoLogo
     })
 
   } catch (erro) {
