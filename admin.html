@@ -573,7 +573,6 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 </div>
 <div class="modal-acoes-direita">
 <button class="btn-secundario" id="btn-cancelar-nova-loja">Cancelar</button>
-<button class="btn-secundario" id="btn-wizard-pular" style="display:none;">Pular esta etapa</button>
 <button class="btn-primario" id="btn-wizard-avancar" style="width:auto;padding:10px 20px;">Continuar</button>
 <button class="btn-primario" id="btn-salvar-nova-loja" style="width:auto;padding:10px 20px;display:none;">Criar loja</button>
 </div>
@@ -2225,7 +2224,6 @@ document.getElementById("btn-wizard-voltar").style.display = n === 1 ? "none" : 
 document.getElementById("btn-wizard-avancar").style.display = n === TOTAL_PASSOS_WIZARD ? "none" : "inline-flex"
 document.getElementById("btn-salvar-nova-loja").style.display = n === TOTAL_PASSOS_WIZARD ? "inline-flex" : "none"
 document.getElementById("msg-nova-loja").innerHTML = ""
-document.getElementById("btn-wizard-pular").style.display = n === 6 ? "inline-flex" : "none"
 if (n === 6) preencherPlaceholdersPersonalizacao()
 if (n === TOTAL_PASSOS_WIZARD) renderizarRevisaoWizard()
 }
@@ -2387,13 +2385,6 @@ textos.ctaFinal = { titulo: ctaTitulo || padraoCta.titulo || "", desc: ctaDesc |
 }
 return Object.keys(textos).length ? textos : null
 }
-
-document.getElementById("btn-wizard-pular").addEventListener("click", () => {
-resetarPersonalizacaoWizard()
-document.getElementById("nl-usar-cor-personalizada").checked = false
-document.getElementById("nl-cor").disabled = true
-irParaPassoWizard(7)
-})
 
 function abrirModalNovaLoja() {
 document.getElementById("msg-nova-loja").innerHTML = ""
