@@ -641,6 +641,26 @@ function aplicarMesaManual() {
     atualizarLinhaTaxa()
 }
 
+// ===========================
+// QUARTO (nicho Hotel/Pousada)
+// Pedido avulso, sem comanda persistente: só troca o bloco de
+// entrega/retirada e endereço pelo número do quarto (+ andar e
+// observação, opcionais). Pagamento continua normal (Pix/Dinheiro/
+// Cartão) — diferente do modo mesa, que fecha com o garçom.
+// ===========================
+const somenteQuarto = !!(window.MODO_LOJA && window.MODO_LOJA.usaQuarto)
+
+function aplicarModoQuarto() {
+    if (!somenteQuarto) return
+
+    document.getElementById("delivery-type-section")?.classList.add("oculto-modo")
+    document.getElementById("address-section")?.classList.add("oculto-modo")
+    document.getElementById("quarto-manual-section")?.classList.remove("oculto-modo")
+
+    tipoEntrega = "quarto"
+    atualizarLinhaTaxa()
+}
+
 // Valida o número digitado contra o total de mesas cadastrado na loja
 // (aba Dados da loja, admin). Retorna o número validado (string) ou
 // null se estiver vazio/fora do intervalo — e nesse caso já mostra o
@@ -697,6 +717,32 @@ function validarMesaManual() {
     return String(valor)
 }
 
+// Validação do número do quarto (nicho Hotel/Pousada) — mais simples
+// que a de mesa: sem um "número máximo de quartos" cadastrado, só
+// exige que o campo não esteja vazio.
+function validarQuartoManual() {
+    const input = document.getElementById("quarto-manual-numero")
+    const erro = document.getElementById("quarto-manual-erro")
+    const valor = input.value.trim()
+
+    if (!valor) {
+        erro.classList.remove("hidden")
+        input.classList.add("border-red-500")
+        Toastify({
+            text: "😕 Informe o número do quarto.",
+            duration: 2200,
+            gravity: "top",
+            position: "right",
+            style: { background: "#ef4444", borderRadius: "8px" },
+        }).showToast()
+        return null
+    }
+
+    erro.classList.add("hidden")
+    input.classList.remove("border-red-500")
+    return valor
+}
+
 document.getElementById("address-bairro-select")?.addEventListener("change", function () {
     const input = document.getElementById("address-bairro")
     this.classList.remove("border-red-500")
@@ -727,6 +773,12 @@ document.getElementById("mesa-manual-input")?.addEventListener("input", function
     this.classList.remove("border-red-500")
 })
 
+document.getElementById("quarto-manual-numero")?.addEventListener("input", function () {
+    if (this.value.trim() === "") return
+    document.getElementById("quarto-manual-erro").classList.add("hidden")
+    this.classList.remove("border-red-500")
+})
+
 // ===========================
 // MODO DE ATENDIMENTO (config-loja.js: MODO_LOJA)
 // Algumas lojas trabalham só com delivery, outras só com retirada.
@@ -735,7 +787,7 @@ document.getElementById("mesa-manual-input")?.addEventListener("input", function
 // mexer no modo mesa, que continua 100% automático via ?mesa=.
 // ===========================
 function aplicarModoAtendimento() {
-    if (modoMesa || somenteMesaSemQr) return // mesa (via QR ou manual) já cuida de tudo sozinha
+    if (modoMesa || somenteMesaSemQr || somenteQuarto) return // mesa (via QR ou manual) e quarto (hotel/pousada) já cuidam de tudo sozinhos
 
     const config = window.MODO_LOJA || { permiteDelivery: true, permiteRetirada: true }
 
@@ -1890,6 +1942,11 @@ checkoutBtn.addEventListener("click", async function () {
         return
     }
 
+    if (somenteQuarto && !validarQuartoManual()) {
+        document.getElementById("quarto-manual-numero")?.focus()
+        return
+    }
+
     if (!validarDataEncomenda()) {
         document.getElementById("encomenda-data")?.focus()
         return
@@ -1930,7 +1987,15 @@ checkoutBtn.addEventListener("click", async function () {
             addressReferencia.value.trim() ? `Referência: ${addressReferencia.value.trim()}` : ""
         ].filter(Boolean).join("\n")
 
-        const modoEntrega = tipoEntrega === "entrega"
+        const enderecoQuarto = [
+            `Quarto: ${document.getElementById("quarto-manual-numero").value.trim()}`,
+            document.getElementById("quarto-manual-andar").value.trim() ? `Andar: ${document.getElementById("quarto-manual-andar").value.trim()}` : "",
+            document.getElementById("quarto-manual-obs").value.trim() ? `Observação: ${document.getElementById("quarto-manual-obs").value.trim()}` : ""
+        ].filter(Boolean).join("\n")
+
+        const modoEntrega = tipoEntrega === "quarto"
+            ? `*Entrega no quarto*\n${enderecoQuarto}`
+            : tipoEntrega === "entrega"
             ? `*Entrega*\n${enderecoCompleto}`
             : `*Retirada na loja*`
 
@@ -2080,7 +2145,7 @@ checkoutBtn.addEventListener("click", async function () {
         }
 
         cart = []
-        tipoEntrega = "entrega"
+        tipoEntrega = somenteQuarto ? "quarto" : "entrega"
         tipoPagamento = null
         addressRua.value = ""
         addressNumero.value = ""
@@ -2088,7 +2153,10 @@ checkoutBtn.addEventListener("click", async function () {
         addressReferencia.value = ""
         taxaEntregaAtual = null
         popularSelectBairros() // reseta o select de bairro (e a taxa) pro próximo pedido
-        selecionarEntrega("entrega")
+        // Quarto não usa o toggle Entrega/Retirada — chamar
+        // selecionarEntrega aqui sobrescreveria tipoEntrega de volta
+        // pra "entrega" e quebraria o próximo pedido dessa loja.
+        if (!somenteQuarto) selecionarEntrega("entrega")
         document.getElementById("pag-pix")?.classList.remove("selected")
         document.getElementById("pag-dinheiro")?.classList.remove("selected")
         document.getElementById("pag-cartao")?.classList.remove("selected")
@@ -2096,6 +2164,9 @@ checkoutBtn.addEventListener("click", async function () {
         document.getElementById("encomenda-data").value = ""
         document.getElementById("encomenda-referencia-preview").style.display = "none"
         document.getElementById("encomenda-referencia-status").textContent = ""
+        document.getElementById("quarto-manual-numero").value = ""
+        document.getElementById("quarto-manual-andar").value = ""
+        document.getElementById("quarto-manual-obs").value = ""
         updateCartModal()
         fecharModalCarrinho()
     } catch (err) {
@@ -2532,6 +2603,7 @@ document.addEventListener("dadosDaLojaProntos", () => {
     aplicarDadosDaLoja()
     aplicarModoMesa()
     aplicarMesaManual()
+    aplicarModoQuarto()
     aplicarModoAtendimento()
     renderizarProdutos()
     aplicarStatusLoja()

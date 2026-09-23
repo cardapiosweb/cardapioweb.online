@@ -420,6 +420,7 @@ animation: girar-carregamento-loja-admin 0.8s linear infinite;
 <select id="nl-nicho">
 <option value="catalogo">Catálogo (cardápio/loja com carrinho)</option>
 <option value="agendamento">Agendamento (site próprio, sem carrinho)</option>
+<option value="hospedagem">Hotel/Pousada (catálogo com entrega para quarto)</option>
 </select>
 </div>
 <p class="domino-preview" id="nl-nicho-aviso" style="display:none;">Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.</p>
@@ -1490,9 +1491,12 @@ const abasAdminValidado = document.getElementById("el-abas-usar-padrao").checked
 
 const nichoSelecionado = document.getElementById("el-nicho").value
 const ehNichoAgendamentoEditar = nichoSelecionado === "agendamento"
+const ehNichoHospedagemEditar = nichoSelecionado === "hospedagem"
 
 const modoLoja = ehNichoAgendamentoEditar
 ? { permiteDelivery: false, usaDelivery: false, permiteRetirada: false, usaMesa: false, usaEncomenda: false }
+: ehNichoHospedagemEditar
+? { permiteDelivery: false, usaDelivery: false, permiteRetirada: false, usaMesa: false, usaEncomenda: false, usaQuarto: true }
 : {
 permiteDelivery: document.getElementById("el-modo-delivery").checked,
 usaDelivery: document.getElementById("el-modo-delivery").checked,
@@ -1502,10 +1506,10 @@ usaEncomenda: document.getElementById("el-modo-encomenda").checked
 }
 
 const modulosAtivos = {
-catalogo: nichoSelecionado === "catalogo",
-pedido_carrinho: nichoSelecionado === "catalogo",
-mesa: ehNichoAgendamentoEditar ? false : document.getElementById("el-modo-mesa").checked,
-encomenda: ehNichoAgendamentoEditar ? false : document.getElementById("el-modo-encomenda").checked,
+catalogo: nichoSelecionado === "catalogo" || nichoSelecionado === "hospedagem",
+pedido_carrinho: nichoSelecionado === "catalogo" || nichoSelecionado === "hospedagem",
+mesa: (ehNichoAgendamentoEditar || ehNichoHospedagemEditar) ? false : document.getElementById("el-modo-mesa").checked,
+encomenda: (ehNichoAgendamentoEditar || ehNichoHospedagemEditar) ? false : document.getElementById("el-modo-encomenda").checked,
 agendamento: document.getElementById("el-modulo-agendamento").checked,
 agendamento_self_service: ehNichoAgendamentoEditar && document.getElementById("el-modulo-agendamento-self").checked,
 locacao: document.getElementById("el-modulo-locacao").checked,
@@ -1938,13 +1942,28 @@ document.getElementById("nl-valor").value = VALOR_PADRAO_PLANO[e.target.value]
 
 function aplicarVisibilidadeModoAtendimento(nicho, prefixo) {
 const secao = document.getElementById(`${prefixo}-modo-atendimento-secao`)
+const aviso = document.getElementById(`${prefixo}-nicho-aviso`)
 const ehAgendamento = nicho === "agendamento"
-secao.style.display = ehAgendamento ? "none" : "block"
-document.getElementById(`${prefixo}-nicho-aviso`).style.display = ehAgendamento ? "block" : "none"
+const ehHospedagem = nicho === "hospedagem"
+const escondeModoAtendimento = ehAgendamento || ehHospedagem
+secao.style.display = escondeModoAtendimento ? "none" : "block"
+
+// Aviso muda de texto conforme o nicho — "Agendamento" não tem
+// carrinho nenhum; "Hospedagem" mantém o carrinho, só troca entrega
+// por endereço pela entrega pro número do quarto.
+if (ehAgendamento) {
+aviso.textContent = 'Loja de nicho "Agendamento" usa um site diferente (sem carrinho) — não tem delivery, retirada, mesa ou encomenda.'
+aviso.style.display = "block"
+} else if (ehHospedagem) {
+aviso.textContent = 'Loja de nicho "Hotel/Pousada" mantém o carrinho normal, mas troca entrega por endereço pela entrega pro número do quarto — não tem delivery, retirada, mesa ou encomenda.'
+aviso.style.display = "block"
+} else {
+aviso.style.display = "none"
+}
 
 // Some da tela E zera — evita salvar delivery/mesa marcados por trás
 // de uma seção escondida (estado de uma escolha anterior de nicho).
-if (ehAgendamento) {
+if (escondeModoAtendimento) {
 document.getElementById(`${prefixo}-modo-delivery`).checked = false
 document.getElementById(`${prefixo}-modo-retirada`).checked = false
 document.getElementById(`${prefixo}-modo-mesa`).checked = false
@@ -2046,8 +2065,13 @@ btn.disabled = true
 btn.textContent = "Criando..."
 
 const nichoSelecionadoNovaLoja = document.getElementById("nl-nicho").value
-const modoLoja = nichoSelecionadoNovaLoja === "agendamento"
+const ehNichoAgendamentoNovaLoja = nichoSelecionadoNovaLoja === "agendamento"
+const ehNichoHospedagemNovaLoja = nichoSelecionadoNovaLoja === "hospedagem"
+
+const modoLoja = ehNichoAgendamentoNovaLoja
 ? { permiteDelivery: false, usaDelivery: false, permiteRetirada: false, usaMesa: false, usaEncomenda: false }
+: ehNichoHospedagemNovaLoja
+? { permiteDelivery: false, usaDelivery: false, permiteRetirada: false, usaMesa: false, usaEncomenda: false, usaQuarto: true }
 : {
 permiteDelivery: document.getElementById("nl-modo-delivery").checked,
 usaDelivery: document.getElementById("nl-modo-delivery").checked,
@@ -2056,14 +2080,14 @@ usaMesa: document.getElementById("nl-modo-mesa").checked,
 usaEncomenda: document.getElementById("nl-modo-encomenda").checked
 }
 
-const nicho = document.getElementById("nl-nicho").value
-const ehNichoAgendamento = nicho === "agendamento"
+const nicho = nichoSelecionadoNovaLoja
+const ehNichoAgendamento = ehNichoAgendamentoNovaLoja
 
 const modulosAtivos = {
-catalogo: nicho === "catalogo",
-pedido_carrinho: nicho === "catalogo",
-mesa: ehNichoAgendamento ? false : document.getElementById("nl-modo-mesa").checked,
-encomenda: ehNichoAgendamento ? false : document.getElementById("nl-modo-encomenda").checked,
+catalogo: nicho === "catalogo" || nicho === "hospedagem",
+pedido_carrinho: nicho === "catalogo" || nicho === "hospedagem",
+mesa: (ehNichoAgendamento || ehNichoHospedagemNovaLoja) ? false : document.getElementById("nl-modo-mesa").checked,
+encomenda: (ehNichoAgendamento || ehNichoHospedagemNovaLoja) ? false : document.getElementById("nl-modo-encomenda").checked,
 agendamento: document.getElementById("nl-modulo-agendamento").checked,
 // Só marca self_service quando de fato tem onde ter efeito
 // (a própria checagem de nicho já garante isso, mas o "&&" reforça

@@ -2548,6 +2548,23 @@
                 <p class="text-red-500 hidden mt-1" id="mesa-manual-erro">Informe um número de mesa válido.</p>
             </div>
 
+            <!-- Quarto (nicho Hotel/Pousada) — aparece só quando
+                 modo_loja.usaQuarto está ligado. Substitui o bloco de
+                 entrega/retirada e endereço: pedido avulso identificado
+                 pelo número do quarto, sem comanda persistente por
+                 quarto. Ver aplicarModoQuarto() em script.js. -->
+            <div id="quarto-manual-section" class="oculto-modo">
+                <p class="font-bold mt-4 mb-2">Número do quarto</p>
+                <input type="text" id="quarto-manual-numero" placeholder="Ex: 204" class="w-full border-2 p-2 rounded" />
+                <p class="text-red-500 hidden mt-1" id="quarto-manual-erro">Informe o número do quarto.</p>
+
+                <p class="font-bold mt-4 mb-2">Andar (opcional)</p>
+                <input type="text" id="quarto-manual-andar" placeholder="Ex: 2º andar" class="w-full border-2 p-2 rounded" />
+
+                <p class="font-bold mt-4 mb-2">Observação da entrega (opcional)</p>
+                <textarea id="quarto-manual-obs" rows="2" placeholder="Ex: entregar após as 20h" class="w-full border-2 p-2 rounded"></textarea>
+            </div>
+
             <!-- Encomenda: data desejada + foto de referência — aparece só
                  quando o carrinho tem pelo menos um item sob_encomenda -->
             <div id="encomenda-section" class="oculto-modo">
