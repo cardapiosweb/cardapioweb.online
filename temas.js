@@ -142,6 +142,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: ao ponto, bem passado, sem pimenta, sem farofa..." },
             rodapeDescricao: "Carnes selecionadas e grelhadas no ponto, com tempero na medida certa. Peça pelo delivery e receba quentinho na sua casa.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -537,6 +538,172 @@ const TEMAS = {
             },
         }
     },
+
+    salao: {
+        nomeExibicao: "Salão / Estética",
+        cores: {
+            principal:        "#A8477A",
+            principalEscura:  "#7E3159",
+            principalClara:   "#F8E6EF",
+            base:             "#2A1622",
+            baseSuave:        "#402336",
+            fundo:            "#FFF7FA",
+            destaque:         "#C9A66B",
+            selo:             "#7A8F6B",
+            linha:            "#EFD6E2"
+        },
+        fontes: { titulo: "Playfair Display", texto: "Poppins", script: "Great Vibes" },
+        formas: { raioBase: "14px", raioGrande: "22px", raioPill: "999px", bordaEspessura: "1px", bordaEstilo: "solid" },
+        iconeFallbackLogo: "fa-scissors",
+        emojiPlaceholder: "💇",
+        textoAltLogo: "Logo do salão",
+        nichosCompativeis: ["agendamento"],
+        categoriasCompativeis: ["beleza"],
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-spa", titulo: "Cuidado completo", desc: "Atendimento pensado pra você se sentir bem do começo ao fim." },
+                { icone: "fa fa-hand-sparkles", titulo: "Profissionais experientes", desc: "Equipe preparada e sempre atualizada nas novidades." },
+                { icone: "fa fa-calendar-check", titulo: "Horário marcado", desc: "Chegou na hora, foi atendida na hora." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida sobre algum serviço? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Agende em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Escolha o serviço", desc: "Veja a lista de serviços e escolha o que você quer." },
+                    { icone: "fa fa-calendar-check", titulo: "Escolha o horário", desc: "Marque o dia e o horário que ficam melhores pra você." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu horário fica reservado e você recebe a confirmação." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Que tal um momento só seu?",
+                desc: "Reserve seu horário agora e cuide de você.",
+                botao: "Agendar horário",
+            },
+            heroCtas: { primaria: "Ver serviços", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Serviços de beleza e bem-estar feitos com carinho e atenção. Agende seu horário e venha se cuidar.",
+            apresentacao: {
+                botaoPrincipal: "Ver serviços",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Escolha o serviço", desc: "Veja a lista de serviços e escolha o que você quer." },
+                    { icone: "fa fa-calendar-check", titulo: "Escolha o horário", desc: "Marque o dia e o horário que ficam melhores pra você." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Seu horário fica reservado e você recebe a confirmação." },
+                ],
+            },
+        }
+    },
+
+    clinica: {
+        nomeExibicao: "Clínica / Consultório",
+        cores: {
+            principal:        "#0E8A8A",
+            principalEscura:  "#0A6666",
+            principalClara:   "#D9F2F1",
+            base:             "#12262B",
+            baseSuave:        "#1F3A40",
+            fundo:            "#F5FBFB",
+            destaque:         "#F2A93B",
+            selo:             "#2F9E6B",
+            linha:            "#D3E7E7"
+        },
+        fontes: { titulo: "Poppins", texto: "Nunito", script: "Nunito" },
+        formas: { raioBase: "12px", raioGrande: "18px", raioPill: "999px", bordaEspessura: "1.5px", bordaEstilo: "solid" },
+        iconeFallbackLogo: "fa-heart-pulse",
+        emojiPlaceholder: "🩺",
+        textoAltLogo: "Logo da clínica",
+        nichosCompativeis: ["agendamento"],
+        categoriasCompativeis: ["saude"],
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-user-doctor", titulo: "Profissionais qualificados", desc: "Atendimento com quem entende e se importa com você." },
+                { icone: "fa fa-shield-heart", titulo: "Cuidado e acolhimento", desc: "Um ambiente pensado pra você se sentir seguro." },
+                { icone: "fa fa-calendar-check", titulo: "Consulta agendada", desc: "Sem fila e sem espera: você escolhe o melhor horário." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvidas sobre o atendimento? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Agende sua consulta em poucos passos.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Escolha o atendimento", desc: "Veja os serviços disponíveis e escolha o que você precisa." },
+                    { icone: "fa fa-calendar-check", titulo: "Escolha o horário", desc: "Marque o dia e o horário mais conveniente." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Você recebe a confirmação e as orientações pra consulta." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Cuide da sua saúde",
+                desc: "Agende seu atendimento agora, é rápido e sem burocracia.",
+                botao: "Agendar consulta",
+            },
+            heroCtas: { primaria: "Ver atendimentos", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Atendimento com cuidado, respeito e profissionais qualificados. Agende seu horário e cuide da sua saúde.",
+            apresentacao: {
+                botaoPrincipal: "Ver atendimentos",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Escolha o atendimento", desc: "Veja os serviços disponíveis e escolha o que você precisa." },
+                    { icone: "fa fa-calendar-check", titulo: "Escolha o horário", desc: "Marque o dia e o horário mais conveniente." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Você recebe a confirmação e as orientações pra consulta." },
+                ],
+            },
+        }
+    },
+
+    espaco: {
+        nomeExibicao: "Espaço / Serviços",
+        cores: {
+            principal:        "#3F7D58",
+            principalEscura:  "#2D5C40",
+            principalClara:   "#E1F0E7",
+            base:             "#17211B",
+            baseSuave:        "#26372D",
+            fundo:            "#F7FAF7",
+            destaque:         "#E0A63B",
+            selo:             "#B5651D",
+            linha:            "#DCE8DF"
+        },
+        fontes: { titulo: "Montserrat", texto: "Inter", script: "Inter" },
+        formas: { raioBase: "10px", raioGrande: "16px", raioPill: "999px", bordaEspessura: "1.5px", bordaEstilo: "solid" },
+        iconeFallbackLogo: "fa-toolbox",
+        emojiPlaceholder: "🛠️",
+        textoAltLogo: "Logo do espaço",
+        nichosCompativeis: ["agendamento"],
+        categoriasCompativeis: ["servicos"],
+        textosPadrao: {
+            diferenciais: [
+                { icone: "fa fa-handshake", titulo: "Atendimento de confiança", desc: "Serviço feito com atenção, do combinado até a entrega." },
+                { icone: "fa fa-star", titulo: "Qualidade garantida", desc: "Compromisso com o resultado e com o seu tempo." },
+                { icone: "fa fa-calendar-check", titulo: "Horário reservado", desc: "Você escolhe o dia e a gente se organiza pra te atender." },
+                { icone: "fab fa-whatsapp", titulo: "Fala com a gente", desc: "Dúvida ou orçamento? É só chamar no WhatsApp." },
+            ],
+            comoFunciona: {
+                titulo: "Como funciona",
+                subtitulo: "Reserve em poucos passos, sem complicação.",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Escolha o serviço", desc: "Veja o que oferecemos e escolha o que combina com você." },
+                    { icone: "fa fa-calendar-check", titulo: "Escolha o horário", desc: "Marque o dia e o horário que preferir." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Sua reserva é confirmada direto com a gente." },
+                ],
+            },
+            ctaFinal: {
+                titulo: "Vamos combinar seu horário?",
+                desc: "Reserve agora e garanta o melhor dia pra você.",
+                botao: "Reservar horário",
+            },
+            heroCtas: { primaria: "Ver serviços", secundaria: "Chamar no WhatsApp" },
+            seloCarimbo: null,
+            rodapeDescricao: "Serviços e espaços com atendimento de confiança e horário marcado. Reserve o seu e fale com a gente.",
+            apresentacao: {
+                botaoPrincipal: "Ver serviços",
+                passos: [
+                    { icone: "fa fa-list", titulo: "Escolha o serviço", desc: "Veja o que oferecemos e escolha o que combina com você." },
+                    { icone: "fa fa-calendar-check", titulo: "Escolha o horário", desc: "Marque o dia e o horário que preferir." },
+                    { icone: "fab fa-whatsapp", titulo: "Confirme no WhatsApp", desc: "Sua reserva é confirmada direto com a gente." },
+                ],
+            },
+        }
+    },
+
 
     generico: {
         nomeExibicao: "Genérico",

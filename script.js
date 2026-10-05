@@ -2607,6 +2607,32 @@ window.addEventListener("popstate", () => {
 
 
 // ===========================
+// PLACEHOLDER DO CAMPO "ALGUMA OBSERVAÇÃO?" (por tema)
+// Procura o texto em TEXTOS.observacao.placeholder (se o config-loja.js
+// expuser) e, se não achar, direto em TEMAS[TEMA].textosPadrao. Se
+// nenhum tema definir, mantém o texto padrão que já está no HTML.
+// ===========================
+function aplicarPlaceholderObservacao() {
+    const campo = document.getElementById("modal-observacao")
+    if (!campo) return
+
+    let texto = null
+    try {
+        if (typeof TEXTOS !== "undefined" && TEXTOS && TEXTOS.observacao) {
+            texto = TEXTOS.observacao.placeholder
+        }
+        if (!texto && typeof TEMA !== "undefined" && window.TEMAS && window.TEMAS[TEMA]) {
+            const padrao = window.TEMAS[TEMA].textosPadrao
+            texto = padrao && padrao.observacao && padrao.observacao.placeholder
+        }
+    } catch (err) {
+        console.error("Não foi possível aplicar o placeholder da observação", err)
+    }
+
+    if (texto) campo.placeholder = texto
+}
+
+// ===========================
 // INICIALIZAÇÃO
 // (espera o supabase-loader.js avisar que os dados chegaram,
 // em vez de rodar direto — porque agora os dados vêm de uma
@@ -2614,6 +2640,7 @@ window.addEventListener("popstate", () => {
 // ===========================
 document.addEventListener("dadosDaLojaProntos", () => {
     aplicarDadosDaLoja()
+    aplicarPlaceholderObservacao()
     aplicarModoMesa()
     aplicarMesaManual()
     aplicarModoQuarto()
