@@ -1447,7 +1447,6 @@
             font-weight: 700;
             color: var(--dourado);
             margin-top: -6px;
-            -webkit-text-stroke: 0.6px rgba(36,27,22,0.9);
             text-shadow: 0 1px 1px rgba(0,0,0,0.9), 0 3px 10px rgba(0,0,0,0.75);
             text-align: center;
             max-width: 85%;
@@ -2148,11 +2147,33 @@
         }
         #apresentacao-tagline {
             font-family: var(--fonte-script);
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--dourado);
-            margin: 0 0 14px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            margin: 0 0 16px;
+            line-height: 1.2;
+            letter-spacing: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-wrap: balance;
+            -webkit-text-stroke: 0.6px rgba(36,27,22,0.9);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.9), 0 3px 10px rgba(0,0,0,0.75);
+        }
+        #apresentacao-tagline::before,
+        #apresentacao-tagline::after {
+            content: "";
+            flex: 0 0 26px;
+            height: 1.5px;
+            background: linear-gradient(to right, transparent, var(--dourado));
+            opacity: 0.85;
+        }
+        #apresentacao-tagline::after {
+            transform: scaleX(-1);
+        }
+        #apresentacao-tagline:empty {
+            display: none;
         }
         #apresentacao-descricao {
             font-size: 14px;
@@ -2252,7 +2273,9 @@
             .apresentacao-selo { padding: 6px 14px; font-size: 11px; margin-bottom: 12px; }
             .apresentacao-logo { width: 76px; height: 76px; border-width: 3px; margin-bottom: 10px; }
             #apresentacao-nome { font-size: clamp(18px, 6vw, 24px); margin-bottom: 4px; }
-            #apresentacao-tagline { font-size: 15px; margin-bottom: 8px; }
+            #apresentacao-tagline { font-size: 15px; margin-bottom: 8px; gap: 6px; }
+            #apresentacao-tagline::before,
+            #apresentacao-tagline::after { flex-basis: 16px; }
             #apresentacao-descricao { font-size: 12.5px; margin-bottom: 14px; }
             .apresentacao-btn-primario,
             .apresentacao-btn-secundario { padding: 11px 18px; font-size: 13.5px; }

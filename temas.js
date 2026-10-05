@@ -107,7 +107,7 @@ const TEMAS = {
         fontes: {
             titulo: "Oswald",
             texto: "Mulish",
-            script: "Permanent Marker"
+            script: "Caveat Brush"
         },
         formas: {
             raioBase: "6px",
