@@ -882,6 +882,7 @@ cartBtn.addEventListener("click", function () {
     // Empilha estado apenas uma vez se não estiver aberto
     if (!modalJaAberto) {
         history.pushState({ carrinhoModalAberto: true }, "")
+        resetarWizardCarrinho()
     }
 })
 
@@ -904,12 +905,14 @@ cartModal.addEventListener("click", function (event) {
 })
 
 closeModalBtn.addEventListener("click", function () {
-    fecharModalCarrinho()
+    voltarPassoCarrinho()
 })
 
 document.getElementById("cart-modal-close-btn")?.addEventListener("click", function () {
-    fecharModalCarrinho()
+    voltarPassoCarrinho()
 })
+
+document.getElementById("btn-carrinho-continuar").addEventListener("click", avancarPassoCarrinho)
 
 
 // ===========================
@@ -990,6 +993,191 @@ function validarFormaPagamento() {
 
     if (erroPagamento) erroPagamento.classList.add("hidden")
     return true
+}
+
+// ===========================
+// CARRINHO EM PASSO A PASSO
+// Cada passo é um <div data-passo-carrinho="..."> dentro do modal do
+// carrinho. Um passo só entra na jornada se tiver pelo menos um filho
+// visível (os modos mesa/quarto/retirada-apenas já escondem as seções
+// com "oculto-modo"), então a quantidade de passos se ajusta sozinha.
+// ===========================
+const PASSOS_CARRINHO = [
+    { id: "itens", sempre: true, titulo: "Seu pedido", sub: "Confira os itens e ajuste as quantidades." },
+    { id: "receber", titulo: "Entrega ou retirada", sub: "Escolha como quer receber e informe o endereço." },
+    { id: "mesa", titulo: "Sua mesa", sub: "Informe o número da mesa onde você está." },
+    { id: "quarto", titulo: "Seu quarto", sub: "Informe onde entregar o pedido." },
+    { id: "encomenda", titulo: "Data da encomenda", sub: "Escolha quando quer receber e, se quiser, anexe uma foto de referência." },
+    { id: "pagamento", titulo: "Pagamento", sub: "Como você prefere pagar?" },
+    { id: "revisao", sempre: true, titulo: "Confirme seu pedido", sub: "Revise tudo antes de enviar." }
+]
+
+let passoAtualCarrinho = "itens"
+
+function passosAtivosCarrinho() {
+    return PASSOS_CARRINHO.filter(passo => {
+        if (passo.sempre) return true
+        const wrapper = document.querySelector(`[data-passo-carrinho="${passo.id}"]`)
+        if (!wrapper) return false
+        return Array.from(wrapper.children).some(el => !el.classList.contains("oculto-modo"))
+    })
+}
+
+function atualizarWizardCarrinho() {
+    const ativos = passosAtivosCarrinho()
+    let indice = ativos.findIndex(p => p.id === passoAtualCarrinho)
+
+    // Se o passo atual deixou de existir (ex: modo mudou), volta pro primeiro
+    if (indice === -1) {
+        indice = 0
+        passoAtualCarrinho = ativos[0].id
+    }
+
+    const passo = ativos[indice]
+    const ehUltimo = indice === ativos.length - 1
+
+    document.querySelectorAll("[data-passo-carrinho]").forEach(el => {
+        el.classList.toggle("ativo", el.dataset.passoCarrinho === passo.id)
+    })
+
+    document.getElementById("carrinho-progresso-preenchido").style.width = `${((indice + 1) / ativos.length) * 100}%`
+    document.getElementById("carrinho-progresso-texto").textContent = `Passo ${indice + 1} de ${ativos.length}`
+    document.getElementById("carrinho-passo-titulo").textContent = passo.titulo
+    document.getElementById("carrinho-passo-sub").textContent = passo.sub
+
+    document.getElementById("btn-carrinho-continuar").style.display = ehUltimo ? "none" : ""
+    checkoutBtn.style.display = ehUltimo ? "" : "none"
+    closeModalBtn.textContent = indice === 0 ? "Fechar" : "Voltar"
+
+    if (passo.id === "revisao") renderizarRevisaoCarrinho()
+}
+
+function irParaPassoCarrinho(id) {
+    passoAtualCarrinho = id
+    atualizarWizardCarrinho()
+    cartModal.firstElementChild.scrollTop = 0
+}
+
+function resetarWizardCarrinho() {
+    passoAtualCarrinho = "itens"
+    atualizarWizardCarrinho()
+}
+
+function avancarPassoCarrinho() {
+    if (!validarPassoCarrinho(passoAtualCarrinho)) return
+
+    const ativos = passosAtivosCarrinho()
+    const indice = ativos.findIndex(p => p.id === passoAtualCarrinho)
+    if (indice < ativos.length - 1) irParaPassoCarrinho(ativos[indice + 1].id)
+}
+
+function voltarPassoCarrinho() {
+    const ativos = passosAtivosCarrinho()
+    const indice = ativos.findIndex(p => p.id === passoAtualCarrinho)
+
+    if (indice <= 0) {
+        fecharModalCarrinho()
+        return
+    }
+    irParaPassoCarrinho(ativos[indice - 1].id)
+}
+
+// Cada passo reaproveita as validações que já existiam — o botão
+// "Finalizar pedido" continua validando tudo de novo no final, então
+// nada passa batido mesmo se alguém pular um passo.
+function validarPassoCarrinho(id) {
+    if (id === "itens") {
+        if (cart.length === 0) {
+            Toastify({
+                text: "Adicione produtos ao carrinho primeiro!",
+                duration: 2500,
+                gravity: "top",
+                position: "right",
+                style: { background: "#f59e0b", borderRadius: "8px" },
+            }).showToast()
+            return false
+        }
+        return true
+    }
+
+    if (id === "receber") {
+        if (tipoEntrega !== "entrega") return true
+
+        const bairroPendente = bairroPendenteSelecao()
+        if (addressRua.value.trim() === "" || addressBairro.value.trim() === "" || bairroPendente) {
+            abrirModalEndereco()
+            addressWarn.textContent = bairroPendente
+                ? "Selecione o seu bairro na lista!"
+                : "Preencha ao menos a rua e o bairro!"
+            addressWarn.classList.remove("hidden")
+
+            if (addressRua.value.trim() === "") addressRua.classList.add("border-red-500")
+            if (bairroPendente) {
+                document.getElementById("address-bairro-select").classList.add("border-red-500")
+            } else if (addressBairro.value.trim() === "") {
+                addressBairro.classList.add("border-red-500")
+            }
+            return false
+        }
+        return true
+    }
+
+    if (id === "mesa") return !!validarMesaManual()
+    if (id === "quarto") return !!validarQuartoManual()
+    if (id === "encomenda") return validarDataEncomenda()
+    if (id === "pagamento") return validarFormaPagamento()
+
+    return true
+}
+
+// Passo final: resumo do que o cliente escolheu, com "Editar" que volta
+// direto no passo correspondente (mesma ideia da revisão do wizard de
+// Nova loja no admin).
+function renderizarRevisaoCarrinho() {
+    const wrap = document.getElementById("resumo-final-pedido")
+    const linhas = []
+
+    const totalItens = cart.reduce((soma, item) => soma + item.quantity, 0)
+    linhas.push({ passo: "itens", rotulo: "Itens", valor: `${totalItens} ${totalItens === 1 ? "item" : "itens"}` })
+
+    if (modoMesa) {
+        linhas.push({ passo: null, rotulo: "Mesa", valor: mesaAtual })
+    } else if (somenteMesaSemQr) {
+        linhas.push({ passo: "mesa", rotulo: "Mesa", valor: document.getElementById("mesa-manual-input").value.trim() })
+    } else if (somenteQuarto) {
+        linhas.push({ passo: "quarto", rotulo: "Quarto", valor: document.getElementById("quarto-manual-numero").value.trim() })
+    } else if (tipoEntrega === "retirada") {
+        linhas.push({ passo: "receber", rotulo: "Retirada na loja", valor: loja.endereco || "" })
+    } else {
+        linhas.push({ passo: "receber", rotulo: "Entregar em", valor: enderecoCardValor.textContent })
+    }
+
+    if (itensSobEncomendaNoCarrinho().length) {
+        const dataEscolhida = document.getElementById("encomenda-data").value
+        linhas.push({
+            passo: "encomenda",
+            rotulo: "Data desejada",
+            valor: dataEscolhida ? new Date(dataEscolhida + "T00:00:00").toLocaleDateString("pt-BR") : ""
+        })
+    }
+
+    if (!modoMesa && !somenteMesaSemQr) {
+        linhas.push({ passo: "pagamento", rotulo: "Pagamento", valor: tipoPagamento || "" })
+    }
+
+    wrap.innerHTML = linhas.map(l => `
+        <div class="carrinho-revisao-linha">
+            <div>
+                <span class="carrinho-revisao-rotulo">${escaparHtml(l.rotulo)}</span>
+                <span class="carrinho-revisao-valor">${escaparHtml(l.valor || "—")}</span>
+            </div>
+            ${l.passo ? `<button type="button" class="carrinho-revisao-editar" data-ir-passo="${l.passo}">Editar</button>` : ""}
+        </div>
+    `).join("")
+
+    wrap.querySelectorAll("[data-ir-passo]").forEach(btn => {
+        btn.addEventListener("click", () => irParaPassoCarrinho(btn.dataset.irPasso))
+    })
 }
 
 
@@ -1397,6 +1585,7 @@ function addToCart(id, name, price, btnElement, quantity = 1, opcoesSelecionadas
 function updateCartModal() {
     atualizarVisibilidadeEncomenda()
     atualizarLinhaTaxa()
+    atualizarWizardCarrinho()
 
     cartItemsContainer.innerHTML = ""
     let subtotal = 0

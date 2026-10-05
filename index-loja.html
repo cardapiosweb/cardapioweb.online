@@ -956,6 +956,80 @@
             color: #C9B79E;
         }
 
+        /* ===== Carrinho em passo a passo ===== */
+        .passo-carrinho { display: none; }
+        .passo-carrinho.ativo { display: block; }
+
+        .carrinho-progresso { margin-bottom: 16px; }
+        .carrinho-progresso-barra {
+            background: var(--linha);
+            border-radius: 999px;
+            height: 6px;
+            overflow: hidden;
+        }
+        .carrinho-progresso-preenchido {
+            background: var(--laranja);
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.25s;
+        }
+        .carrinho-progresso-texto {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--carvao-suave);
+            margin-top: 6px;
+        }
+        .carrinho-passo-titulo {
+            font-family: var(--fonte-titulo);
+            font-weight: 800;
+            font-size: 17px;
+            margin-bottom: 2px;
+        }
+        .carrinho-passo-sub {
+            font-size: 13px;
+            color: var(--carvao-suave);
+            margin-bottom: 12px;
+        }
+
+        .carrinho-revisao-linha {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1.5px solid var(--linha);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.5);
+        }
+        .carrinho-revisao-rotulo {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #8a7361;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .carrinho-revisao-valor {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .carrinho-revisao-editar {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--laranja);
+            flex-shrink: 0;
+        }
+        body.dark .carrinho-passo-titulo { color: #F3E9DA; }
+        body.dark .carrinho-passo-sub,
+        body.dark .carrinho-progresso-texto { color: #C9B79E; }
+        body.dark .carrinho-revisao-linha { background-color: #241B16; border-color: #3A2C24; }
+
         .product-modal-gallery {
             display: flex;
             gap: 8px;
@@ -2497,19 +2571,127 @@
     <!-- MODAL CART -->
     <div class="bg-black/50 w-full h-full fixed top-0 left-0 z-[99] items-center justify-center hidden" id="cart-modal">
         <div class="bg-white p-5 rounded-md w-[90%] md:w-[600px] max-h-[90vh] overflow-y-auto">
-            <button type="button" class="cart-modal-close" id="cart-modal-close-btn" title="Fechar" aria-label="Fechar">
+            <button type="button" class="cart-modal-close" id="cart-modal-close-btn" title="Voltar" aria-label="Voltar">
                 <i class="fa fa-arrow-left"></i>
             </button>
             <h2 class="text-center font-bold text-2xl mb-4">Meu pedido</h2>
 
-            <div id="cart-items" class="flex justify-between mb-2 flex-col"></div>
+            <!-- Progresso do passo a passo — preenchido por atualizarWizardCarrinho() em script.js -->
+            <div class="carrinho-progresso">
+                <div class="carrinho-progresso-barra"><div class="carrinho-progresso-preenchido" id="carrinho-progresso-preenchido"></div></div>
+                <div class="carrinho-progresso-texto" id="carrinho-progresso-texto"></div>
+            </div>
+            <h3 class="carrinho-passo-titulo" id="carrinho-passo-titulo"></h3>
+            <p class="carrinho-passo-sub" id="carrinho-passo-sub"></p>
 
-            <button type="button" id="add-more-items-btn"
-                class="w-full flex items-center justify-center gap-2 border-2 border-dashed rounded-lg py-3 my-2 font-semibold text-sm"
-                style="border-color: var(--linha); color: var(--carvao-suave);">
-                <i class="fa fa-plus"></i> Adicionar mais itens
-            </button>
+            <!-- PASSO: itens -->
+            <div class="passo-carrinho" data-passo-carrinho="itens">
+                <div id="cart-items" class="flex justify-between mb-2 flex-col"></div>
 
+                <button type="button" id="add-more-items-btn"
+                    class="w-full flex items-center justify-center gap-2 border-2 border-dashed rounded-lg py-3 my-2 font-semibold text-sm"
+                    style="border-color: var(--linha); color: var(--carvao-suave);">
+                    <i class="fa fa-plus"></i> Adicionar mais itens
+                </button>
+            </div>
+
+            <!-- PASSO: entrega/retirada + endereço — as duas seções somem sozinhas no modo mesa/quarto -->
+            <div class="passo-carrinho" data-passo-carrinho="receber">
+                <div id="delivery-type-section">
+                    <p class="font-bold mt-4 mb-2">Como quer receber?</p>
+                    <div class="toggle-entrega-retirada mb-3">
+                        <div class="toggle-opcao selected" id="opt-entrega" onclick="selecionarEntrega('entrega')">
+                            Entrega
+                        </div>
+                        <div class="toggle-opcao" id="opt-retirada" onclick="selecionarEntrega('retirada')">
+                            Retirada
+                        </div>
+                    </div>
+                </div>
+
+                <div id="address-section">
+                    <div class="endereco-card" id="endereco-card">
+                        <div class="endereco-card-icone" id="endereco-card-icone"><i class="fa fa-location-dot"></i></div>
+                        <div class="endereco-card-texto">
+                            <span class="endereco-card-label" id="endereco-card-label">ENTREGAR EM</span>
+                            <span class="endereco-card-valor" id="endereco-card-valor">Toque para informar o endereço</span>
+                        </div>
+                        <i class="fa fa-chevron-right endereco-card-seta" id="endereco-card-seta"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASSO: mesa manual (loja só-mesa acessada sem QR Code) -->
+            <div class="passo-carrinho" data-passo-carrinho="mesa">
+                <div id="mesa-manual-section" class="oculto-modo">
+                    <p class="font-bold mt-4 mb-2">Qual mesa você está?</p>
+                    <input type="number" id="mesa-manual-input" min="1" placeholder="Número da mesa" class="w-full border-2 p-2 rounded" />
+                    <p class="text-red-500 hidden mt-1" id="mesa-manual-erro">Informe um número de mesa válido.</p>
+                </div>
+            </div>
+
+            <!-- PASSO: quarto (nicho Hotel/Pousada) -->
+            <div class="passo-carrinho" data-passo-carrinho="quarto">
+                <div id="quarto-manual-section" class="oculto-modo">
+                    <p class="font-bold mt-4 mb-2">Número do quarto</p>
+                    <input type="text" id="quarto-manual-numero" placeholder="Ex: 204" class="w-full border-2 p-2 rounded" />
+                    <p class="text-red-500 hidden mt-1" id="quarto-manual-erro">Informe o número do quarto.</p>
+
+                    <p class="font-bold mt-4 mb-2">Andar (opcional)</p>
+                    <input type="text" id="quarto-manual-andar" placeholder="Ex: 2º andar" class="w-full border-2 p-2 rounded" />
+
+                    <p class="font-bold mt-4 mb-2">Observação da entrega (opcional)</p>
+                    <textarea id="quarto-manual-obs" rows="2" placeholder="Ex: entregar após as 20h" class="w-full border-2 p-2 rounded"></textarea>
+                </div>
+            </div>
+
+            <!-- PASSO: encomenda (só aparece com item sob_encomenda no carrinho) -->
+            <div class="passo-carrinho" data-passo-carrinho="encomenda">
+                <div id="encomenda-section" class="oculto-modo">
+                    <p class="font-bold mt-4 mb-2">Data desejada</p>
+                    <input type="date" id="encomenda-data" class="w-full border-2 p-2 rounded" />
+                    <p class="text-red-500 hidden mt-1" id="encomenda-data-erro"></p>
+
+                    <p class="font-bold mt-4 mb-2">Foto de referência (opcional)</p>
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <label class="btn-share-whats" for="encomenda-referencia-arquivo" style="cursor:pointer;flex:0 0 auto;padding:8px 14px;">
+                            <i class="fa fa-upload"></i> Anexar foto
+                        </label>
+                        <input type="file" id="encomenda-referencia-arquivo" accept="image/*" style="display:none" />
+                        <span id="encomenda-referencia-status" style="font-size:12px;color:var(--carvao-suave);"></span>
+                    </div>
+                    <img id="encomenda-referencia-preview" style="display:none;width:64px;height:64px;border-radius:8px;object-fit:cover;margin-top:8px;" />
+                </div>
+            </div>
+
+            <!-- PASSO: pagamento — escondido no modo mesa, a conta fecha com o garçom -->
+            <div class="passo-carrinho" data-passo-carrinho="pagamento">
+                <div id="payment-section">
+                    <p class="font-bold mt-4 mb-2">Forma de pagamento:</p>
+                    <div class="flex gap-3 mb-3">
+                        <div class="delivery-option" id="pag-pix" onclick="selecionarPagamento('Pix')">
+                            <i class="fa fa-qrcode mb-1 block text-xl"></i>
+                            Pix
+                        </div>
+                        <div class="delivery-option" id="pag-dinheiro" onclick="selecionarPagamento('Dinheiro')">
+                            <i class="fa fa-money-bill mb-1 block text-xl"></i>
+                            Dinheiro
+                        </div>
+                        <div class="delivery-option" id="pag-cartao" onclick="selecionarPagamento('Cartão na entrega')">
+                            <i class="fa fa-credit-card mb-1 block text-xl"></i>
+                            Cartão
+                        </div>
+                    </div>
+                    <p class="text-red-500 hidden text-sm mt-1" id="pagamento-erro">Escolha uma forma de pagamento.</p>
+                </div>
+            </div>
+
+            <!-- PASSO: revisão final — preenchido por renderizarRevisaoCarrinho() em script.js -->
+            <div class="passo-carrinho" data-passo-carrinho="revisao">
+                <div id="resumo-final-pedido"></div>
+            </div>
+
+            <!-- Resumo de valores: fica sempre visível, em todos os passos -->
             <div id="resumo-valores">
                 <div class="resumo-linha">
                     <span>Subtotal</span>
@@ -2525,101 +2707,12 @@
                 </div>
             </div>
 
-            <!-- Etapa de Entrega/Retirada — escondida automaticamente no modo mesa (?mesa=) -->
-            <div id="delivery-type-section">
-                <p class="font-bold mt-4 mb-2">Como quer receber?</p>
-                <div class="toggle-entrega-retirada mb-3">
-                    <div class="toggle-opcao selected" id="opt-entrega" onclick="selecionarEntrega('entrega')">
-                        Entrega
-                    </div>
-                    <div class="toggle-opcao" id="opt-retirada" onclick="selecionarEntrega('retirada')">
-                        Retirada
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mesa manual — aparece só quando a loja não usa delivery nem
-                 retirada (atende só por mesa) e o cliente abriu o link geral
-                 do cardápio, sem vir de um QR Code (que já traria ?mesa= na
-                 URL). Ver aplicarMesaManual() em script.js. -->
-            <div id="mesa-manual-section" class="oculto-modo">
-                <p class="font-bold mt-4 mb-2">Qual mesa você está?</p>
-                <input type="number" id="mesa-manual-input" min="1" placeholder="Número da mesa" class="w-full border-2 p-2 rounded" />
-                <p class="text-red-500 hidden mt-1" id="mesa-manual-erro">Informe um número de mesa válido.</p>
-            </div>
-
-            <!-- Quarto (nicho Hotel/Pousada) — aparece só quando
-                 modo_loja.usaQuarto está ligado. Substitui o bloco de
-                 entrega/retirada e endereço: pedido avulso identificado
-                 pelo número do quarto, sem comanda persistente por
-                 quarto. Ver aplicarModoQuarto() em script.js. -->
-            <div id="quarto-manual-section" class="oculto-modo">
-                <p class="font-bold mt-4 mb-2">Número do quarto</p>
-                <input type="text" id="quarto-manual-numero" placeholder="Ex: 204" class="w-full border-2 p-2 rounded" />
-                <p class="text-red-500 hidden mt-1" id="quarto-manual-erro">Informe o número do quarto.</p>
-
-                <p class="font-bold mt-4 mb-2">Andar (opcional)</p>
-                <input type="text" id="quarto-manual-andar" placeholder="Ex: 2º andar" class="w-full border-2 p-2 rounded" />
-
-                <p class="font-bold mt-4 mb-2">Observação da entrega (opcional)</p>
-                <textarea id="quarto-manual-obs" rows="2" placeholder="Ex: entregar após as 20h" class="w-full border-2 p-2 rounded"></textarea>
-            </div>
-
-            <!-- Encomenda: data desejada + foto de referência — aparece só
-                 quando o carrinho tem pelo menos um item sob_encomenda -->
-            <div id="encomenda-section" class="oculto-modo">
-                <p class="font-bold mt-4 mb-2">Data desejada</p>
-                <input type="date" id="encomenda-data" class="w-full border-2 p-2 rounded" />
-                <p class="text-red-500 hidden mt-1" id="encomenda-data-erro"></p>
-
-                <p class="font-bold mt-4 mb-2">Foto de referência (opcional)</p>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                    <label class="btn-share-whats" for="encomenda-referencia-arquivo" style="cursor:pointer;flex:0 0 auto;padding:8px 14px;">
-                        <i class="fa fa-upload"></i> Anexar foto
-                    </label>
-                    <input type="file" id="encomenda-referencia-arquivo" accept="image/*" style="display:none" />
-                    <span id="encomenda-referencia-status" style="font-size:12px;color:var(--carvao-suave);"></span>
-                </div>
-                <img id="encomenda-referencia-preview" style="display:none;width:64px;height:64px;border-radius:8px;object-fit:cover;margin-top:8px;" />
-            </div>
-
-            <!-- Endereço de entrega — escondido automaticamente no modo mesa (?mesa=) -->
-            <div id="address-section">
-                <div class="endereco-card" id="endereco-card">
-                    <div class="endereco-card-icone" id="endereco-card-icone"><i class="fa fa-location-dot"></i></div>
-                    <div class="endereco-card-texto">
-                        <span class="endereco-card-label" id="endereco-card-label">ENTREGAR EM</span>
-                        <span class="endereco-card-valor" id="endereco-card-valor">Toque para informar o endereço</span>
-                    </div>
-                    <i class="fa fa-chevron-right endereco-card-seta" id="endereco-card-seta"></i>
-                </div>
-
-                
-            </div>
-
-            <!-- Forma de pagamento — no modo mesa fica opcional/escondida, já que a conta fecha com o garçom -->
-            <div id="payment-section">
-                <p class="font-bold mt-4 mb-2">Forma de pagamento:</p>
-                <div class="flex gap-3 mb-3">
-                    <div class="delivery-option" id="pag-pix" onclick="selecionarPagamento('Pix')">
-                        <i class="fa fa-qrcode mb-1 block text-xl"></i>
-                        Pix
-                    </div>
-                    <div class="delivery-option" id="pag-dinheiro" onclick="selecionarPagamento('Dinheiro')">
-                        <i class="fa fa-money-bill mb-1 block text-xl"></i>
-                        Dinheiro
-                    </div>
-                    <div class="delivery-option" id="pag-cartao" onclick="selecionarPagamento('Cartão na entrega')">
-                        <i class="fa fa-credit-card mb-1 block text-xl"></i>
-                        Cartão
-                    </div>
-                </div>
-                <p class="text-red-500 hidden text-sm mt-1" id="pagamento-erro">Escolha uma forma de pagamento.</p>
-            </div>
-
             <div class="flex items-center justify-between mt-5 w-full">
                 <button id="close-modal-btn" class="cart-fechar-btn">Fechar</button>
-                <button id="checkout-btn" class="text-white px-4 py-2 rounded font-bold" style="background-color: var(--laranja);">
+                <button id="btn-carrinho-continuar" class="text-white px-4 py-2 rounded font-bold" style="background-color: var(--laranja);">
+                    Continuar
+                </button>
+                <button id="checkout-btn" class="text-white px-4 py-2 rounded font-bold" style="display: none; background-color: var(--laranja);">
                     Finalizar pedido
                 </button>
             </div>
