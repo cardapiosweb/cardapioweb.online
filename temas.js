@@ -78,6 +78,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: sem cebola, borda fina, tirar a azeitona..." },
             rodapeDescricao: "Pizzas assadas no forno a lenha, com ingredientes frescos selecionados todos os dias. Peça pelo delivery e receba quentinha na sua casa.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -207,6 +208,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: sem cebola, carne ao ponto, molho à parte..." },
             rodapeDescricao: "Hambúrgueres montados na hora, com pão e ingredientes frescos selecionados todos os dias. Peça pelo delivery e receba quentinho na sua casa.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -271,6 +273,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: escrever 'Parabéns' no bolo, menos açúcar, sem granulado..." },
             rodapeDescricao: "Doces e bolos feitos artesanalmente, com ingredientes selecionados todos os dias. Peça pelo delivery e receba fresquinho na sua casa.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -335,6 +338,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: sem leite condensado, granola à parte, pouco açúcar..." },
             rodapeDescricao: "Açaí batido na hora, com frutas e complementos selecionados todos os dias. Peça pelo delivery e receba geladinho na sua casa.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -399,6 +403,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: bem gelada, sem gelo, entregar no guarda-sol 12..." },
             rodapeDescricao: "Bebidas geladas e petiscos direto da barraca, prontos pra chegar até você. Peça e aproveite o dia de praia.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -463,6 +468,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: ponto da carne, sem glúten, molho à parte..." },
             rodapeDescricao: "Pratos preparados com técnica e ingredientes selecionados, numa experiência gastronômica única. Peça pelo delivery ou reserve sua mesa.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
@@ -527,6 +533,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver catálogo", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: tom da base, cor preferida, embalar para presente..." },
             rodapeDescricao: "Maquiagens selecionadas com cuidado, prontas pra realçar sua beleza. Peça pelo delivery e receba na sua casa.",
             apresentacao: {
                 botaoPrincipal: "Ver catálogo completo",
@@ -582,6 +589,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver serviços", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: referência de corte ou cor, preferência de profissional..." },
             rodapeDescricao: "Serviços de beleza e bem-estar feitos com carinho e atenção. Agende seu horário e venha se cuidar.",
             apresentacao: {
                 botaoPrincipal: "Ver serviços",
@@ -637,6 +645,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver atendimentos", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: preferência de horário, informação importante para o atendimento..." },
             rodapeDescricao: "Atendimento com cuidado, respeito e profissionais qualificados. Agende seu horário e cuide da sua saúde.",
             apresentacao: {
                 botaoPrincipal: "Ver atendimentos",
@@ -692,6 +701,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver serviços", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: detalhes do serviço, melhor horário, pontos de atenção..." },
             rodapeDescricao: "Serviços e espaços com atendimento de confiança e horário marcado. Reserve o seu e fale com a gente.",
             apresentacao: {
                 botaoPrincipal: "Ver serviços",
@@ -757,6 +767,7 @@ const TEMAS = {
             },
             heroCtas: { primaria: "Ver cardápio", secundaria: "Chamar no WhatsApp" },
             seloCarimbo: null,
+            observacao: { placeholder: "Ex: alguma preferência ou detalhe sobre o seu pedido..." },
             rodapeDescricao: "Produtos selecionados com cuidado, prontos pra pedir pelo delivery e chegar rapidinho até você.",
             apresentacao: {
                 botaoPrincipal: "Ver cardápio completo",
