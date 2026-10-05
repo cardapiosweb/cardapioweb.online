@@ -117,10 +117,16 @@ window.aplicarConfiguracaoDaLoja = function (loja) {
 
         const linkFontes = document.getElementById("fontes-tema")
         if (linkFontes) {
+            // Fontes script com mais de um peso disponível. Qualquer outra
+            // (Caveat Brush, Pacifico, Kalam, Great Vibes...) é pedida só no
+            // peso padrão, senão o Google recusa o link inteiro.
+            const SCRIPT_COM_PESOS = ["Caveat", "Cormorant Garamond", "Inter", "Nunito"]
+            const nomeUrl = nome => nome.replace(/ /g, "+")
+            const pesoScript = SCRIPT_COM_PESOS.includes(tema.fontes.script) ? ":wght@600;700" : ""
             const familias = [
-                `${tema.fontes.titulo}:wght@500;600;700;800`,
-                `${tema.fontes.texto}:wght@400;500;600;700`,
-                `${tema.fontes.script}:wght@600;700`
+                `${nomeUrl(tema.fontes.titulo)}:wght@500;600;700;800`,
+                `${nomeUrl(tema.fontes.texto)}:wght@400;500;600;700`,
+                `${nomeUrl(tema.fontes.script)}${pesoScript}`
             ].join("&family=")
             linkFontes.href = `https://fonts.googleapis.com/css2?family=${familias}&display=swap`
         }
