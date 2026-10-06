@@ -917,6 +917,7 @@
                 <div class="upload-area">
                     <button class="btn-secundario btn-upload" id="btn-conectar-impressora" type="button" style="display:none;"><i class="fab fa-bluetooth-b"></i> Conectar impressora</button>
                     <button class="btn-secundario btn-upload" id="btn-testar-impressora" type="button"><i class="fa fa-print"></i> Imprimir teste</button>
+                    <button class="btn-secundario btn-upload" id="btn-reimprimir-impressora" type="button"><i class="fa fa-rotate-right"></i> Reimprimir última comanda</button>
                     <span id="impressora-status" class="upload-status"></span>
                 </div>
                 </div>
@@ -1347,6 +1348,7 @@ function iniciarAudioContexto() {
 
 function tocarBeepPedidoNovo() {
     if (!audioCtx) return
+    if (audioCtx.state === "suspended") audioCtx.resume()
     // dois toques curtos, mais fácil de notar do que um beep só
     ;[0, 0.18].forEach(atraso => {
         const osc = audioCtx.createOscillator()
@@ -1607,7 +1609,10 @@ async function tentarReconectarImpressoraAutomaticamente() {
 // Impressoras térmicas baratas costumam não ter suporte confiável a
 // acentuação — por segurança, tira os acentos antes de imprimir.
 function removerAcentosImpressora(texto) {
-    return String(texto).normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    return String(texto)
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\x20-\x7E\n]/g, "")
 }
 
 function montarComandosEscPos(titulo, linhasTexto, totalFormatado) {
@@ -1620,13 +1625,16 @@ function montarComandosEscPos(titulo, linhasTexto, totalFormatado) {
     bytes.push(ESC, 0x21, 0x30)       // fonte grande + negrito
     texto(titulo + "\n")
     bytes.push(ESC, 0x21, 0x00)       // fonte normal
+    texto(new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) + "\n")
     bytes.push(ESC, 0x61, 0x00)       // alinha à esquerda
     texto("--------------------------------\n")
     linhasTexto.forEach(linha => texto(linha + "\n"))
-    texto("--------------------------------\n")
-    bytes.push(ESC, 0x21, 0x10)       // negrito
-    texto("Total: " + totalFormatado + "\n")
-    bytes.push(ESC, 0x21, 0x00)
+    if (totalFormatado) {
+        texto("--------------------------------\n")
+        bytes.push(ESC, 0x21, 0x10)       // negrito
+        texto("Total: " + totalFormatado + "\n")
+        bytes.push(ESC, 0x21, 0x00)
+    }
     texto("\n\n\n")
     bytes.push(GS, 0x56, 0x00)        // corta o papel, se a impressora tiver guilhotina
 
@@ -1661,8 +1669,15 @@ function imprimirViaRawBT(dadosEscPos) {
 function formatarItensParaImpressao(itens) {
     return Object.values(itens).map(i => {
         const linhaOpcoes = i.opcoes && i.opcoes.length ? "\n  " + agruparOpcoesPorGrupo(i.opcoes).join("\n  ") : ""
-        return `${i.quantity}x ${i.name}${linhaOpcoes}`
+        const linhaObs = i.observacao ? "\n  Obs: " + i.observacao : ""
+        return `${i.quantity}x ${i.name}${linhaOpcoes}${linhaObs}`
     })
+}
+
+// Usa o texto completo do pedido (o mesmo que vai pro WhatsApp): já traz
+// endereço, bairro, taxa, forma de pagamento e observações.
+function formatarMensagemParaImpressao(mensagem) {
+    return String(mensagem || "").replace(/\*/g, "").split("\n")
 }
 
 // Envia direto pra impressora conectada via Web Bluetooth (impressoras
@@ -1673,7 +1688,7 @@ async function imprimirComandaBluetooth(dadosEscPos) {
     if (!impressoraCaracteristica) return
 
     try {
-        const TAMANHO_PEDACO = 180 // a maioria das impressoras BLE não aceita um pacote grande de uma vez
+        const TAMANHO_PEDACO = 20 // tamanho seguro: a maioria das impressoras BLE só aceita ~20 bytes por escrita
         for (let i = 0; i < dadosEscPos.length; i += TAMANHO_PEDACO) {
             const pedaco = dadosEscPos.slice(i, i + TAMANHO_PEDACO)
             if (impressoraCaracteristica.properties.writeWithoutResponse) {
@@ -1681,6 +1696,7 @@ async function imprimirComandaBluetooth(dadosEscPos) {
             } else {
                 await impressoraCaracteristica.writeValue(pedaco)
             }
+            await new Promise(r => setTimeout(r, 30)) // dá tempo da impressora esvaziar o buffer
         }
     } catch (err) {
         console.error("Erro ao imprimir comanda (Bluetooth)", err)
@@ -1691,18 +1707,62 @@ async function imprimirComandaBluetooth(dadosEscPos) {
 // Ponto único chamado sempre que um pedido novo chega — decide sozinho
 // qual dos dois métodos usar, de acordo com o que o lojista escolheu
 // em "Dados da loja".
+const idsJaImpressos = new Set()
+
+function pedidoAindaNaoImpresso(id) {
+    if (!id) return true
+    if (idsJaImpressos.has(id)) return false
+    idsJaImpressos.add(id)
+    if (idsJaImpressos.size > 200) idsJaImpressos.delete(idsJaImpressos.values().next().value)
+    return true
+}
+
+const filaImpressao = []
+let imprimindoAgora = false
+let ultimaComandaImpressa = null
+const INTERVALO_ENTRE_IMPRESSOES_MS = 4000
+
+async function processarFilaImpressao() {
+    if (imprimindoAgora) return
+    imprimindoAgora = true
+
+    try {
+        while (filaImpressao.length) {
+            const dados = filaImpressao.shift()
+            if (metodoImpressaoAtual() === "rawbt") {
+                imprimirViaRawBT(dados)
+            } else {
+                await imprimirComandaBluetooth(dados)
+            }
+            // espera entre uma comanda e outra, senão a segunda atropela a primeira
+            await new Promise(r => setTimeout(r, INTERVALO_ENTRE_IMPRESSOES_MS))
+        }
+    } finally {
+        imprimindoAgora = false
+    }
+}
+
 function imprimirComanda(titulo, linhasTexto, totalFormatado) {
     const dados = montarComandosEscPos(titulo, linhasTexto, totalFormatado)
-    if (metodoImpressaoAtual() === "rawbt") {
-        imprimirViaRawBT(dados)
-    } else {
-        imprimirComandaBluetooth(dados)
-    }
+    ultimaComandaImpressa = dados
+    filaImpressao.push(dados)
+    processarFilaImpressao()
 }
 
 document.getElementById("btn-conectar-impressora").addEventListener("click", conectarImpressora)
 document.getElementById("btn-testar-impressora").addEventListener("click", () => {
     imprimirComanda("Teste de impressao", ["1x Item de teste"], "R$ 0,00")
+})
+document.getElementById("btn-reimprimir-impressora").addEventListener("click", () => {
+    if (!ultimaComandaImpressa) {
+        atualizarStatusImpressora("Nenhuma comanda foi impressa nesta sessão ainda.", false)
+        return
+    }
+    if (metodoImpressaoAtual() === "rawbt") {
+        imprimirViaRawBT(ultimaComandaImpressa)
+    } else {
+        imprimirComandaBluetooth(ultimaComandaImpressa)
+    }
 })
 aplicarVisibilidadeMetodoImpressao()
 
@@ -2201,6 +2261,23 @@ sb.auth.getSession().then(({ data }) => {
 // navegadores exigem uma interação do usuário antes de liberar áudio.
 document.addEventListener("click", iniciarAudioContexto, { once: true })
 document.addEventListener("touchstart", iniciarAudioContexto, { once: true })
+
+// Mantém a tela do aparelho ligada enquanto o painel está aberto — sem isso,
+// o Android apaga a tela, suspende a página e os pedidos novos param de chegar.
+let travaTela = null
+async function manterTelaLigada() {
+    try {
+        if (!("wakeLock" in navigator) || travaTela) return
+        travaTela = await navigator.wakeLock.request("screen")
+        travaTela.addEventListener("release", () => { travaTela = null })
+    } catch (err) {
+        console.error("Não foi possível manter a tela ligada", err)
+    }
+}
+document.addEventListener("click", manterTelaLigada)
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) manterTelaLigada()
+})
 
 // ============================================================
 // CARREGAR LOJA DO USUÁRIO LOGADO
@@ -3954,7 +4031,7 @@ function inscreverAtualizacoesMesas() {
                     if (mesaDoPedido) mesasComPedidoNovo.add(String(mesaDoPedido))
                     adicionarNotificacao(`Novo pedido — Mesa ${mesaDoPedido}`, "garcom", mesaDoPedido)
 
-                    if (payload.new && payload.new.itens) {
+                    if (payload.new && payload.new.itens && pedidoAindaNaoImpresso(payload.new.id)) {
                         const totalFormatadoImpressao = Number(payload.new.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
                         imprimirComanda(`Mesa ${mesaDoPedido}`, formatarItensParaImpressao(payload.new.itens), totalFormatadoImpressao)
                     }
@@ -4017,6 +4094,7 @@ function inscreverAtualizacoesHistoricoDelivery() {
             { event: "INSERT", schema: "public", table: "comandas_finalizadas", filter: `loja_id=eq.${lojaAtual.id}` },
             (payload) => {
                 if (payload.new.origem !== "delivery") return
+                if (!pedidoAindaNaoImpresso(payload.new.id)) return
                 tocarBeepPedidoNovo()
                 const abaAtiva = document.getElementById("secao-historico-delivery").classList.contains("ativa")
                 if (abaAtiva) {
@@ -4026,8 +4104,12 @@ function inscreverAtualizacoesHistoricoDelivery() {
                 }
                 adicionarNotificacao("Novo pedido — Delivery", "historico-delivery")
 
-                const totalFormatadoImpressao = Number(payload.new.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                imprimirComanda("Delivery", formatarItensParaImpressao(payload.new.itens || {}), totalFormatadoImpressao)
+                if (payload.new.mensagem) {
+                    imprimirComanda("Delivery", formatarMensagemParaImpressao(payload.new.mensagem), null)
+                } else {
+                    const totalFormatadoImpressao = Number(payload.new.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                    imprimirComanda("Delivery", formatarItensParaImpressao(payload.new.itens || {}), totalFormatadoImpressao)
+                }
             }
         )
         .subscribe()
@@ -4173,6 +4255,7 @@ function renderizarHistoricoMesa() {
             <div class="historico-acoes">
                 <button class="btn-historico btn-reenviar" onclick="reenviarHistorico('${c.id}', 'mesa')"><i class="fab fa-whatsapp"></i> Enviar pro WhatsApp</button>
                 <button class="btn-historico btn-copiar" id="btn-copiar-${c.id}" onclick="copiarHistorico('${c.id}', 'mesa')"><i class="fa fa-copy"></i> Copiar comanda</button>
+                <button class="btn-historico btn-copiar" onclick="imprimirHistorico('${c.id}', 'mesa')"><i class="fa fa-print"></i> Imprimir</button>
             </div>
         `
         box.appendChild(card)
@@ -4233,6 +4316,7 @@ function renderizarHistoricoDelivery() {
             <div class="historico-acoes">
                 <button class="btn-historico btn-reenviar" onclick="reenviarHistorico('${c.id}', 'delivery')"><i class="fab fa-whatsapp"></i> Enviar pro WhatsApp</button>
                 <button class="btn-historico btn-copiar" id="btn-copiar-${c.id}" onclick="copiarHistorico('${c.id}', 'delivery')"><i class="fa fa-copy"></i> Copiar comanda</button>
+                <button class="btn-historico btn-copiar" onclick="imprimirHistorico('${c.id}', 'delivery')"><i class="fa fa-print"></i> Imprimir</button>
             </div>
         `
         box.appendChild(card)
@@ -4379,6 +4463,13 @@ function reenviarHistorico(id, tipo) {
     const comanda = listaHistoricoPorTipo(tipo).find(c => c.id === id)
     if (!comanda) return
     enviarWhatsappComMensagem(comanda.mensagem, null)
+}
+
+function imprimirHistorico(id, tipo) {
+    const comanda = listaHistoricoPorTipo(tipo).find(c => c.id === id)
+    if (!comanda) return
+    const titulo = tipo === "mesa" ? `Mesa ${comanda.mesa}` : "Delivery"
+    imprimirComanda(titulo, formatarMensagemParaImpressao(comanda.mensagem), null)
 }
 
 async function copiarHistorico(id, tipo) {
